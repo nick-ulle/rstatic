@@ -1,0 +1,20 @@
+Package: ast
+Title: Manipulate Abstract Syntax Trees
+Version: 0.0.0.9000
+Authors@R: person(
+  "Nick", "Ulle", email = "nick.ulle@gmail.com", role = c("aut", "cre"))
+Description: Tools and classes for manipulating abstract syntax trees.
+Depends:
+    R (>= 3.2.0)
+Imports:
+    R6
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 5.0.1
+Collate:
+    'ast.R'
+    'ast_node.R'
+    'print.R'
+    'to_ast.R'
+    'to_r.R'
