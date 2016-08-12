@@ -2,9 +2,10 @@
 # Functions for string conversion and printing.
 #
 
+#' @export
 print.ASTNode = function(object) {
-  # TODO: print field names.
-  cat(sprintf("<%s>\n", class(object)[1]))
+  fields = paste("$", ls(object), sep = "", collapse = " ")
+  cat(sprintf("<%s> %s\n", class(object)[1], fields))
   print(to_r(object))
 }
 
