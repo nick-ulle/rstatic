@@ -6,7 +6,61 @@ syntax trees (ASTs).
 
 ### Usage 
 
-See the `to_ast` function.
+The function `to_ast` converts quoted R code to a tree of ASTNodes. For
+example:
+```r
+library("ast")
+
+# Construct a call to the `mean` function.
+expr = call("mean", c(4, 2, NA), na.rm = TRUE)
+
+# Convert to ASTNodes.
+ast = to_ast(expr)
+print(ast)
+```
+Output:
+```
+<Call> $args $clone $initialize $name $parent
+mean(c(4, 2, NA), na.rm = TRUE)
+```
+The output shows that the root node has class `Call`, which has several fields,
+and also shows the corresponding R code. The semantic components of the call
+are accessible through the fields. For instance, to get the arguments:
+```r
+ast$args
+```
+Output:
+```
+[[1]]
+<Numeric> $clone $initialize $parent $type $value
+[1]  4  2 NA
+
+$na.rm
+<Logical> $clone $initialize $parent $type $value
+[1] TRUE
+```
+Note that the nodes of the tree have reference semantics, so extracting and
+modifying a node will also modify that node in the tree. This behavior is
+different from most R objects.
+
+The function `to_r` converts a tree of ASTNodes back to R code:
+```r
+to_r(ast)
+```
+Output:
+```
+mean(c(4, 2, NA), na.rm = TRUE)
+```
+This works even if the tree has been modified, as long as the nodes still
+represent valid R code.
+
+
+## TODO
+
+* [ ] Add classes to represent lists.
+* [ ] Add parent node tracking.
+* [ ] Expand on the data structure discussion below.
+* [ ] ? Remove `type` field from literals (other packages can map these).
 
 
 ## The ASTNode Data Structure
@@ -57,13 +111,14 @@ represent nodes.
 [TODO: Add more details about the ASTNode class and its subclasses.]
 
 
-## TODO / WIP Notes
+## WIP Notes
 
 ### Parameter
 
 What if the user supplies an argument whose type conflicts with the default?
 
-Need a Parameter class because parameters are typed just like symbols.
+The `Parameter` class seems necessary because parameters are typed, like
+symbols, but may also carry default arguments.
 
 
 ### Function
