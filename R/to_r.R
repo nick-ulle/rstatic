@@ -52,6 +52,9 @@ to_r.Return = to_r.Call
 
 #' @export
 to_r.Symbol = function(node) {
+  if (node$name == "")
+    return (quote(expr = ))
+
   as.name(node$name)
 }
 
