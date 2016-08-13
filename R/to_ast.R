@@ -30,6 +30,8 @@ to_ast.for   = function(expr) do.call(For$new, lapply(expr[-1], to_ast))
 to_ast.while = function(expr) do.call(While$new, lapply(expr[-1], to_ast))
 #' @export
 `to_ast.=`   = function(expr) do.call(Assign$new, lapply(expr[-1], to_ast))
+#' @export
+`to_ast.<-`  = `to_ast.=`
 
 
 #' @export

@@ -55,9 +55,20 @@ This works even if the tree has been modified, as long as the nodes still
 represent valid R code.
 
 
+## Known Issues
+
+* Parent fields are not yet populated.
+
+* Missing classes for several language objects.
+
+
 ## TODO
 
-* [ ] Add classes to represent lists.
+* [ ] Add classes to represent:
+    * [ ] Lists
+    * [ ] Data Frames
+    * [ ] `(`
+    * [ ] S4
 * [ ] Add parent node tracking.
 * [ ] Expand on the data structure discussion below.
 * [ ] ? Remove `type` field from literals (other packages can map these).
