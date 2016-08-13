@@ -47,7 +47,10 @@ to_ast.call = function(expr) {
   # Construct call node.
   if (name == "return") {
     Return$new(args)
+  } else if (name == ".Internal") {
+    Internal$new(args)
   } else {
+    # TODO: .C .Fortran .Call .External
     Call$new(name, args)
   }
 }

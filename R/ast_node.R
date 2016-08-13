@@ -88,6 +88,19 @@ Return = R6::R6Class("Return",
   )
 )
 
+
+#' @export
+Internal = R6::R6Class("Internal",
+  inherit = Call,
+  public = list(
+    name = ".Internal",
+    initialize = function(args) {
+      self$args = args
+    }
+  )
+)
+
+
 #' @export
 Symbol = R6::R6Class("Symbol",
   inherit = ASTNode,

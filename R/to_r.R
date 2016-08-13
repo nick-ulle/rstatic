@@ -49,6 +49,16 @@ to_r.Call = function(node) {
 #' @export
 to_r.Return = to_r.Call
 
+#' @export
+to_r.Internal = function(node) {
+  # NOTE: This is a workaround because it's illegal to construct calls to
+  # .Internal.
+  node$name = "."
+  code = NextMethod()
+  code[[1]] = quote(.Internal)
+  return (code)
+}
+
 
 #' @export
 to_r.Symbol = function(node) {
