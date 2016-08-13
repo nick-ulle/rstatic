@@ -91,6 +91,12 @@ to_r.Bracket = function(node) {
 
 
 #' @export
+to_r.Paren = function(node) {
+  call("(", to_r(node$body))
+}
+
+
+#' @export
 to_r.Literal = function(node) {
   node$value
 }

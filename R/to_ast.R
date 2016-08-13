@@ -84,6 +84,12 @@ to_ast.name = function(expr) {
 
 
 #' @export
+`to_ast.(` = function(expr) {
+  Paren$new(to_ast(expr[[2]]))
+}
+
+
+#' @export
 to_ast.NULL      = function(expr) Null$new(expr)
 #' @export
 to_ast.logical   = function(expr) Logical$new(expr)

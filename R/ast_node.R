@@ -127,11 +127,23 @@ Function = R6::R6Class("Function",
   )
 )
 
+#' @export
 Bracket = R6::R6Class("Bracket",
   inherit = ASTNode,
   public = list(
     body = NULL,
     initialize = function(body = list()) {
+      self$body = body
+    }
+  )
+)
+
+#' @export
+Paren = R6::R6Class("Paren",
+  inherit = ASTNode,
+  public = list(
+    body = NULL,
+    initialize = function(body = NULL) {
       self$body = body
     }
   )

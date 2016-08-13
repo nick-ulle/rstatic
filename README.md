@@ -64,14 +64,16 @@ represent valid R code.
 
 ## TODO
 
-* [ ] Add classes to represent:
+* [ ] Population of parent field.
+* [ ] Classes to represent:
     * [ ] Lists
     * [ ] Data Frames
-    * [ ] `(`
+    * [x] `(`
     * [ ] S4
-* [ ] Add parent node tracking.
-* [ ] Expand on the data structure discussion below.
-* [ ] ? Remove `type` field from literals (other packages can map these).
+    * [ ] `...`
+* [ ] Unit tests.
+* [ ] Expansion of the data structure discussion below.
+* [ ] ? Removal of `type` field from literals (other packages can map these).
 
 
 ## The ASTNode Data Structure
