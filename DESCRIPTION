@@ -1,6 +1,6 @@
 Package: ast
 Title: Manipulate Abstract Syntax Trees
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: person(
   "Nick", "Ulle", email = "nick.ulle@gmail.com", role = c("aut", "cre"))
 Description: Tools and classes for manipulating abstract syntax trees.

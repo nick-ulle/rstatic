@@ -4,7 +4,10 @@
 #' @export
 ASTNode = R6::R6Class("ASTNode",
   public = list(
-    parent = NULL
+    parent = NULL,
+    initialize = function(parent) {
+      self$parent = parent
+    }
   )
 )
 
@@ -15,7 +18,9 @@ If = R6::R6Class("If",
     predicate = NULL,
     true = NULL,
     false = NULL,
-    initialize = function(predicate, true, false = NULL) {
+    initialize = function(parent, predicate = NULL, true = NULL, false = NULL)
+    { 
+      super$initialize(parent)
       self$predicate = predicate
       self$true = true
       self$false = false
@@ -30,7 +35,8 @@ For = R6::R6Class("For",
     ivar = NULL,
     iter = NULL,
     body = NULL,
-    initialize = function(ivar, iter, body) {
+    initialize = function(parent, ivar = NULL, iter = NULL, body = NULL) {
+      super$initialize(parent)
       self$ivar = ivar
       self$iter = iter
       self$body = body
@@ -44,7 +50,8 @@ While = R6::R6Class("While",
   public = list(
     predicate = NULL,
     body = NULL,
-    initialize = function(predicate, body) {
+    initialize = function(parent, predicate = NULL, body = NULL) {
+      super$initialize(parent)
       self$predicate = predicate
       self$body = body
     }
@@ -55,11 +62,12 @@ While = R6::R6Class("While",
 Assign = R6::R6Class("Assign",
   inherit = ASTNode,
   public = list(
-    left = NULL,
-    right = NULL,
-    initialize = function(left, right) {
-      self$left = left
-      self$right = right
+    write = NULL,
+    read = NULL,
+    initialize = function(parent, write = NULL, read = NULL) {
+      super$initialize(parent)
+      self$write = write
+      self$read = read
     }
   )
 )
@@ -70,7 +78,8 @@ Call = R6::R6Class("Call",
   public = list(
     name = NULL,
     args = NULL,
-    initialize = function(name, args) {
+    initialize = function(parent, name, args = NULL) {
+      super$initialize(parent)
       self$name = name
       self$args = args
     }
@@ -81,9 +90,8 @@ Call = R6::R6Class("Call",
 Return = R6::R6Class("Return",
   inherit = Call,
   public = list(
-    name = "return",
-    initialize = function(args) {
-      self$args = args
+    initialize = function(parent, args = NULL) {
+      super$initialize(parent, "return", args)
     }
   )
 )
@@ -93,9 +101,8 @@ Return = R6::R6Class("Return",
 Internal = R6::R6Class("Internal",
   inherit = Call,
   public = list(
-    name = ".Internal",
-    initialize = function(args) {
-      self$args = args
+    initialize = function(parent, args = NULL) {
+      super$initialize(parent, ".Internal", args)
     }
   )
 )
@@ -107,7 +114,8 @@ Symbol = R6::R6Class("Symbol",
   public = list(
     name = NULL,
     type = NULL,
-    initialize = function(name, type = NULL) {
+    initialize = function(parent, name, type = NULL) {
+      super$initialize(parent)
       self$name = name
       self$type = type
     }
@@ -119,10 +127,9 @@ Parameter = R6::R6Class("Parameter",
   inherit = Symbol,
   public = list(
     default = NULL,
-    initialize = function(name, default, type = NULL) {
-      self$name = name
+    initialize = function(parent, name, default = NULL, type = NULL) {
+      super$initialize(parent, name, type)
       self$default = default
-      self$type = type
     }
   )
 )
@@ -133,7 +140,8 @@ Function = R6::R6Class("Function",
   public = list(
     params = NULL,
     body = NULL,
-    initialize = function(params, body) {
+    initialize = function(parent, params = NULL, body = NULL) {
+      super$initialize(parent)
       self$params = params
       self$body = body
     }
@@ -145,7 +153,8 @@ Bracket = R6::R6Class("Bracket",
   inherit = ASTNode,
   public = list(
     body = NULL,
-    initialize = function(body = list()) {
+    initialize = function(parent, body = list()) {
+      super$initialize(parent)
       self$body = body
     }
   )
@@ -156,7 +165,8 @@ Paren = R6::R6Class("Paren",
   inherit = ASTNode,
   public = list(
     body = NULL,
-    initialize = function(body = NULL) {
+    initialize = function(parent, body = NULL) {
+      super$initialize(parent)
       self$body = body
     }
   )
@@ -167,10 +177,9 @@ Literal = R6::R6Class("Literal",
   inherit = ASTNode,
   public = list(
     value = NULL,
-    type = NULL,
-    initialize = function(value, type = NULL) {
+    initialize = function(parent, value) {
+      super$initialize(parent)
       self$value = value
-      self$type = type
     }
   )
 )
@@ -179,9 +188,8 @@ Literal = R6::R6Class("Literal",
 Null = R6::R6Class("Null",
   inherit = Literal,
   public = list(
-    initialize = function(value = NULL, type = NULL) {
-      self$value = NULL
-      self$type = type
+    initialize = function(parent) {
+      super$initialize(parent, NULL)
     }
   )
 )

@@ -37,7 +37,7 @@ to_r.While = function(node) {
 
 #' @export
 to_r.Assign = function(node) {
-  call("=", to_r(node$left), to_r(node$right))
+  call("=", to_r(node$write), to_r(node$read))
 }
 
 

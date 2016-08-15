@@ -4,7 +4,7 @@
 \alias{to_ast}
 \title{Convert R Code to ASTNodes}
 \usage{
-to_ast(expr)
+to_ast(expr, parent = NULL)
 }
 \arguments{
 \item{expr}{(language) The R code to be converted.}
