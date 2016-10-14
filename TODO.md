@@ -2,6 +2,8 @@
 # TODO
 
 * [x] Population of parent field.
+* [ ] Mutators are represented as assignment with a call as the write operand,
+  but should be represented as a call to the mutator.
 * [ ] Classes to represent:
     * [ ] Lists
     * [ ] Data Frames
