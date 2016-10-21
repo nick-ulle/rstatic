@@ -12,6 +12,12 @@ ASTNode = R6::R6Class("ASTNode",
 )
 
 #' @export
+Next = R6::R6Class("Next", inherit = ASTNode)
+
+#' @export
+Break = R6::R6Class("Break", inherit = ASTNode)
+
+#' @export
 If = R6::R6Class("If",
   inherit = ASTNode,
   public = list(

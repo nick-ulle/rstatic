@@ -1,5 +1,5 @@
 #
-# Methods for converting to trees of ASTNodes.
+# Methods for converting to trees of ASTNode objects.
 #
 
 #' @include ast_node.R
@@ -75,6 +75,10 @@ to_ast_.call = function(expr, parent = NULL) {
   # Function definitions are special case.
   if (name == "function")
     return (to_ast_function_def(expr, parent))
+  else if (name == "break")
+    return (Break$new(parent))
+  else if (name == "next")
+    return (Next$new(parent))
 
   
   # Construct call node.

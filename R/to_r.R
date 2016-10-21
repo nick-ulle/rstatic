@@ -15,6 +15,18 @@ to_r = function(node) {
 
 
 #' @export
+to_r.Next = function(node) {
+  call("next")
+}
+
+
+#' @export
+to_r.Break = function(node) {
+  call("break")
+}
+
+
+#' @export
 to_r.If = function(node) {
   if (is.null(node$false))
     call("if", to_r(node$predicate), to_r(node$true))
