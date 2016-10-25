@@ -15,6 +15,9 @@ RoxygenNote: 5.0.1
 Collate:
     'ast.R'
     'ast_node.R'
+    'stack.R'
+    'basic_block.R'
     'print.R'
     'to_ast.R'
+    'to_cfg.R'
     'to_r.R'
