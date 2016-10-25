@@ -38,8 +38,10 @@ to_ast_ = function(expr, parent = NULL) {
 to_ast_.if    = function(expr, parent = NULL) {
   node = If$new(parent)
   node$predicate = to_ast_(expr[[2]], node)
-  node$true      = to_ast_(expr[[3]], node)
-  node$false     = to_ast_()
+  node$true  = to_ast_(expr[[3]], node)
+  node$false = if (length(expr) == 4) to_ast_(expr[[4]], node)
+               else NULL
+
   return (node)
 }
 #' @export
