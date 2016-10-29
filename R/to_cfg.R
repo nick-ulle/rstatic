@@ -9,90 +9,114 @@ to_cfg = function(expr) {
 }
 
 
-to_cfg_ = function(node, block = BasicBlock$new(), state = CFGState$new()) {
+to_cfg_ = function(node, builder = CFGBuilder$new()) {
+  # If the current block is terminated, ascend to the call that created the
+  # current block (that is, stop adding instructions).
+  if (builder$block$is_terminated)
+    return (NULL)
+
   UseMethod("to_cfg_")
 }
 
 
-to_cfg_.If = function(node, block = BasicBlock$new(), state = CFGState$new()) {
+to_cfg_.If = function(node, builder = CFGBuilder$new()) {
+  # NOTE: a separate entry block is not strictly necessary.
+  blk_entry = BasicBlock$new()
+  builder$block$set_branch(blk_entry)
+
   blk_true = BasicBlock$new()
   blk_false = BasicBlock$new()
-
-  block$set_branch(node$predicate, blk_true, blk_false)
+  blk_entry$set_branch(blk_true, blk_false, node$predicate)
 
   # Compute flow graph for "true" branch.
-  blk_true = to_cfg_(node$body, blk_true, state)
+  builder$block = blk_true
+  to_cfg_(node$true, builder)
 
-  # If "false" branch doesn't exist, use its block as the join block.
   if (is.null(node$false)) {
-    blk_join = blk_false
+    # If "false" branch doesn't exist, use its block as the exit block.
+    blk_exit = blk_false
   } else {
-    blk_join = BasicBlock$new()
-
     # Compute flow graph for "false" branch.
-    blk_false = to_cfg_(node$false, blk_false, state)
-    blk_false$set_jump(blk_join)
+    builder$block = blk_false
+    to_cfg_(node$false, builder)
+
+    blk_exit = BasicBlock$new()
+    builder$block$set_branch(blk_exit)
   }
 
-  blk_true$set_jump(blk_join)
+  blk_true$set_branch(blk_exit)
+  builder$block = blk_exit
 
-  return (blk_join)
+  return (blk_exit)
 }
 
 
-to_cfg_.While = function(node, block = BasicBlock$new(), state = CFGState$new()) {
-  blk_guard = BasicBlock$new()
+to_cfg_.While = function(node, builder = CFGBuilder$new()) {
+  blk_entry = BasicBlock$new()
+  builder$block$set_branch(blk_entry)
+
   blk_body = BasicBlock$new()
-  blk_join = BasicBlock$new()
-  
-  block$set_jump(blk_guard)
-  blk_guard$set_branch(node$predicate, blk_body, blk_join)
+  blk_exit = BasicBlock$new()
+  blk_entry$set_branch(blk_body, blk_exit, node$predicate)
 
-  blk_body = to_cfg_(node$body, blk_body, state)
-  blk_body$set_jump(blk_guard)
-  
-  # FIXME: pop stack of break and next blocks.
-  while (length(state$breaks) > 0) {
-    state$breaks$pop()
-  }
+  # Compute flow graph for loop body.
+  builder$loop_entry$push(blk_entry)
+  builder$loop_exit$push(blk_exit)
+  builder$block = blk_body
 
-  while (length(state$nexts) > 0) {
-    state$nexts$pop()
-  }
+  to_cfg_(node$body, builder)
 
-  return (blk_join)
+  builder$loop_entry$pop()
+  builder$loop_exit$pop()
+
+  # Add the backedge; breaks and nexts were already handled.
+  builder$block$set_branch(blk_entry)
+
+  return (blk_exit)
 }
 
 
-to_cfg_.For = function(node, block = BasicBlock$new(), state = CFGState$new()) {
-  blk_guard = BasicBlock$new()
+to_cfg_.For = function(node, builder = CFGBuilder$new()) {
+  blk_entry = BasicBlock$new()
+  builder$block$set_branch(blk_entry)
+
   blk_body = BasicBlock$new()
-  blk_join = BasicBlock$new()
-  
-  block$set_jump(blk_guard)
-  blk_guard$set_iterator(node$ivar, node$iter, blk_body, blk_join)
+  blk_exit = BasicBlock$new()
+  blk_entry$set_iterate(blk_body, blk_exit, node$ivar, node$iter)
 
-  blk_body = to_cfg_(node$body, blk_body, state)
-  blk_body$set_jump(blk_guard)
+  builder$loop_entry$push(blk_entry)
+  builder$loop_exit$push(blk_exit)
+  builder$block = blk_body
 
-  # FIXME: pop stack of break and next blocks.
+  to_cfg_(node$body, builder)
 
-  return (blk_join)
+  builder$loop_entry$pop()
+  builder$loop_exit$pop()
+
+  builder$block$set_branch(blk_entry)
+
+  return (blk_exit)
 }
 
 
-to_cfg_.Break = function(node, block = BasicBlock$new(), state = CFGState$new()) {
-  # Push block onto stack of break blocks.
+to_cfg_.Break = function(node, builder = CFGBuilder$new()) {
+  builder$block$set_jump(builder$loop_exit$peek())
 }
 
 
-to_cfg_.Next = function(node, block = BasicBlock$new(), state = CFGState$new()) {
-  # Push block to stack of next blocks.
+to_cfg_.Next = function(node, builder = CFGBuilder$new()) {
+  builder$block$set_jump(builder$loop_entry$peek())
 }
 
 
-to_cfg_.Call = function(node, block = BasicBlock$new(), state = CFGState$new()) {
-  cfg$append_node(node)
+to_cfg_.Call = function(node, builder = CFGBuilder$new()) {
+  builder$block$body = append(builder$block$body, node)
 
-  return (block)
+  return (builder$block)
+}
+
+to_cfg_.Bracket = function(node, builder = CFGBuilder$new()) {
+  lapply(node$body, to_cfg_, builder)
+
+  return (builder$block)
 }
