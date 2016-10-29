@@ -56,10 +56,14 @@ While = R6::R6Class("While",
   public = list(
     predicate = NULL,
     body = NULL,
-    initialize = function(parent, predicate = NULL, body = NULL) {
+    is_repeat = FALSE,
+    initialize = function(parent, predicate = NULL, body = NULL,
+      is_repeat = FALSE) {
+
       super$initialize(parent)
       self$predicate = predicate
       self$body = body
+      self$is_repeat = is_repeat
     }
   )
 )

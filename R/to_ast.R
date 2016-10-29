@@ -44,6 +44,7 @@ to_ast_.if    = function(expr, parent = NULL) {
 
   return (node)
 }
+
 #' @export
 to_ast_.for = function(expr, parent = NULL) {
   node = For$new(parent)
@@ -52,13 +53,24 @@ to_ast_.for = function(expr, parent = NULL) {
   node$body = to_ast_(expr[[4]], node)
   return (node)
 }
+
 #' @export
 to_ast_.while = function(expr, parent = NULL) {
   node = While$new(parent)
   node$predicate = to_ast_(expr[[2]], node)
-  node$body      = to_ast_(expr[[3]], node)
+  node$body = to_ast_(expr[[3]], node)
   return (node)
 }
+
+#' Convert a repeat to an ASTNode
+#'
+to_ast_repeat = function(expr, parent = NULL) {
+  node = While$new(parent, predicate = TRUE, is_repeat = TRUE)
+  node$body = to_ast_(expr[[2]], node)
+  return (node)
+}
+
+
 #' @export
 `to_ast_.=` = function(expr, parent = NULL) {
   node = Assign$new(parent)
@@ -74,16 +86,19 @@ to_ast_.while = function(expr, parent = NULL) {
 to_ast_.call = function(expr, parent = NULL) {
   name = as.character(expr[[1]])
 
-  # Function definitions are special case.
+  # Handle "calls" that don't use the standard call syntax. Most of these are
+  # actually keywords.
   if (name == "function")
     return (to_ast_function_def(expr, parent))
+  else if (name == "repeat")
+    return (to_ast_repeat(expr, parent))
   else if (name == "break")
     return (Break$new(parent))
   else if (name == "next")
     return (Next$new(parent))
 
   
-  # Construct call node.
+  # The standard call syntax applies, so construct an appropriate node.
   node = 
     if (name == "return") {
       Return$new(parent)

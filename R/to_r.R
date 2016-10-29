@@ -43,7 +43,10 @@ to_r.For = function(node) {
 
 #' @export
 to_r.While = function(node) {
-  call("while", to_r(node$predicate), to_r(node$body))
+  if (node$is_repeat)
+    call("repeat", to_r(node$body))
+  else
+    call("while", to_r(node$predicate), to_r(node$body))
 }
 
 
