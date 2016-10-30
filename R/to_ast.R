@@ -102,6 +102,8 @@ to_ast_.call = function(expr, parent = NULL) {
   node = 
     if (name == "return") {
       Return$new(parent)
+    } else if (name == "invisible") {
+      Return$new(parent, is_invisible = TRUE)
     } else if (name == ".Internal") {
       # TODO: .C .Fortran .Call .External
       Internal$new(parent)

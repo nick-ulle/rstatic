@@ -100,8 +100,14 @@ Call = R6::R6Class("Call",
 Return = R6::R6Class("Return",
   inherit = Call,
   public = list(
-    initialize = function(parent, args = NULL) {
+    is_invisible = FALSE,
+    initialize = function(parent, args = NULL, is_invisible = FALSE) {
       super$initialize(parent, "return", args)
+      self$is_invisible = is_invisible
+      if (self$is_invisible)
+        self$name = "invisible"
+      else
+        self$name = "return"
     }
   )
 )
