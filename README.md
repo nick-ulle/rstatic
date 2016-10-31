@@ -3,7 +3,31 @@
 ast
 ===
 
-This package contains data structures and tools for manipulating R's abstract syntax trees (ASTs).
+A package of data structures and tools for manipulating R code.
+
+GNU R has built-in support for treating code as data, referred to variously as *programming on the language*, *metaprogramming*, or *reflection*. The `quote()` function (among others) returns the unevaluated parse tree for an R expression. A parse tree represents expressions as a tree where each node is an operation or an object. Function calls, primitive operations, and keywords are operations; variables and literal values are objects. The children of an operation are its arguments. Objects only appear as leaves in the tree, since they cannot have arguments. Parse trees can be manipulated using standard R syntax; for example, nodes can be accessed with `[[`, the indexing operator.
+
+Several properties of R's parse trees make them an inconvenient data structure for modifying code:
+
+1.  They use copy-on-write semantics, so nodes can't be referenced. Instead, each node stores all of its descendants, but is unaware of its ancestors. This also makes it difficult to track a specific node across a sequence of transformations of the tree.
+
+2.  `call` nodes are used for several semantically distinct operations. For example, `repeat` and `return()` are represented by `call` objects. This devalues method dispatch as a strategy for tree traversal.
+
+3.  They explicitly model the code's syntax, but syntax is rarely informative for translation, optimization, and other goals of code analysis.
+
+This package contains alternatives to R's parse trees.
+
+The `to_ast()` function converts an R expression to an abstract syntax tree (AST). The nodes of the AST are [R6](https://github.com/wch/R6/) classes, so they use reference semantics and every node is aware of its ancestors. Different classes are used for nodes that represent semantically distinct operations. An AST can be converted back to an R parse tree with the `to_r()` function.
+
+### Installation
+
+The easiest way to install this package is with devtools:
+
+``` r
+install.packages("devtools")
+
+devtools::install_github("nick-ulle/ast")
+```
 
 ### Usage
 
@@ -42,15 +66,12 @@ to_r(ast)
 
 This works even if the tree has been modified, as long as the nodes still represent valid R code.
 
-Known Issues
-------------
+### Known Issues
 
--   Missing classes for several language objects.
+See the [to-do list](TODO.md).
 
--   No unit tests.
-
-The ASTNode Data Structure
---------------------------
+Additional Notes
+----------------
 
 Many analyses produce information which applies to specific nodes in the AST of a source program. For languages that do not enforce variable types (such as R), type inference is an example of this. Type inference associates a type with each variable, but the type of a variable may change over the course of the program. A useful type inference system must not only determine the set of types associated with a variable, but also map those types to specific occurrences of the variable. In other words, the information must be mapped back to the nodes in the AST. GNU R represents nodes by language objects, and there are three natural ways to map information to nodes:
 
@@ -67,20 +88,3 @@ The third approach converts the nodes from language objects to an alternate repr
 Based on these ideas, this package uses subclasses of the R6 class ASTNode to represent nodes.
 
 \[TODO: Add more details about the ASTNode class and its subclasses.\]
-
-WIP Notes
----------
-
-### Parameter
-
-What if the user supplies an argument whose type conflicts with the default?
-
-The `Parameter` class seems necessary because parameters are typed, like symbols, but may also carry default arguments.
-
-### Function
-
-Stores the args as a list of ASTNodes and also the defaults as a list of ASTNodes.
-
-Also need a structure for storing a function; this is what `ast.function` should return.
-
-This is technically a kind of literal.
