@@ -97,6 +97,9 @@ Call = R6::R6Class("Call",
 )
 
 #' @export
+Replacement = R6::R6Class("Replacement", inherit = Call)
+
+#' @export
 Return = R6::R6Class("Return",
   inherit = Call,
   public = list(

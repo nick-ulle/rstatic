@@ -61,6 +61,17 @@ to_r.Call = function(node) {
   args = lapply(node$args, to_r)
   do.call(call, append(node$name, args), quote = TRUE)
 }
+
+#' @export
+to_r.Replacement = function(node) {
+  args = lapply(node$args, to_r)
+  len = length(args)
+
+  name = gsub("<-", "", node$name, fixed = TRUE)
+  write = do.call(call, append(name, args[-len]), quote = TRUE)
+  call("=", write, args[[len]])
+}
+
 #' @export
 to_r.Return = to_r.Call
 

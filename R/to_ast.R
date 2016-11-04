@@ -73,11 +73,25 @@ to_ast_repeat = function(expr, parent = NULL) {
 
 #' @export
 `to_ast_.=` = function(expr, parent = NULL) {
-  node = Assign$new(parent)
-  node$read  = to_ast_(expr[[3]], node)
-  node$write = to_ast_(expr[[2]], node)
+  read = expr[[3]]
+  write = expr[[2]]
+
+  if (inherits(write, "call")) {
+    node = Replacement$new(parent, paste0(write[[1]], "<-"))
+    read = to_ast_(read, node)
+    write = lapply(write[-1], to_ast_, node)
+    # FIXME: the read argument is for the "value" parameter.
+    node$args = append(write, read)
+
+  } else {
+    node = Assign$new(parent)
+    node$read = to_ast_(read, node)
+    node$write = to_ast_(write, node)
+  }
+
   return (node)
 }
+
 #' @export
 `to_ast_.<-` = `to_ast_.=`
 
@@ -96,7 +110,6 @@ to_ast_.call = function(expr, parent = NULL) {
     return (Break$new(parent))
   else if (name == "next")
     return (Next$new(parent))
-
   
   # The standard call syntax applies, so construct an appropriate node.
   node = 
