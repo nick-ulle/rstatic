@@ -5,14 +5,14 @@
   * [x] `repeat` is `while (TRUE)`
   * [ ] if-statements nested in other expressions
   * [ ] loops nested in other expressions
-  * [ ] mutators: parse trees represent `length(x) <- 6` as
+  * [x] mutators: parse trees represent `length(x) <- 6` as
   `"<-"(length(x), 6)` but the meaning is `"length<-"(x, 6)`. That is, this is
   a call to a mutator, not an assignment to a call.
 
 * [ ] Control flow
   * [x] if-statements
   * [x] while-loops
-  * [ ] for-loops
+  * [x] for-loops
   * [x] `break` and `next`: keep list of broken nodes
   * [ ] `return()`
   * [x] Separate classes for loop header blocks?

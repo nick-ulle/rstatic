@@ -8,15 +8,19 @@ Depends:
     R (>= 3.2.0)
 Imports:
     R6
+Suggests:
+    igraph
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 5.0.1
 Collate:
+    'as_igraph.R'
     'ast.R'
     'ast_node.R'
-    'stack.R'
     'basic_block.R'
+    'stack.R'
+    'graph.R'
     'print.R'
     'to_ast.R'
     'to_cfg.R'

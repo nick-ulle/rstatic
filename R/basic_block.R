@@ -1,58 +1,25 @@
-
 # Classes that represent basic blocks.
-
-#' @include stack.R
-NULL
-
-#' @export
-CFGBuilder = R6::R6Class("CFGBuilder",
-  public = list(
-    block = NULL,
-    loop_entry = NULL,
-    loop_exit = NULL,
-
-    initialize = function(block = BasicBlock$new()) {
-      self$block = block
-      self$loop_entry = Stack$new()
-      self$loop_exit = Stack$new()
-    }
-  )
-)
 
 
 #' @export
 BasicBlock = R6::R6Class("BasicBlock",
   public = list(
-    name = ""
-    , body = NULL
-    , terminator = NULL
-    , predecessors = list()
+    body = NULL,
+    terminator = NULL,
+    predecessors = integer(0),
 
-    , initialize = function(body = list()) {
+    initialize = function(body = list()) {
       self$body = body
       return (self)
-    }
+    },
 
-    , add_predecessor = function(block) {
-      # FIXME: use a union here.
-      self$predecessors = append(self$predecessors, block)
+    add_predecessor = function(block) {
+      self$predecessors = union(self$predecessors, block)
       return (self)
-    }
+    },
 
-    , set_branch = function(block_true, block_false = NULL, predicate = NULL) {
-      self$terminator = BranchInst$new(block_true, block_false, predicate)
-      block_true$add_predecessor(self)
-      if (!is.null(block_false))
-        block_false$add_predecessor(self)
-
-      return (self)
-    }
-
-    , set_iterate = function(block_body, block_exit, ivar, iter) {
-      self$terminator = IterateInst$new(block_body, block_exit, ivar, iter)
-      block_body$add_predecessor(self)
-      block_exit$add_predecessor(self)
-
+    append = function(node) {
+      self$body = append(self$body, node)
       return (self)
     }
   ),
@@ -65,7 +32,7 @@ BasicBlock = R6::R6Class("BasicBlock",
     , successors = function() {
       if (self$is_terminated)
         return (self$terminator$successors)
-      return (list())
+      return (integer(0))
     }
   )
 )
@@ -76,20 +43,20 @@ Terminator = R6::R6Class("Terminator")
 #' @export
 BranchInst = R6::R6Class("BranchInst", inherit = Terminator,
   public = list(
-    predicate = NULL
-    , block_true = NULL
-    , block_false = NULL
+    true = NULL, # FIXME:
+    false = NULL,
+    condition = NULL,
 
-    , initialize = function(block_true, block_false = NULL, predicate = NULL) {
-      self$block_true = block_true
-      self$block_false = block_false
-      self$predicate = predicate
+    initialize = function(to_t, to_f = NULL, condition = NULL) {
+      self$true = to_t
+      self$false = to_f
+      self$condition = condition
     }
   ),
 
   active = list(
     successors = function() {
-      return (list(self$block_true, self$block_false))
+      return (c(self$true, self$false))
     }
   )
 )
@@ -97,14 +64,13 @@ BranchInst = R6::R6Class("BranchInst", inherit = Terminator,
 #' @export
 IterateInst = R6::R6Class("IterateInst", inherit = Terminator,
   public = list(
-    block_body = NULL
-    , block_exit = NULL
-    , ivar = NULL
-    , iter = NULL
+    to = integer(2), # FIXME:
+    ivar = NULL,
+    iter = NULL,
 
-    , initialize = function(block_body, block_exit, ivar, iter) {
-      self$block_body = block_body
-      self$block_exit = block_exit
+    initialize = function(to_body, to_exit, ivar, iter) {
+      self$to[[1]] = to_body
+      self$to[[2]] = to_exit
       self$ivar = ivar
       self$iter = iter
     }
@@ -112,7 +78,7 @@ IterateInst = R6::R6Class("IterateInst", inherit = Terminator,
 
   active = list(
     successors = function() {
-      return (list(self$block_body, self$block_exit))
+      return (self$to)
     }
   )
 )

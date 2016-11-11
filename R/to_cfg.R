@@ -9,114 +9,113 @@ to_cfg = function(expr) {
 }
 
 
-to_cfg_ = function(node, builder = CFGBuilder$new()) {
-  # If the current block is terminated, ascend to the call that created the
-  # current block (that is, stop adding instructions).
-  if (builder$block$is_terminated)
-    return (NULL)
+to_cfg_ = function(node, cfg = CFGraph$new()) {
+  # If exit block is terminated, do nothing until change of branch.
+  if (cfg$loop_open)
+    UseMethod("to_cfg_")
 
-  UseMethod("to_cfg_")
+  return (cfg)
 }
 
 
-to_cfg_.If = function(node, builder = CFGBuilder$new()) {
-  # NOTE: a separate entry block is not strictly necessary.
-  blk_entry = BasicBlock$new()
-  builder$block$set_branch(blk_entry)
+to_cfg_.If = function(node, cfg = CFGraph$new()) {
+  entry_t = cfg$new_block()
+  entry_f = cfg$new_block()
+  cfg$branch(entry_t, entry_f, node$predicate)
 
-  blk_true = BasicBlock$new()
-  blk_false = BasicBlock$new()
-  blk_entry$set_branch(blk_true, blk_false, node$predicate)
-
-  # Compute flow graph for "true" branch.
-  builder$block = blk_true
-  to_cfg_(node$true, builder)
+  exit_t = to_cfg_(node$true, cfg)$exit
 
   if (is.null(node$false)) {
-    # If "false" branch doesn't exist, use its block as the exit block.
-    blk_exit = blk_false
-  } else {
-    # Compute flow graph for "false" branch.
-    builder$block = blk_false
-    to_cfg_(node$false, builder)
+    exit = entry_f
 
-    blk_exit = BasicBlock$new()
-    builder$block$set_branch(blk_exit)
+  } else {
+    # Switch branches.
+    cfg$change_branch(entry_f)
+    exit_f = to_cfg_(node$false, cfg)$exit
+
+    exit = cfg$new_block()
+
+    cfg$jump(from = exit_f, exit)
   }
 
-  blk_true$set_branch(blk_exit)
-  builder$block = blk_exit
+  cfg$jump(from = exit_t, exit)
 
-  return (blk_exit)
+  return (cfg)
 }
 
 
-to_cfg_.While = function(node, builder = CFGBuilder$new()) {
-  blk_entry = BasicBlock$new()
-  builder$block$set_branch(blk_entry)
+to_cfg_.While = function(node, cfg = CFGraph$new()) {
+  entry = cfg$new_block()
+  cfg$jump(entry)
 
-  blk_body = BasicBlock$new()
-  blk_exit = BasicBlock$new()
-  blk_entry$set_branch(blk_body, blk_exit, node$predicate)
+  entry_b = cfg$new_block()
+  exit = cfg$new_block()
+  cfg$branch(entry_b, exit, node$predicate)
 
   # Compute flow graph for loop body.
-  builder$loop_entry$push(blk_entry)
-  builder$loop_exit$push(blk_exit)
-  builder$block = blk_body
+  cfg$loop_push(entry, exit)
 
-  to_cfg_(node$body, builder)
+  exit_b = to_cfg_(node$body, cfg)$exit
+  if (cfg$loop_open)
+    # Add the backedge.
+    cfg$jump(from = exit_b, entry)
 
-  builder$loop_entry$pop()
-  builder$loop_exit$pop()
+  cfg$loop_pop()
 
-  # Add the backedge; breaks and nexts were already handled.
-  builder$block$set_branch(blk_entry)
+  # Switch branches.
+  cfg$change_branch(exit)
 
-  return (blk_exit)
+  return (cfg)
 }
 
 
-to_cfg_.For = function(node, builder = CFGBuilder$new()) {
-  blk_entry = BasicBlock$new()
-  builder$block$set_branch(blk_entry)
+to_cfg_.For = function(node, cfg = CFGraph$new()) {
+  entry = cfg$new_block()
+  cfg$jump(entry)
 
-  blk_body = BasicBlock$new()
-  blk_exit = BasicBlock$new()
-  blk_entry$set_iterate(blk_body, blk_exit, node$ivar, node$iter)
+  entry_b = cfg$new_block()
+  exit = cfg$new_block()
+  cfg$iterator(entry_b, exit, node$ivar, node$iter)
 
-  builder$loop_entry$push(blk_entry)
-  builder$loop_exit$push(blk_exit)
-  builder$block = blk_body
+  # Compute flow graph for loop body.
+  cfg$loop_push(entry, exit)
 
-  to_cfg_(node$body, builder)
+  exit_b = to_cfg_(node$body, cfg)$exit
+  if (cfg$loop_open)
+    # Add the backedge.
+    cfg$jump(from = exit_b, entry)
 
-  builder$loop_entry$pop()
-  builder$loop_exit$pop()
+  cfg$loop_pop()
 
-  builder$block$set_branch(blk_entry)
+  # Switch branches.
+  cfg$change_branch(exit)
 
-  return (blk_exit)
+  return (cfg)
 }
 
 
-to_cfg_.Break = function(node, builder = CFGBuilder$new()) {
-  builder$block$set_jump(builder$loop_exit$peek())
+to_cfg_.Break = function(node, cfg = CFGraph$new()) {
+  cfg$loop_break()
+  return (cfg)
 }
 
 
-to_cfg_.Next = function(node, builder = CFGBuilder$new()) {
-  builder$block$set_jump(builder$loop_entry$peek())
+to_cfg_.Next = function(node, cfg = CFGraph$new()) {
+  cfg$loop_next()
+  return (cfg)
 }
 
 
-to_cfg_.Call = function(node, builder = CFGBuilder$new()) {
-  builder$block$body = append(builder$block$body, node)
-
-  return (builder$block)
+to_cfg_.Call = function(node, cfg = CFGraph$new()) {
+  cfg$exit_block$append(node)
+  return (cfg)
 }
 
-to_cfg_.Bracket = function(node, builder = CFGBuilder$new()) {
-  lapply(node$body, to_cfg_, builder)
+to_cfg_.Symbol = to_cfg_.Call
+to_cfg_.Assign = to_cfg_.Call
 
-  return (builder$block)
+to_cfg_.Bracket = function(node, cfg = CFGraph$new()) {
+  # Handle all subexpressions; they'll automatically be added to the graph.
+  lapply(node$body, to_cfg_, cfg)
+  return (cfg)
 }
