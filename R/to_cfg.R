@@ -9,6 +9,7 @@ to_cfg = function(expr) {
 }
 
 
+#' @export
 to_cfg_ = function(node, cfg = CFGraph$new()) {
   # If exit block is terminated, do nothing until change of branch.
   if (cfg$loop_open)
@@ -17,7 +18,7 @@ to_cfg_ = function(node, cfg = CFGraph$new()) {
   return (cfg)
 }
 
-
+#' @export
 to_cfg_.If = function(node, cfg = CFGraph$new()) {
   entry_t = cfg$new_block()
   entry_f = cfg$new_block()
@@ -44,6 +45,7 @@ to_cfg_.If = function(node, cfg = CFGraph$new()) {
 }
 
 
+#' @export
 to_cfg_.While = function(node, cfg = CFGraph$new()) {
   entry = cfg$new_block()
   cfg$jump(entry)
@@ -69,6 +71,7 @@ to_cfg_.While = function(node, cfg = CFGraph$new()) {
 }
 
 
+#' @export
 to_cfg_.For = function(node, cfg = CFGraph$new()) {
   entry = cfg$new_block()
   cfg$jump(entry)
@@ -94,26 +97,32 @@ to_cfg_.For = function(node, cfg = CFGraph$new()) {
 }
 
 
+#' @export
 to_cfg_.Break = function(node, cfg = CFGraph$new()) {
   cfg$loop_break()
   return (cfg)
 }
 
 
+#' @export
 to_cfg_.Next = function(node, cfg = CFGraph$new()) {
   cfg$loop_next()
   return (cfg)
 }
 
 
+#' @export
 to_cfg_.Call = function(node, cfg = CFGraph$new()) {
   cfg$exit_block$append(node)
   return (cfg)
 }
 
+#' @export
 to_cfg_.Symbol = to_cfg_.Call
+#' @export
 to_cfg_.Assign = to_cfg_.Call
 
+#' @export
 to_cfg_.Bracket = function(node, cfg = CFGraph$new()) {
   # Handle all subexpressions; they'll automatically be added to the graph.
   lapply(node$body, to_cfg_, cfg)
