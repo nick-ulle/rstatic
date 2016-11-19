@@ -24,7 +24,7 @@ Stack = R6::R6Class("Stack",
         return (NULL)
 
       x = private$buffer[[private$len]]
-      private$buffer[[private$len]] = list(NULL)
+      private$buffer[[private$len]] = NA
       private$len = private$len - 1
       return (x)
     },
@@ -38,6 +38,28 @@ Stack = R6::R6Class("Stack",
       private$len = private$len + 1
       private$buffer[[private$len]] = x
       return (self)
+    },
+
+    push_many = function(x) {
+      if (length(x) == 0)
+        return (self)
+
+      old_len = private$len
+      len = old_len + length(x)
+      if (len > private$size) {
+        private$size = 2 ^ ceiling(log2(len))
+        length(private$buffer) = private$size
+      }
+      
+      private$len = len
+      private$buffer[(old_len + 1):len] = x
+      return (self)
+    }
+  ),
+
+  active = list(
+    is_empty = function() {
+      private$len == 0
     }
   )
 )
