@@ -121,6 +121,8 @@ to_cfg_.Call = function(node, cfg = CFGraph$new()) {
 to_cfg_.Symbol = to_cfg_.Call
 #' @export
 to_cfg_.Assign = to_cfg_.Call
+#' @export
+to_cfg_.Literal = to_cfg_.Call
 
 #' @export
 to_cfg_.Bracket = function(node, cfg = CFGraph$new()) {
