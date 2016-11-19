@@ -49,7 +49,7 @@ CFGraph = R6::R6Class("CFGraph",
     },
 
     loop_push = function(entry, exit) {
-      private$loop_stack$push(c(entry_b, exit))
+      private$loop_stack$push(c(entry, exit))
       return (self)
     },
 
