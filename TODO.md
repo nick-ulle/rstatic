@@ -20,14 +20,14 @@
   * [x] `(`
   * [x] `break` and `next`
   * [x] `invisible()`
+  * [x] Functions
   * [ ] `<<-`
-  * [ ] Functions/Closures (anonymous functions need to be carried around)
-  * [ ] Lists
-  * [ ] Data Frames
   * [ ] `...`
   * [ ] Namespace operators `::` and `:::`?
+  * [ ] Lists, Data Frames
   * [ ] S4
 
+* [ ] Closures (Functions must to keep track of parent environment)
 * [x] Population of parent field.
 * [ ] Unit tests.
 * [ ] Expansion of the data structure discussion in the README.
