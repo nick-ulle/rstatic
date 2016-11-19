@@ -12,6 +12,35 @@ CFGraph = R6::R6Class("CFGraph",
     len = 0L,
     loop_open = TRUE,
 
+    get_postorder = function(from = self$entry) {
+      # Compute the postorder traversal.
+      to_visit = Stack$new(type = "integer")
+      to_visit$push(from)
+
+      discovered = logical(self$len)
+      postorder = integer(self$len)
+      at = 1
+
+      while (!to_visit$is_empty) {
+        idx = to_visit$peek()
+
+        # Pop the block when all of its sucessors have been visited.
+        succ = self$blocks[[idx]]$successors
+        if (all(discovered[succ])) {
+          to_visit$pop()
+          postorder[at] = idx
+          at = at + 1
+
+        } else {
+          to_visit$push_many(succ[!discovered[succ]])
+          discovered[succ] = TRUE
+        } # if
+
+      } # while
+
+      return (postorder)
+    },
+
     new_block = function() {
       self$len = self$len + 1L
       self$blocks[[self$len]] = BasicBlock$new()
