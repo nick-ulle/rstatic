@@ -154,15 +154,38 @@ Parameter = R6::R6Class("Parameter",
 )
 
 #' @export
-Function = R6::R6Class("Function",
+Callable = R6::R6Class("Callable",
   inherit = ASTNode,
+  public = list(
+    params = NULL,
+    initialize = function(parent, params = NULL) {
+      super$initialize(parent)
+      self$params = params
+    }
+  )
+)
+
+#' @export
+Function = R6::R6Class("Function",
+  inherit = Callable,
   public = list(
     params = NULL,
     body = NULL,
     initialize = function(parent, params = NULL, body = NULL) {
-      super$initialize(parent)
-      self$params = params
+      super$initialize(parent, params)
       self$body = body
+    }
+  )
+)
+
+#' @export
+Primitive = R6::R6Class("Primitive",
+  inherit = Callable,
+  public = list(
+    name = NULL,
+    initialize = function(parent, params = NULL, name = NULL) {
+      super$initialize(parent, params)
+      self$name = name
     }
   )
 )

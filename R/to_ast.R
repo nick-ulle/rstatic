@@ -29,9 +29,20 @@ to_ast_ = function(expr, parent = NULL) {
 }
 
 
-#to_ast_.function = function(expr) {
-#
-#}
+#' @export
+to_ast_.function = function(expr, parent = NULL) {
+  # Construct a call for the function definition.
+  # FIXME: The function might be a closure.
+  if (is.primitive(expr)) {
+    name = as.character(substitute(expr))
+    params = formals(args(sum))
+    node = Primitive$new(parent, params, name)
+    return (node)
+  }
+
+  expr = call("function", formals(expr), body(expr))
+  to_ast_(expr, parent)
+}
 
 
 #' @export
