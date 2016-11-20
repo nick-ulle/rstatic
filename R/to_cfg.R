@@ -78,7 +78,7 @@ to_cfg_.For = function(node, cfg = CFGraph$new()) {
 
   entry_b = cfg$new_block()
   exit = cfg$new_block()
-  cfg$iterator(entry_b, exit, node$ivar, node$iter)
+  cfg$iterate(entry_b, exit, node$ivar, node$iter)
 
   # Compute flow graph for loop body.
   cfg$loop_push(entry, exit)
