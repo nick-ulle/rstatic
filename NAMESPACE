@@ -2,9 +2,12 @@
 
 S3method(format,ASTNode)
 S3method(format,BasicBlock)
+S3method(format,BranchInst)
 S3method(format,CFGraph)
+S3method(format,IterateInst)
 S3method(print,ASTNode)
 S3method(print,BasicBlock)
+S3method(print,BranchInst)
 S3method(print,CFGraph)
 S3method(to_ast_,"(")
 S3method(to_ast_,"<-")

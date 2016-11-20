@@ -64,13 +64,14 @@ BranchInst = R6::R6Class("BranchInst", inherit = Terminator,
 #' @export
 IterateInst = R6::R6Class("IterateInst", inherit = Terminator,
   public = list(
-    to = integer(2), # FIXME:
+    body = NULL,
+    exit = NULL,
     ivar = NULL,
     iter = NULL,
 
     initialize = function(to_body, to_exit, ivar, iter) {
-      self$to[[1]] = to_body
-      self$to[[2]] = to_exit
+      self$body = to_body
+      self$exit = to_exit
       self$ivar = ivar
       self$iter = iter
     }
@@ -78,7 +79,7 @@ IterateInst = R6::R6Class("IterateInst", inherit = Terminator,
 
   active = list(
     successors = function() {
-      return (self$to)
+      c(self$body, self$exit)
     }
   )
 )
