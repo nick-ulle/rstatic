@@ -191,7 +191,7 @@ Primitive = R6::R6Class("Primitive",
 )
 
 #' @export
-Bracket = R6::R6Class("Bracket",
+Brace = R6::R6Class("Brace",
   inherit = ASTNode,
   public = list(
     body = NULL,

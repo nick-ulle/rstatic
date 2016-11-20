@@ -125,7 +125,7 @@ to_cfg_.Assign = to_cfg_.Call
 to_cfg_.Literal = to_cfg_.Call
 
 #' @export
-to_cfg_.Bracket = function(node, cfg = CFGraph$new()) {
+to_cfg_.Brace = function(node, cfg = CFGraph$new()) {
   # Handle all subexpressions; they'll automatically be added to the graph.
   lapply(node$body, to_cfg_, cfg)
   return (cfg)

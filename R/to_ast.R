@@ -170,7 +170,7 @@ to_ast_.name = function(expr, parent = NULL) {
 
 #' @export
 `to_ast_.{` = function(expr, parent = NULL) {
-  node = Bracket$new(parent)
+  node = Brace$new(parent)
   node$body = lapply(expr[-1], to_ast_, node)
   return (node)
 }

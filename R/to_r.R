@@ -126,7 +126,7 @@ to_r.Primitive = function(node) {
 
 
 #' @export
-to_r.Bracket = function(node) {
+to_r.Brace = function(node) {
   body = lapply(node$body, to_r)
   do.call(call, append("{", body), quote = TRUE)
 }
