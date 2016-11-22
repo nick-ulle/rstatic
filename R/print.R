@@ -11,7 +11,7 @@
 format.ASTNode = function(x, indent = 0, ...) {
   fields = paste("$", ls(x), sep = "", collapse = " ")
   code = paste0(deparse(to_r(x)), collapse = "\n")
-  sprintf("<%s> %s\n%s\n", class(x)[1], fields, code)
+  sprintf("<%s> %s\n%s", class(x)[1], fields, code)
 }
 
 #' @export
