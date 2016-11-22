@@ -8,13 +8,15 @@
   * [x] replacement functions: parse trees represent `length(x) <- 6` as
   `"<-"(length(x), 6)` but the meaning is `"length<-"(x, 6)`. That is, this is
   a call to a replacement function, not an assignment to a call.
+  * [ ] explicit `return()` at end of function
+  * [ ] *non-breaking:* dead code after `return()`, `next`, `break`
 
-* [ ] Control flow
+* [x] Control flow
   * [x] if-statements
   * [x] while-loops
   * [x] for-loops
   * [x] `break` and `next`: keep list of broken nodes
-  * [ ] `return()`
+  * [x] `return()`
 
 * [ ] R6 classes for syntax
   * [x] `(`
@@ -27,6 +29,9 @@
   * [ ] Lists, Data Frames
   * [ ] S4
 
+* [ ] Reduce number of unnecessary blocks in generated CFGs.
+* [ ] Remove Brace class (just use lists)?
+* [ ] Return class can only have one arg.
 * [ ] Use ASTNode objects for call names, etc...
 * [ ] Closures (Functions must to keep track of parent environment)
 * [x] Population of parent field.

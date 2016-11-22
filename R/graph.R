@@ -9,8 +9,9 @@ CFGraph = R6::R6Class("CFGraph",
     blocks = list(),
     entry = NA_integer_,
     exit = NA_integer_,
+    exit_fn = NA_integer_,
     len = 0L,
-    loop_open = TRUE,
+    branch_open = TRUE,
 
     get_postorder = function(from = self$entry) {
       # Compute the postorder traversal.
@@ -73,7 +74,13 @@ CFGraph = R6::R6Class("CFGraph",
 
     change_branch = function(id) {
       self$exit = id
-      self$loop_open = TRUE
+      self$branch_open = TRUE
+      return (self)
+    },
+
+    fn_return = function(from = self$exit) {
+      self$jump(from = from, self$exit_fn)
+      self$branch_open = FALSE
       return (self)
     },
 
@@ -88,15 +95,15 @@ CFGraph = R6::R6Class("CFGraph",
 
     loop_break = function(from = self$exit) {
       exit = private$loop_stack$peek()[[2]]
-      self$jump(from, exit)
-      self$loop_open = FALSE
+      self$jump(from = from, exit)
+      self$branch_open = FALSE
       return (self)
     },
 
     loop_next = function(from = self$exit) {
       entry = private$loop_stack$peek()[[1]]
-      self$jump(from, entry)
-      self$loop_open = FALSE
+      self$jump(from = from, entry)
+      self$branch_open = FALSE
       return (self)
     },
 
