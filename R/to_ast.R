@@ -109,31 +109,39 @@ to_ast_repeat = function(expr, parent = NULL) {
 
 #' @export
 to_ast_.call = function(expr, parent = NULL) {
-  name = as.character(expr[[1]])
+  # Handle calls to anonymous functions.
+  func = expr[[1]]
+  if (inherits(func, "name")) {
+    name = as.character(func)
 
-  # Handle "calls" that don't use the standard call syntax. Most of these are
-  # actually keywords.
-  if (name == "function")
-    return (to_ast_function_def(expr, parent))
-  else if (name == "repeat")
-    return (to_ast_repeat(expr, parent))
-  else if (name == "break")
-    return (Break$new(parent))
-  else if (name == "next")
-    return (Next$new(parent))
+    # Handle "calls" that don't use the standard call syntax. Most of these are
+    # actually keywords.
+    if (name == "function")
+      return (to_ast_function_def(expr, parent))
+    else if (name == "repeat")
+      return (to_ast_repeat(expr, parent))
+    else if (name == "break")
+      return (Break$new(parent))
+    else if (name == "next")
+      return (Next$new(parent))
+
+    # The standard call syntax applies, so construct an appropriate node.
+    node =
+      if (name == "return") {
+        Return$new(parent)
+      } else if (name == "invisible") {
+        Return$new(parent, is_invisible = TRUE)
+      } else if (name == ".Internal") {
+        # TODO: .C .Fortran .Call .External
+        Internal$new(parent)
+      } else {
+        Call$new(parent, name)
+      }
   
-  # The standard call syntax applies, so construct an appropriate node.
-  node = 
-    if (name == "return") {
-      Return$new(parent)
-    } else if (name == "invisible") {
-      Return$new(parent, is_invisible = TRUE)
-    } else if (name == ".Internal") {
-      # TODO: .C .Fortran .Call .External
-      Internal$new(parent)
-    } else {
-      Call$new(parent, name)
-    }
+  } else {
+    node = Call$new(parent)
+    node$func = to_ast_(func, node)
+  }
 
   node$args = lapply(expr[-1], to_ast_, node)
   return (node)

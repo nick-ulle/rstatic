@@ -86,11 +86,11 @@ Assign = R6::R6Class("Assign",
 Call = R6::R6Class("Call",
   inherit = ASTNode,
   public = list(
-    name = NULL,
+    func = NULL,
     args = NULL,
-    initialize = function(parent, name, args = NULL) {
+    initialize = function(parent, func = NULL, args = NULL) {
       super$initialize(parent)
-      self$name = name
+      self$func = func
       self$args = args
     }
   )
@@ -101,16 +101,14 @@ Replacement = R6::R6Class("Replacement", inherit = Call)
 
 #' @export
 Return = R6::R6Class("Return",
-  inherit = Call,
+  inherit = ASTNode,
   public = list(
+    args = NULL,
     is_invisible = FALSE,
     initialize = function(parent, args = NULL, is_invisible = FALSE) {
-      super$initialize(parent, "return", args)
+      super$initialize(parent)
+      self$args = args
       self$is_invisible = is_invisible
-      if (self$is_invisible)
-        self$name = "invisible"
-      else
-        self$name = "return"
     }
   )
 )

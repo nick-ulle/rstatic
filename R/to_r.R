@@ -58,8 +58,16 @@ to_r.Assign = function(node) {
 
 #' @export
 to_r.Call = function(node) {
+  # FIXME: func should probably be an AST object regardless of whether it's a
+  # symbol or not.
+  func = node$func
+  if (is.character(func))
+    func = as.name(func)
+  else
+    func = to_r(func)
+
   args = lapply(node$args, to_r)
-  do.call(call, append(node$name, args), quote = TRUE)
+  as.call(append(func, args))
 }
 
 #' @export
@@ -73,7 +81,15 @@ to_r.Replacement = function(node) {
 }
 
 #' @export
-to_r.Return = to_r.Call
+to_r.Return = function(node) {
+  if (node$is_invisible)
+    name = as.symbol("invisible")
+  else
+    name = as.symbol("return")
+
+  args = lapply(node$args, to_r)
+  as.call(append(name, args))
+}
 
 #' @export
 to_r.Internal = function(node) {
@@ -88,6 +104,7 @@ to_r.Internal = function(node) {
 
 #' @export
 to_r.Symbol = function(node) {
+  # Handle empty arguments.
   if (node$name == "")
     return (quote(expr = ))
 
