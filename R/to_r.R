@@ -75,8 +75,9 @@ to_r.Replacement = function(node) {
   args = lapply(node$args, to_r)
   len = length(args)
 
-  name = gsub("<-", "", node$name, fixed = TRUE)
-  write = do.call(call, append(name, args[-len]), quote = TRUE)
+  # FIXME: Check that node$func is a string.
+  func = gsub("<-", "", node$func, fixed = TRUE)
+  write = do.call(call, append(func, args[-len]), quote = TRUE)
   call("=", write, args[[len]])
 }
 
