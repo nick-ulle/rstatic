@@ -6,31 +6,31 @@
 NULL
 
 
-#' Convert R Code to ASTNodes
+#' Convert Unquoted R Code to ASTNodes
 #'
-#' This function converts R code to a tree of ASTNode objects.
+#' This function uses non-standard evaluation to convert unquoted R code to a
+#' tree of ASTNode objects.
 #'
-#' @param expr R code to be converted.
+#' @param expr unquoted R code to be converted.
 #' @export
-to_ast = function(expr, parent = NULL) {
-  to_ast_(substitute(expr), parent)
+to_astq = function(expr, parent = NULL) {
+  to_ast(substitute(expr), parent)
 }
 
 
 #' Convert Quoted R Code to ASTNodes
 #'
-#' This function converts quoted R code to a tree of ASTNode objects. In other
-#' words, this is the standard evaluation version of to_ast().
+#' This function converts quoted R code to a tree of ASTNode objects.
 #'
 #' @param expr (language) quoted R code to be converted.
 #' @export
-to_ast_ = function(expr, parent = NULL) {
-  UseMethod("to_ast_")
+to_ast = function(expr, parent = NULL) {
+  UseMethod("to_ast")
 }
 
 
 #' @export
-to_ast_.function = function(expr, parent = NULL) {
+to_ast.function = function(expr, parent = NULL) {
   # Construct a call for the function definition.
   # FIXME: The function might be a closure.
   if (is.primitive(expr)) {
@@ -41,35 +41,35 @@ to_ast_.function = function(expr, parent = NULL) {
   }
 
   expr = call("function", formals(expr), body(expr))
-  to_ast_(expr, parent)
+  to_ast(expr, parent)
 }
 
 
 #' @export
-to_ast_.if    = function(expr, parent = NULL) {
+to_ast.if    = function(expr, parent = NULL) {
   node = If$new(parent)
-  node$predicate = to_ast_(expr[[2]], node)
-  node$true  = to_ast_(expr[[3]], node)
-  node$false = if (length(expr) == 4) to_ast_(expr[[4]], node)
+  node$predicate = to_ast(expr[[2]], node)
+  node$true  = to_ast(expr[[3]], node)
+  node$false = if (length(expr) == 4) to_ast(expr[[4]], node)
                else NULL
 
   return (node)
 }
 
 #' @export
-to_ast_.for = function(expr, parent = NULL) {
+to_ast.for = function(expr, parent = NULL) {
   node = For$new(parent)
-  node$ivar = to_ast_(expr[[2]], node)
-  node$iter = to_ast_(expr[[3]], node)
-  node$body = to_ast_(expr[[4]], node)
+  node$ivar = to_ast(expr[[2]], node)
+  node$iter = to_ast(expr[[3]], node)
+  node$body = to_ast(expr[[4]], node)
   return (node)
 }
 
 #' @export
-to_ast_.while = function(expr, parent = NULL) {
+to_ast.while = function(expr, parent = NULL) {
   node = While$new(parent)
-  node$predicate = to_ast_(expr[[2]], node)
-  node$body = to_ast_(expr[[3]], node)
+  node$predicate = to_ast(expr[[2]], node)
+  node$body = to_ast(expr[[3]], node)
   return (node)
 }
 
@@ -77,38 +77,38 @@ to_ast_.while = function(expr, parent = NULL) {
 #'
 to_ast_repeat = function(expr, parent = NULL) {
   node = While$new(parent, predicate = TRUE, is_repeat = TRUE)
-  node$body = to_ast_(expr[[2]], node)
+  node$body = to_ast(expr[[2]], node)
   return (node)
 }
 
 
 #' @export
-`to_ast_.=` = function(expr, parent = NULL) {
+`to_ast.=` = function(expr, parent = NULL) {
   read = expr[[3]]
   write = expr[[2]]
 
   if (inherits(write, "call")) {
     node = Replacement$new(parent, paste0(write[[1]], "<-"))
-    read = to_ast_(read, node)
-    write = lapply(write[-1], to_ast_, node)
+    read = to_ast(read, node)
+    write = lapply(write[-1], to_ast, node)
     # FIXME: the read argument is for the "value" parameter.
     node$args = append(write, read)
 
   } else {
     node = Assign$new(parent)
-    node$read = to_ast_(read, node)
-    node$write = to_ast_(write, node)
+    node$read = to_ast(read, node)
+    node$write = to_ast(write, node)
   }
 
   return (node)
 }
 
 #' @export
-`to_ast_.<-` = `to_ast_.=`
+`to_ast.<-` = `to_ast.=`
 
 
 #' @export
-to_ast_.call = function(expr, parent = NULL) {
+to_ast.call = function(expr, parent = NULL) {
   # Handle calls to anonymous functions.
   func = expr[[1]]
   if (inherits(func, "name")) {
@@ -140,10 +140,10 @@ to_ast_.call = function(expr, parent = NULL) {
   
   } else {
     node = Call$new(parent)
-    node$func = to_ast_(func, node)
+    node$func = to_ast(func, node)
   }
 
-  node$args = lapply(expr[-1], to_ast_, node)
+  node$args = lapply(expr[-1], to_ast, node)
   return (node)
 }
 
@@ -160,54 +160,54 @@ to_ast_function_def = function(expr, parent = NULL) {
       if (class(default) == "name" && default == "")
         NULL
       else
-        to_ast_(default, param)
+        to_ast(default, param)
     
     return (param)
   }, names(expr[[2]]), expr[[2]], SIMPLIFY = FALSE)
 
-  node$body = to_ast_(expr[[3]], node)
+  node$body = to_ast(expr[[3]], node)
   return (node)
 }
 
 
 #' @export
-to_ast_.name = function(expr, parent = NULL) {
+to_ast.name = function(expr, parent = NULL) {
   Symbol$new(parent, as.character(expr))
 }
 
 
 #' @export
-`to_ast_.{` = function(expr, parent = NULL) {
+`to_ast.{` = function(expr, parent = NULL) {
   node = Brace$new(parent)
-  node$body = lapply(expr[-1], to_ast_, node)
+  node$body = lapply(expr[-1], to_ast, node)
   return (node)
 }
 
 
 #' @export
-`to_ast_.(` = function(expr, parent) {
+`to_ast.(` = function(expr, parent) {
   node = Paren$new(parent)
-  node$body = to_ast_(expr[[2]], node)
+  node$body = to_ast(expr[[2]], node)
   return (node)
 }
 
 
 #' @export
-to_ast_.NULL      = function(expr, parent = NULL) Null$new(parent)
+to_ast.NULL      = function(expr, parent = NULL) Null$new(parent)
 #' @export
-to_ast_.logical   = function(expr, parent = NULL) Logical$new(parent, expr)
+to_ast.logical   = function(expr, parent = NULL) Logical$new(parent, expr)
 #' @export
-to_ast_.integer   = function(expr, parent = NULL) Integer$new(parent, expr)
+to_ast.integer   = function(expr, parent = NULL) Integer$new(parent, expr)
 #' @export
-to_ast_.numeric   = function(expr, parent = NULL) Numeric$new(parent, expr)
+to_ast.numeric   = function(expr, parent = NULL) Numeric$new(parent, expr)
 #' @export
-to_ast_.complex   = function(expr, parent = NULL) Complex$new(parent, expr)
+to_ast.complex   = function(expr, parent = NULL) Complex$new(parent, expr)
 #' @export
-to_ast_.character = function(expr, parent = NULL) Character$new(parent, expr)
+to_ast.character = function(expr, parent = NULL) Character$new(parent, expr)
 
 
 #' @export
-to_ast_.default = function(expr, parent = NULL) {
+to_ast.default = function(expr, parent = NULL) {
   msg = sprintf("Cannot convert '%s' to an ASTNode.", class(expr)[1])
   stop(msg)
 }

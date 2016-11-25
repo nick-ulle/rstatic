@@ -31,28 +31,55 @@ devtools::install_github("nick-ulle/ast")
 
 ### Usage
 
-The function `to_ast` converts R code to a tree of ASTNode objects. For example:
+The function `to_ast` converts functions or quoted R code to a tree of ASTNode objects. For example:
 
 ``` r
 library("ast")
 
-ast = to_ast(mean(c(4, 2, NA), na.rm = TRUE))
-print(ast)
-## <Call> $args $clone $initialize $name $parent
-## mean(c(4, 2, NA), na.rm = TRUE)
+f = function(x = 1, y = 1) {
+  return (x^2 + y^2)
+}
+
+f_ast = to_ast(f)
+print(f_ast)
+## <Function> $body $clone $initialize $params $parent
+## function(x = 1, y = 1) {
+##     return(x^2 + y^2)
+## }
 ```
 
-The output shows that the root node has class `Call`, which has several fields, and also shows the corresponding R code. The semantic components of the call are accessible through the fields. For instance, to get the arguments:
+The output shows that the root node has class `Function`, which has several fields, and also shows the corresponding R code. The semantic components of the function are accessible through the fields. For instance, to get the parameters:
 
 ``` r
+f_ast$params
+## $x
+## <Parameter> $clone $default $initialize $name $parent $type
+## pairlist(x = 1) 
+## 
+## 
+## $y
+## <Parameter> $clone $default $initialize $name $parent $type
+## pairlist(y = 1)
+```
+
+In interactive use, the `to_astq` function, which automatically quotes its argument, may be more convenient. For example:
+
+``` r
+ast = to_astq(mean(c(4, 2, NA), na.rm = TRUE))
+
+print(ast)
+## <Call> $args $clone $func $initialize $parent
+## mean(c(4, 2, NA), na.rm = TRUE)
+
 ast$args
 ## [[1]]
-## <Call> $args $clone $initialize $name $parent
-## c(4, 2, NA)
+## <Call> $args $clone $func $initialize $parent
+## c(4, 2, NA) 
+## 
 ## 
 ## $na.rm
 ## <Logical> $clone $initialize $parent $value
-## [1] TRUE
+## TRUE
 ```
 
 Note that the nodes of the tree have reference semantics, so extracting and modifying a node will also modify that node in the tree. This behavior is different from most R objects.

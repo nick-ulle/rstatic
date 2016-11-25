@@ -2,14 +2,14 @@
 % Please edit documentation in R/to_ast.R
 \name{to_ast}
 \alias{to_ast}
-\title{Convert R Code to ASTNodes}
+\title{Convert Quoted R Code to ASTNodes}
 \usage{
 to_ast(expr, parent = NULL)
 }
 \arguments{
-\item{expr}{R code to be converted.}
+\item{expr}{(language) quoted R code to be converted.}
 }
 \description{
-This function converts R code to a tree of ASTNode objects.
+This function converts quoted R code to a tree of ASTNode objects.
 }
 

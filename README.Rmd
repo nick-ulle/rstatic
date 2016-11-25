@@ -62,18 +62,33 @@ devtools::install_github("nick-ulle/ast")
 
 ### Usage 
 
-The function `to_ast` converts R code to a tree of ASTNode objects. For
-example:
+The function `to_ast` converts functions or quoted R code to a tree of ASTNode
+objects. For example:
 ```{r}
 library("ast")
 
-ast = to_ast(mean(c(4, 2, NA), na.rm = TRUE))
-print(ast)
+f = function(x = 1, y = 1) {
+  return (x^2 + y^2)
+}
+
+f_ast = to_ast(f)
+print(f_ast)
 ```
-The output shows that the root node has class `Call`, which has several fields,
-and also shows the corresponding R code. The semantic components of the call
-are accessible through the fields. For instance, to get the arguments:
+The output shows that the root node has class `Function`, which has several
+fields, and also shows the corresponding R code. The semantic components of the
+function are accessible through the fields. For instance, to get the
+parameters:
 ```{r}
+f_ast$params
+```
+
+In interactive use, the `to_astq` function, which automatically quotes its
+argument, may be more convenient. For example:
+```{r}
+ast = to_astq(mean(c(4, 2, NA), na.rm = TRUE))
+
+print(ast)
+
 ast$args
 ```
 Note that the nodes of the tree have reference semantics, so extracting and
@@ -86,6 +101,7 @@ to_r(ast)
 ```
 This works even if the tree has been modified, as long as the nodes still
 represent valid R code.
+
 
 ### Known Issues
 
