@@ -20,7 +20,7 @@ Collate:
     'ast_node.R'
     'basic_block.R'
     'stack.R'
-    'graph.R'
+    'cfgraph.R'
     'print.R'
     'to_ast.R'
     'to_cfg.R'

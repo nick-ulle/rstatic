@@ -3,6 +3,7 @@
 #
 
 #' @include basic_block.R
+#' @include cfgraph.R
 NULL
 
 #' Generate Control Flow Graph for a Function
