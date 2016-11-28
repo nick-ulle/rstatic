@@ -13,6 +13,9 @@ NULL
 #'
 #' @export
 to_cfg = function(fn) {
+  if (!inherits(fn, "function"))
+    stop("argument fn must be a function. Use to_cfg_ for arbitrary code.")
+
   cfg = CFGraph$new()
   cfg$exit_fn = cfg$new_block()
 
