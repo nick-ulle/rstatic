@@ -15,6 +15,12 @@
 #' \eqn{j} is block \eqn{i}. The dominator set for block \eqn{j} consists of
 #' all blocks on the path from block \eqn{j} to the root of the dominator tree.
 #'
+#' @references
+#' Cooper, K. D., Harvey, T. J., and Kennedy, K. (2001) A simple, fast
+#' dominance algorithm. Software Practice & Experience 4, 1-10.
+#'
+#' Cooper, K. D. and Torczon, L. (2012) Engineering a Compiler. Elsevier.
+#'
 #' @export
 dom_tree = function(cfg) {
   po = cfg$get_postorder()
@@ -63,4 +69,50 @@ dom_tree = function(cfg) {
   }
 
   return (doms)
+}
+
+
+#' Compute Dominance Frontiers
+#'
+#' This function computes the dominance frontiers for a control-flow graph.
+#'
+#' The dominance frontier for a block \eqn{b} is the set of all nodes \eqn{y}
+#' such that \eqn{b} dominates are predecessor of \eqn{y} but does not strictly
+#' dominate \eqn{y}. In other words, the dominance frontier for \eqn{b} is the
+#' set of blocks immediately beyond the blocks dominated by \eqn{b}, where
+#' control-flow merges from a separate part of the program.
+#'
+#' @param cfg (CFGraph) A control-flow graph.
+#' @param dom_tree (integer) The dominator tree for the control-flow graph.
+#' 
+#' @return The dominance frontiers as a list of integer vectors. Each element
+#' of the list is the dominance frontier for the corresponding block in the
+#' control-flow graph.
+#'
+#' @references
+#' Cooper, K. D., Harvey T. J., and Kennedy, K. (2001) A simple, fast dominance
+#' algorithm. Software Practice & Experience 4, 1-10.
+#'
+#' Cooper, K. D. and Torczon, L. (2012) Engineering a Compiler. Elsevier.
+#'
+#' @export
+dom_frontier = function(cfg, dom_tree) {
+  dom_f = vector("list", length(cfg))
+  dom_f[] = list(integer(0))
+
+  for (i in seq_along(cfg)) {
+    preds = cfg[[i]]$predecessors
+    if (length(preds) > 1) {
+      # Walk up dom tree for each predecessor
+      for (j in preds) {
+        runner = j
+        while (runner != dom_tree[[i]]) {
+          dom_f[[runner]] = union(dom_f[[runner]], i)
+          runner = dom_tree[[runner]]
+        }
+      } # end for
+    }
+  } # end for
+
+  return (dom_f)
 }

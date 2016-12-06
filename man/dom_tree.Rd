@@ -24,4 +24,10 @@ to \eqn{b_j} must pass through \eqn{b_i}. The dominance property is
 reflexive: every block dominates itself. This function iteratively computes
 the immediate dominator for each block until a fixed point is reached.
 }
+\references{
+Cooper, K. D., Harvey, T. J., and Kennedy, K. (2001) A simple, fast
+dominance algorithm. Software Practice & Experience 4, 1-10.
+
+Cooper, K. D. and Torczon, L. (2012) Engineering a Compiler. Elsevier.
+}
 
