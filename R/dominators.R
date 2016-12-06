@@ -29,30 +29,32 @@ dom_tree = function(cfg) {
   doms[[1]] = rpo[[1]]
   rpo = rpo[-1]
 
+  # Iterate until a fixed point is reached.
   changed = TRUE
   while (changed) {
     changed = FALSE
 
     for (i in rpo) {
+      # Get predecessors of block i with entries in the dominator tree.
       preds = cfg[[i]]$predecessors
-      # Ensure the new_idom is assigned a block that's already been processed.
-      idx = match(TRUE, doms[preds] != 0)
-      new_idom = preds[[idx]]
+      preds = preds[doms[preds] != 0]
 
-      for (j in preds[-idx]) {
-        if (doms[[j]] != 0) {
-          b1 = j
-          b2 = new_idom
-          while(b1 != b2) {
-            while (lookup[[b1]] < lookup[[b2]])
-              b1 = doms[[b1]]
-            while (lookup[[b2]] < lookup[[b1]])
-              b2 = doms[[b2]]
-          }
-          new_idom = b1
+      # Walk up the dominator tree to find a common dominator for predecessors
+      # of block i.
+      new_idom = preds[[1]]
+      for (j in preds[-1]) {
+        b1 = j
+        b2 = new_idom
+        while(b1 != b2) {
+          while (lookup[[b1]] < lookup[[b2]])
+            b1 = doms[[b1]]
+          while (lookup[[b2]] < lookup[[b1]])
+            b2 = doms[[b2]]
         }
+        new_idom = b1
       }
 
+      # Update dominator tree if necessary.
       if (doms[[i]] != new_idom) {
         doms[[i]] = new_idom
         changed = TRUE
