@@ -83,6 +83,10 @@ CFGraph = R6::R6Class("CFGraph",
     },
 
     fn_return = function(from = self$exit) {
+      if (is.na(self$exit_fn))
+        stop("no exit block to return to.",
+          "\n  Did you attempt to use return() outside of a function?")
+
       self$jump(from = from, self$exit_fn)
       self$branch_open = FALSE
       return (self)

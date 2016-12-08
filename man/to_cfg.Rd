@@ -2,14 +2,30 @@
 % Please edit documentation in R/to_cfg.R
 \name{to_cfg}
 \alias{to_cfg}
-\title{Generate Control Flow Graph for a Function}
+\title{Build Control Flow Graph for an AST}
 \usage{
-to_cfg(fn)
+to_cfg(ast)
 }
 \arguments{
-\item{func}{(Function) a Function to generate the graph for}
+\item{ast}{(ASTNode) An abstract syntax tree.}
+}
+\value{
+The control flow graph as a CFGraph object. The \code{[[} operator
+can be used to extract individual basic blocks from the graph.
 }
 \description{
-This function generates the control flow graph for a Function object.
+This function builds the control flow graph (CFG) for an abstract syntax
+tree. When the root of the AST is a Function object, the CFG is built for
+its body.
+}
+\details{
+A control flow graph is a directed graph that represents the flow of control
+in a program. Each node or "basic block" contains a linear sequence of
+program instructions. Every basic block ends with a terminator instruction,
+which branches to one or more basic blocks. Edges in the graph indicate
+these branches.
+
+An if-statement makes a downward diamond in the graph and a while- or
+for-loop makes a cycle.
 }
 
