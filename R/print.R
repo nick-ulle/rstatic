@@ -10,7 +10,7 @@
 #' @export
 format.ASTNode = function(x, indent = 0, ...) {
   fields = paste("$", ls(x), sep = "", collapse = " ")
-  code = paste0(deparse(to_r(x)), collapse = "\n")
+  code = deparse_string(to_r(x))
   sprintf("<%s> %s\n%s", class(x)[1], fields, code)
 }
 
@@ -61,7 +61,9 @@ format.BasicBlock = function(x, show_body = TRUE, ...) {
   terminator = format(x$terminator, show_tag = FALSE)
 
   if (show_body) {
-    body = vapply(x$body, function(.) deparse(to_r(.)), character(1))
+    body = vapply(x$body, function(line) {
+      deparse_string(to_r(line))
+    }, character(1))
     body = paste0(body, collapse = "\n")
 
     msg = sprintf("%s\n%s\n# %s", .format_tag(x), body, terminator)
@@ -81,7 +83,7 @@ format.BranchInst = function(x, show_tag = TRUE, ...) {
   if (is.null(x$condition)) {
     term = sprintf("branch %%%s", x$true)
   } else {
-    condition = deparse(to_r(x$condition))
+    condition = deparse_string(to_r(x$condition))
     term = sprintf("branch (%s) %%%i, %%%i", condition, x$true, x$false)
   }
 
@@ -100,8 +102,8 @@ print.BranchInst = .print
 #' @export
 format.IterateInst = function(x, show_tag = TRUE, ...) {
 
-  ivar = deparse(to_r(x$ivar))
-  iter = deparse(to_r(x$iter))
+  ivar = deparse_string(to_r(x$ivar))
+  iter = deparse_string(to_r(x$iter))
   term = sprintf("iterate (%s in %s) %%%i, %%%i", ivar, iter, x$body, x$exit)
 
   if (show_tag)
@@ -110,4 +112,10 @@ format.IterateInst = function(x, show_tag = TRUE, ...) {
     msg = sprintf("%s", term)
 
   return (msg)
+}
+
+
+deparse_string = function(expr, ...) {
+  # Safely deparse() to a single string.
+  paste0(deparse(expr, ...), collapse = "\n")
 }
