@@ -22,6 +22,7 @@ Collate:
     'stack.R'
     'cfgraph.R'
     'dominators.R'
+    'plot.R'
     'print.R'
     'to_ast.R'
     'to_cfg.R'
