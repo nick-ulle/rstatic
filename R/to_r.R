@@ -29,9 +29,9 @@ to_r.Break = function(node) {
 #' @export
 to_r.If = function(node) {
   if (is.null(node$false))
-    call("if", to_r(node$predicate), to_r(node$true))
+    call("if", to_r(node$condition), to_r(node$true))
   else
-    call("if", to_r(node$predicate), to_r(node$true), to_r(node$false))
+    call("if", to_r(node$condition), to_r(node$true), to_r(node$false))
 }
 
 
@@ -46,7 +46,7 @@ to_r.While = function(node) {
   if (node$is_repeat)
     call("repeat", to_r(node$body))
   else
-    call("while", to_r(node$predicate), to_r(node$body))
+    call("while", to_r(node$condition), to_r(node$body))
 }
 
 
@@ -68,6 +68,12 @@ to_r.Call = function(node) {
 
   args = lapply(node$args, to_r)
   as.call(append(func, args))
+}
+
+#' @export
+to_r.Phi = function(node) {
+  args = lapply(node$args, to_r)
+  as.call(append(as.name("Phi"), args))
 }
 
 #' @export
@@ -146,15 +152,13 @@ to_r.Primitive = function(node) {
 #' @export
 to_r.Brace = function(node) {
   body = lapply(node$body, to_r)
-  do.call(call, append("{", body), quote = TRUE)
+  if (node$is_paren)
+    name = "("
+  else
+    name = "{"
+
+  do.call(call, append(name, body), quote = TRUE)
 }
-
-
-#' @export
-to_r.Paren = function(node) {
-  call("(", to_r(node$body))
-}
-
 
 #' @export
 to_r.Literal = function(node) {

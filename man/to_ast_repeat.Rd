@@ -4,7 +4,7 @@
 \alias{to_ast_repeat}
 \title{Convert a repeat to an ASTNode}
 \usage{
-to_ast_repeat(expr, parent = NULL)
+to_ast_repeat(expr)
 }
 \description{
 Convert a repeat to an ASTNode

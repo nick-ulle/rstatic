@@ -4,7 +4,7 @@
 \alias{to_astq}
 \title{Convert Unquoted R Code to ASTNodes}
 \usage{
-to_astq(expr, parent = NULL)
+to_astq(expr)
 }
 \arguments{
 \item{expr}{unquoted R code to be converted.}

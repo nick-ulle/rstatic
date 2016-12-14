@@ -4,7 +4,7 @@
 \alias{to_ast_function_def}
 \title{Convert a function definition to an ASTNode.}
 \usage{
-to_ast_function_def(expr, parent = NULL)
+to_ast_function_def(expr)
 }
 \description{
 Convert a function definition to an ASTNode.

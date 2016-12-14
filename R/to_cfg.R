@@ -58,7 +58,7 @@ to_cfg = function(ast) {
 .to_cfg.If = function(node, cfg = CFGraph$new()) {
   entry_t = cfg$new_block()
   entry_f = cfg$new_block()
-  cfg$branch(entry_t, entry_f, node$predicate)
+  cfg$branch(entry_t, entry_f, node$condition)
   exit = cfg$new_block()
 
   exit_t = .to_cfg(node$true, cfg)$exit
@@ -89,7 +89,7 @@ to_cfg = function(ast) {
 
   entry_b = cfg$new_block()
   exit = cfg$new_block()
-  cfg$branch(entry_b, exit, node$predicate)
+  cfg$branch(entry_b, exit, node$condition)
 
   # Compute flow graph for loop body.
   cfg$loop_push(entry, exit)
@@ -109,9 +109,26 @@ to_cfg = function(ast) {
 
 
 .to_cfg.For = function(node, cfg = CFGraph$new()) {
+  # Initialize __iter__ in block before entry block.
+  def_iter = Assign$new(Symbol$new("__iter__"), Integer$new(1L))
+  cfg$exit_block$append(def_iter)
+
+  # Create entry block; advance __iter__ and ivar here.
   entry = cfg$new_block()
   cfg$jump(entry)
 
+  adv_iter = Assign$new(
+    write = Symbol$new("__iter__"),
+    read  = Call$new("+", list(Symbol$new("__iter__"), Integer$new(1L)))
+  )
+  adv_i = Assign$new(
+    write = Symbol$new(node$ivar$name),
+    read  = Call$new("[[", list(node$iter, Symbol$new("__iter__")))
+  )
+  cfg[[entry]]$append(adv_iter)
+  cfg[[entry]]$append(adv_i)
+
+  # Create exit block and first body block; check loop condition first in body.
   entry_b = cfg$new_block()
   exit = cfg$new_block()
   cfg$iterate(entry_b, exit, node$ivar, node$iter)
@@ -126,7 +143,7 @@ to_cfg = function(ast) {
 
   cfg$loop_pop()
 
-  # Switch branches.
+  # Set CFG exit block reference to the exit block.
   cfg$change_branch(exit)
 
   return (cfg)
@@ -146,9 +163,7 @@ to_cfg = function(ast) {
 
 
 .to_cfg.Return = function(node, cfg = CFGraph$new()) {
-  assign = Assign$new(NULL)
-  assign$read = node$args[[1]]
-  assign$write = Symbol$new(assign, "__retval__")
+  assign = Assign$new(Symbol$new("__retval__"), node$args[[1]])
   .to_cfg(assign, cfg)
 
   # NOTE: We could keep the Return instead of creating a __retval__ variable.
