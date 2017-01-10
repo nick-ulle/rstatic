@@ -18,8 +18,8 @@ BasicBlock = R6::R6Class("BasicBlock",
       return (self)
     },
 
-    append = function(node) {
-      self$body = append(self$body, node)
+    append = function(node, after = length(self$body)) {
+      self$body = append(self$body, node, after)
       return (self)
     }
   ),
@@ -36,6 +36,18 @@ BasicBlock = R6::R6Class("BasicBlock",
     }
   )
 )
+
+
+has_phi = function(block, x) {
+  match = vapply(block$body, function(node) {
+    if (inherits(node, "Phi"))
+      return (node$write$name == x)
+
+    return (FALSE)
+  }, logical(1))
+
+  any(match)
+}
 
 
 Terminator = R6::R6Class("Terminator")
