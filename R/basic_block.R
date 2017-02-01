@@ -5,11 +5,14 @@
 BasicBlock = R6::R6Class("BasicBlock",
   public = list(
     body = NULL,
+    phi = NULL,
     terminator = NULL,
     predecessors = integer(0),
 
     initialize = function(body = list()) {
+      # FIXME: Check for phi nodes?
       self$body = body
+      self$phi = list()
       return (self)
     },
 
@@ -19,7 +22,11 @@ BasicBlock = R6::R6Class("BasicBlock",
     },
 
     append = function(node, after = length(self$body)) {
-      self$body = append(self$body, node, after)
+      if (inherits(node, "Phi")) {
+        self$phi = append(self$phi, node)
+      } else {
+        self$body = append(self$body, node, after)
+      }
       return (self)
     }
   ),
@@ -39,11 +46,9 @@ BasicBlock = R6::R6Class("BasicBlock",
 
 
 has_phi = function(block, x) {
-  match = vapply(block$body, function(node) {
-    if (inherits(node, "Phi"))
-      return (node$write$name == x)
-
-    return (FALSE)
+  # Check if there's a phi-function in block for name x.
+  match = vapply(block$phi, function(node) {
+    return (node$write$name == x)
   }, logical(1))
 
   any(match)

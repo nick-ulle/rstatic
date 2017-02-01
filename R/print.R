@@ -61,10 +61,12 @@ format.BasicBlock = function(x, show_body = TRUE, ...) {
   terminator = format(x$terminator, show_tag = FALSE)
 
   if (show_body) {
-    body = vapply(x$body, function(line) {
-      deparse_string(to_r(line))
-    }, character(1))
-    body = paste0(body, collapse = "\n")
+    to_str = function(line) deparse_string(to_r(line))
+
+    phi = vapply(x$phi, to_str, character(1))
+    body = vapply(x$body, to_str, character(1))
+
+    body = paste0(c(phi, body), collapse = "\n")
 
     msg = sprintf("%s\n%s\n# %s", .format_tag(x), body, terminator)
 
