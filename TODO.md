@@ -18,7 +18,7 @@
   * [x] `break` and `next`: keep list of broken nodes
   * [x] `return()`
   * [ ] Static single-assignment
-  * [ ] Track function names as variables in SSA.
+  * [ ] Treat function names as variables for SSA (?)
   * [ ] Reduce number of unnecessary blocks in generated CFGs.
   * [ ] Generate unique names for the for-loop helper variable `__iter__`.
     Nested for-loops will not advance correctly as long as the name is not

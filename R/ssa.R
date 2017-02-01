@@ -68,8 +68,63 @@ ssa = function(cfg) {
   } # end for name
 
   # Rename variables.
+  rewrite(cfg$entry, cfg, dom_t)
 
   return (cfg)
+}
+
+
+rewrite = function(block, cfg, dom_t, ns = NameStack$new()) {
+  # Rewrite phi-function LHS.
+  for (phi in cfg[[block]]$phi) {
+    phi$write$name = ns$new_name(phi$write$name)
+  }
+
+  # Rewrite operations.
+  change_names(cfg[[block]]$body, ns)
+
+  # Rewrite terminator.
+
+  # TODO: Rewrite successor phi-function RHS.
+
+  # Descend.
+  ns$save_locals()
+
+  children = setdiff(which(dom_t == block), block)
+  lapply(children, rewrite, cfg, dom_t, ns)
+
+  # Pop the stack.
+  ns$clear_locals()
+}
+
+
+# FIXME: This doesn't change function names.
+change_names = function(node, ns) {
+  # Rename all AST elements.
+  UseMethod("change_names")
+}
+
+change_names.Assign = function(node, ns) {
+  change_names(node$read, ns)
+  node$write$name = ns$new_name(node$write$name)
+  return (node)
+}
+
+change_names.Call = function(node, ns) {
+  lapply(node$args, change_names, ns)
+  return (node)
+}
+
+change_names.Symbol = function(node, ns) {
+  node$name = ns$get_name(node$name)
+  return (node)
+}
+
+change_names.Literal = function(node, ns) return (node)
+
+change_names.list = function(node, ns) {
+  lapply(node, change_names, ns)
+  return (node)
 }
 
 
