@@ -2,52 +2,82 @@
 #' @include stack.R
 NULL
 
+NameStack = R6::R6Class("NameStack",
+  "private" = list(
+    name_gen = NULL,
+    name_stack = list(),
+    local_stack = NULL,
+    local = character(0)
+  ),
+
+  "public" = list(
+    initialize = function() {
+      private$name_gen = NameGenerator$new()
+      private$local_stack = Stack$new(type = "list")
+    },
+
+    save_locals = function() {
+      # Save locals on the stack.
+      private$local_stack$push(private$local)
+      private$local = character(0)
+
+      invisible (self)
+    },
+
+    clear_locals = function() {
+      # Restore locals from the stack, then clear them.
+      local = private$local_stack$pop()
+      lapply(local,
+        function(base) private$name_stack[[base]]$pop()
+      )
+
+      invisible (self)
+    },
+
+    get_name = function(base) {
+      # Peek at a name on the stack.
+      private$name_stack[[base]]$peek()
+    },
+
+    new_name = function(base) {
+      # Push a new name onto the stack and mark the base as local.
+      name = private$name_gen$get(base)
+
+      if (base %in% private$local) {
+        private$name_stack[[base]]$pop()
+      } else {
+        private$local = union(base, private$local)
+
+        if ( !(base %in% names(private$name_stack)) )
+          private$name_stack[[base]] = Stack$new(type = "character")
+      }
+      private$name_stack[[base]]$push(name)
+
+      return (name)
+    }
+  )
+)
+
+
 #' Generate Unique Variable Names
 #'
 NameGenerator = R6::R6Class("NameGenerator",
-  "public" = list(
-    new_name = function(x) {
-      counter = private$counter[[x]]
-      stack = private$stack[[x]]
-
-      if (is.null(counter)) {
-        counter = 1L
-        stack = Stack$new(type = "integer")
-      } else {
-        counter = counter + 1L
-      }
-      stack$push(counter)
-
-      private$counter[[x]] = counter
-      private$stack[[x]] = stack
-      return (sprintf("%s_%i", x, counter))
-    },
-
-    peek = function(x) {
-      stack = private$stack[[x]]
-      if (is.null(stack))
-        return (NA_integer_)
-
-      return (stack$peek())
-    },
-
-    pop = function(x) {
-      stack = private$stack[[x]]
-      if (is.null(stack))
-        return (NA_integer_)
-
-      return (stack$pop())
-    },
-
-    reset = function() {
-      private$counter = integer(0)
-      private$stack = list()
-    }
+  "private" = list(
+    counter = integer(0)
   ),
 
-  "private" = list(
-    counter = integer(0),
-    stack = list()
+  "public" = list(
+    get = function(base) {
+      if (base %in% names(private$counter)) {
+        counter = private$counter[[base]] + 1L
+      } else {
+        counter = 1L
+      }
+      
+      private$counter[[base]] = counter
+
+      return (sprintf("%s_%i", base, counter))
+    }
   )
 )
 
