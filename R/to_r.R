@@ -72,8 +72,8 @@ to_r.Call = function(node) {
 
 #' @export
 to_r.Phi = function(node) {
-  #args = lapply(node$args, to_r)
-  as.call(list(as.name("Phi"), as.name(node$write$name)))
+  phi = as.call(append(as.name("Phi"), node$read))
+  as.call(list(as.name("="), as.name(node$write), phi))
 }
 
 #' @export

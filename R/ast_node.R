@@ -197,37 +197,32 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
   # FIXME: Phi and Assign should probably have a common superclass for
   # variable-changing instructions. The Replacement class is also related.
   "public" = list(
-    initialize = function(write = NULL, read = NULL, parent = NULL) {
+    base = NULL,
+    write = NULL,
+    blocks = integer(0),
+    read = character(0),
+
+    initialize = function(base, parent = NULL) {
       super$initialize(parent)
 
-      self$write = write
-      self$read = read
-    }
-  ),
-
-  "active" = list(
-    write = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.write = value
-      }
-
-      return (private$.write)
+      self$base = base
+      self$write = base
     },
 
-    read = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.read = value
+    set_read = function(block, name) {
+      idx = match(block, self$blocks)
+      if (is.na(idx)) {
+        idx = length(self$blocks) + 1L
+        self$blocks[[idx]] = block
       }
+      self$read[[idx]] = name
+      names(self$read)[[idx]] = block
+    },
 
-      return (private$.read)
+    get_read = function(block) {
+      idx = match(block, self$blocks)
+      self$read[[idx]]
     }
-  ),
-
-  "private" = list(
-    .write = NULL,
-    .read = NULL # needs to track (name, block)
   )
 )
 

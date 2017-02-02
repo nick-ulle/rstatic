@@ -22,6 +22,7 @@ Collate:
     'stack.R'
     'cfgraph.R'
     'dominators.R'
+    'name_generator.R'
     'plot.R'
     'print.R'
     'ssa.R'

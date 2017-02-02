@@ -60,8 +60,9 @@ ssa = function(cfg) {
         if (has_phi(cfg[[d]], name))
           next
 
-        phi = Phi$new(Symbol$new(name))
-        cfg[[d]]$append(phi, 0L)
+        phi = Phi$new(name)
+        # FIXME: Phi needs to track incoming edges.
+        cfg[[d]]$append(phi)
         worklist = union(worklist, d)
       } # end for d
     }
@@ -75,25 +76,31 @@ ssa = function(cfg) {
 
 
 rewrite = function(block, cfg, dom_t, ns = NameStack$new()) {
-  # Rewrite phi-function LHS.
-  for (phi in cfg[[block]]$phi) {
-    phi$write$name = ns$new_name(phi$write$name)
-  }
+  # Rewrite LHS of phi-functions in this block.
+  lapply(cfg[[block]]$phi, function(phi) {
+    phi$write = ns$new_name(phi$base)
+  })
 
-  # Rewrite operations.
+  # Rewrite operations in this block.
   change_names(cfg[[block]]$body, ns)
 
-  # Rewrite terminator.
+  # TODO: Rewrite terminator in this block.
 
-  # TODO: Rewrite successor phi-function RHS.
+  # Rewrite RHS of phi-functions in successors.
+  for (id in cfg[[block]]$successors) {
+    lapply(cfg[[id]]$phi, function(phi) {
+      name = ns$get_name(phi$base)
+      phi$set_read(block, name)
+    })
+  }
 
-  # Descend.
+  # Descend to blocks dominated by this block (children in dom tree).
   ns$save_locals()
 
   children = setdiff(which(dom_t == block), block)
   lapply(children, rewrite, cfg, dom_t, ns)
 
-  # Pop the stack.
+  # End lifetimes of variables defined in this block.
   ns$clear_locals()
 }
 
