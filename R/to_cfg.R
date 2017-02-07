@@ -109,21 +109,22 @@ to_cfg = function(ast) {
 
 
 .to_cfg.For = function(node, cfg = CFGraph$new()) {
-  # Initialize __iter__ in block before entry block.
-  def_iter = Assign$new(Symbol$new("__iter__"), Integer$new(1L))
+  # Initialize ._iter_ in block before entry block.
+  iter_name = paste0("._iter_", node$ivar$name)
+  def_iter = Assign$new(Symbol$new(iter_name), Integer$new(1L))
   cfg$exit_block$append(def_iter)
 
-  # Create entry block; advance __iter__ and ivar here.
+  # Create entry block; advance ._iter_ and ivar here.
   entry = cfg$new_block()
   cfg$jump(entry)
 
   adv_iter = Assign$new(
-    write = Symbol$new("__iter__"),
-    read  = Call$new("+", list(Symbol$new("__iter__"), Integer$new(1L)))
+    write = Symbol$new(iter_name),
+    read  = Call$new("+", list(Symbol$new(iter_name), Integer$new(1L)))
   )
   adv_i = Assign$new(
     write = Symbol$new(node$ivar$name),
-    read  = Call$new("[[", list(node$iter, Symbol$new("__iter__")))
+    read  = Call$new("[[", list(node$iter, Symbol$new(iter_name)))
   )
   cfg[[entry]]$append(adv_iter)
   cfg[[entry]]$append(adv_i)
@@ -163,10 +164,10 @@ to_cfg = function(ast) {
 
 
 .to_cfg.Return = function(node, cfg = CFGraph$new()) {
-  assign = Assign$new(Symbol$new("__retval__"), node$args[[1]])
+  assign = Assign$new(Symbol$new("._return_"), node$args[[1]])
   .to_cfg(assign, cfg)
 
-  # NOTE: We could keep the Return instead of creating a __retval__ variable.
+  # NOTE: We could keep the Return instead of creating a ._retval_ variable.
   #cfg$exit_block$append(node)
 
   cfg$fn_return()

@@ -20,7 +20,7 @@
   * [x] Static single-assignment
   * [ ] Treat function names as variables for SSA (?)
   * [ ] Reduce number of unnecessary blocks in generated CFGs.
-  * [ ] Generate unique names for the for-loop helper variable `__iter__`.
+  * [x] Generate unique names for the for-loop helper variable `._iter_`.
     Nested for-loops will not advance correctly as long as the name is not
     unique.
 
