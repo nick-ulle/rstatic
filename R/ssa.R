@@ -61,7 +61,6 @@ ssa = function(cfg) {
           next
 
         phi = Phi$new(name)
-        # FIXME: Phi needs to track incoming edges.
         cfg[[d]]$append(phi)
         worklist = union(worklist, d)
       } # end for d
@@ -84,7 +83,13 @@ rewrite = function(block, cfg, dom_t, ns = NameStack$new()) {
   # Rewrite operations in this block.
   change_names(cfg[[block]]$body, ns)
 
-  # TODO: Rewrite terminator in this block.
+  # Rewrite terminator in this block.
+  term = cfg[[block]]$terminator
+  if (inherits(term, "BranchInst") && !is.null(term$condition)) {
+    change_names(term$condition, ns)
+  } else if (inherits(term, "IterateInst")) {
+    change_names(term$iter, ns)
+  }
 
   # Rewrite RHS of phi-functions in successors.
   for (id in cfg[[block]]$successors) {
