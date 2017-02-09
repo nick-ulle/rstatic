@@ -116,24 +116,29 @@ change_names = function(node, ns) {
   UseMethod("change_names")
 }
 
+#' @export
 change_names.Assign = function(node, ns) {
   change_names(node$read, ns)
   node$write$name = ns$new_name(node$write$name)
   return (node)
 }
 
+#' @export
 change_names.Call = function(node, ns) {
   lapply(node$args, change_names, ns)
   return (node)
 }
 
+#' @export
 change_names.Symbol = function(node, ns) {
   node$name = ns$get_name(node$name)
   return (node)
 }
 
+#' @export
 change_names.Literal = function(node, ns) return (node)
 
+#' @export
 change_names.list = function(node, ns) {
   lapply(node, change_names, ns)
   return (node)
@@ -145,15 +150,18 @@ collect_reads = function(node) {
   UseMethod("collect_reads")
 }
 
+#' @export
 collect_reads.Call = function(node) {
   names = lapply(node$args, collect_reads)
   return (unique(unlist(names)))
 }
 
+#' @export
 collect_reads.Symbol = function(node) {
   return (node$name)
 }
 
+#' @export
 collect_reads.Literal = function(node) {
   return (character(0))
 }
