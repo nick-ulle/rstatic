@@ -55,6 +55,7 @@ to_cfg = function(ast) {
 }
 
 
+#' @export
 .to_cfg.If = function(node, cfg = CFGraph$new()) {
   entry_t = cfg$new_block()
   entry_f = cfg$new_block()
@@ -83,6 +84,7 @@ to_cfg = function(ast) {
 }
 
 
+#' @export
 .to_cfg.While = function(node, cfg = CFGraph$new()) {
   entry = cfg$new_block()
   cfg$jump(entry)
@@ -108,6 +110,7 @@ to_cfg = function(ast) {
 }
 
 
+#' @export
 .to_cfg.For = function(node, cfg = CFGraph$new()) {
   # Initialize ._iter_ in block before entry block.
   iter_name = paste0("._iter_", node$ivar$name)
@@ -151,18 +154,21 @@ to_cfg = function(ast) {
 }
 
 
+#' @export
 .to_cfg.Break = function(node, cfg = CFGraph$new()) {
   cfg$loop_break()
   return (cfg)
 }
 
 
+#' @export
 .to_cfg.Next = function(node, cfg = CFGraph$new()) {
   cfg$loop_next()
   return (cfg)
 }
 
 
+#' @export
 .to_cfg.Return = function(node, cfg = CFGraph$new()) {
   assign = Assign$new(Symbol$new("._return_"), node$args[[1]])
   .to_cfg(assign, cfg)
@@ -176,6 +182,7 @@ to_cfg = function(ast) {
 }
 
 
+#' @export
 .to_cfg.Brace = function(node, cfg = CFGraph$new()) {
   # Handle all subexpressions; they'll automatically be added to the graph.
   lapply(node$body, .to_cfg, cfg)
@@ -183,15 +190,20 @@ to_cfg = function(ast) {
 }
 
 
+#' @export
 .to_cfg.Call = function(node, cfg = CFGraph$new()) {
   cfg$exit_block$append(node)
   return (cfg)
 }
 
+#' @export
 .to_cfg.Assign = .to_cfg.Call
+#' @export
 .to_cfg.Symbol = .to_cfg.Call
+#' @export
 .to_cfg.Literal = .to_cfg.Call
 # Bare function definitions do not change control flow.
+#' @export
 .to_cfg.Function = .to_cfg.Call
 
 
