@@ -3,13 +3,89 @@
 
 #' @export
 ASTNode = R6::R6Class("ASTNode",
+  "private" = list(
+    deep_clone = function(name, value) {
+      # Don't clone parent nodes; each class' $copy() method is responsible for
+      # reparenting cloned children.
+      switch(name,
+        "parent" = NULL
+        , if (inherits(value, "ASTNode")) value$copy()
+        else if (inherits(value, "R6")) value$clone(deep = TRUE)
+        else value
+      )
+    }
+  ),
+
   "public" = list(
     parent = NULL,
+
     initialize = function(parent = NULL) {
       self$parent = parent
+    },
+
+    copy = function() {
+      cloned = self$clone(deep = TRUE)
+
+      # Reparent any ASTNode objects that aren't in the "parent" field.
+      for (name in names(cloned)) {
+        field = cloned[[name]]
+        if (is(field, "ASTNode") && name != "parent")
+          field$parent = cloned
+      }
+
+      return (cloned)
     }
   )
 )
+
+
+
+# Containers
+# --------------------
+
+#' @export
+Brace = R6::R6Class("Brace", inherit = ASTNode,
+  "private" = list(
+    deep_clone = function(name, value) {
+      switch(name,
+        "body" = lapply(value, function(v) v$copy())
+        , super$deep_clone(name, value)
+      )
+    }
+  ),
+
+  "public" = list(
+    body = NULL,
+    is_paren = FALSE,
+
+    initialize = function(body = list(), is_paren = FALSE, parent = NULL) {
+      super$initialize(parent)
+      self$set_body(body)
+      self$is_paren = is_paren
+    },
+
+    copy = function() {
+      cloned = super$copy()
+
+      for (x in cloned$body)
+        x$parent = cloned
+
+      return (cloned)
+    },
+
+    set_body = function(value) {
+      for (v in value)
+        v$parent = self
+
+      self$body = value
+    }
+  )
+)
+
+
+
+# Control Flow
+# --------------------
 
 #' @export
 Next = R6::R6Class("Next", inherit = ASTNode)
@@ -20,236 +96,134 @@ Break = R6::R6Class("Break", inherit = ASTNode)
 #' @export
 If = R6::R6Class("If", inherit = ASTNode,
   "public" = list(
+    condition = NULL,
+    true = NULL,
+    false = NULL,
+
     initialize = function(condition, true, false = NULL, parent = NULL)
     { 
       super$initialize(parent)
 
-      self$condition = condition
-      self$true = true
-      self$false = false
-    }
-  ),
-
-  "active" = list(
-    condition = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.condition = value
-      }
-
-      return (private$.condition)
+      self$set_condition(condition)
+      self$set_true(true)
+      self$set_false(false)
     },
 
-    true = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.true = value
-      }
-
-      return (private$.true)
+    set_condition = function(value) {
+      value$parent = self
+      self$condition = value
     },
 
-    false = function(value) {
-      if (!missing(value)) {
-        if (!is.null(value))
-          value$parent = self
-        private$.false = value
-      }
+    set_true = function(value) {
+      value$parent = self
+      self$true = value
+    },
 
-      return (private$.false)
+    set_false = function(value) {
+      if (!is.null(value))
+        value$parent = self
+      self$false = value
     }
-  ),
-
-  "private" = list(
-    .condition = NULL,
-    .true = NULL,
-    .false = NULL
   )
 )
 
 #' @export
 For = R6::R6Class("For", inherit = ASTNode,
   "public" = list(
+    ivar = NULL,
+    iter = NULL,
+    body = NULL,
+
     initialize = function(ivar, iter, body, parent = NULL) {
       super$initialize(parent)
 
-      self$ivar = ivar
-      self$iter = iter
-      self$body = body
-    }
-  ),
-
-  "active" = list(
-    ivar = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.ivar = value
-      }
-
-      return (private$.ivar)
+      self$set_ivar(ivar)
+      self$set_iter(iter)
+      self$set_body(body)
     },
 
-    iter = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.iter = value
-      }
-
-      return (private$.iter)
+    set_ivar = function(value) {
+      value$parent = self
+      self$ivar = value
     },
 
-    body = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.body = value
-      }
+    set_iter = function(value) {
+      value$parent = self
+      self$iter = value
+    },
 
-      return (private$.body)
+    set_body = function(value) {
+      value$parent = self
+      self$body = value
     }
-  ),
-
-  "private" = list(
-    .ivar = NULL,
-    .iter = NULL,
-    .body = NULL
   )
 )
 
 #' @export
 While = R6::R6Class("While", inherit = ASTNode,
   "public" = list(
+    condition = NULL,
+    body = NULL,
     is_repeat = FALSE,
+
     initialize = function(condition, body, is_repeat = FALSE, parent = NULL) {
       super$initialize(parent)
 
-      self$condition = condition
-      self$body = body
+      self$set_condition(condition)
+      self$set_body(body)
       self$is_repeat = is_repeat
-    }
-  ),
-
-  "active" = list(
-    condition = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.condition = value
-      }
-
-      return (private$.condition)
     },
 
-    body = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.body = value
-      }
-
-      return (private$.body)
-    }
-  ),
-
-  "private" = list(
-    .condition = NULL,
-    .body = NULL
-  )
-)
-
-#' @export
-Assign = R6::R6Class("Assign", inherit = ASTNode,
-  "public" = list(
-    initialize = function(write, read, parent = NULL) {
-      super$initialize(parent)
-
-      self$write = write
-      self$read = read
-    }
-  ),
-
-  "active" = list(
-    write = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.write = value
-      }
-
-      return (private$.write)
+    set_condition = function(value) {
+      value$parent = self
+      self$condition = value
     },
 
-    read = function(value) {
-      if (!missing(value)) {
-        value$parent = self
-        private$.read = value
-      }
-
-      return (private$.read)
+    set_body = function(value) {
+      value$parent = self
+      self$body = value
     }
-  ),
-
-  "private" = list(
-    .write = NULL,
-    .read = NULL
   )
 )
 
 
-#' @export
-Phi = R6::R6Class("Phi", inherit = ASTNode,
-  # FIXME: Phi and Assign should probably have a common superclass for
-  # variable-changing instructions. The Replacement class is also related.
-  "public" = list(
-    base = NULL,
-    write = NULL,
-    blocks = integer(0),
-    read = character(0),
-
-    initialize = function(base, parent = NULL) {
-      super$initialize(parent)
-
-      self$base = base
-      self$write = base
-    },
-
-    set_read = function(block, name) {
-      idx = match(block, self$blocks)
-      if (is.na(idx)) {
-        idx = length(self$blocks) + 1L
-        self$blocks[[idx]] = block
-      }
-      self$read[[idx]] = name
-      names(self$read)[[idx]] = block
-    },
-
-    get_read = function(block) {
-      idx = match(block, self$blocks)
-      self$read[[idx]]
-    }
-  )
-)
+# Calls
+# --------------------
 
 #' export
 Dispatch = R6::R6Class("Dispatch", inherit = ASTNode,
+  "private" = list(
+    deep_clone = function(name, value) {
+      switch(name,
+        "args" = lapply(value, function(v) v$copy())
+        , super$deep_clone(name, value)
+      )
+    }
+  ),
+
   "public" = list(
+    args = NULL,
+
     initialize = function(args = list(), parent = NULL) {
       super$initialize(parent)
 
-      self$args = args
+      self$set_args(args)
+    },
+
+    copy = function() {
+      cloned = super$copy()
+
+      for (x in cloned$args)
+        x$parent = cloned
+
+      return (cloned)
+    },
+
+    set_args = function(value) {
+      for (v in value)
+        v$parent = self
+      self$args = value
     }
-  ),
-
-  "active" = list(
-    args = function(value) {
-      if (!missing(value)) {
-        for (x in value)
-          x$parent = self
-        private$.args = value
-      }
-
-      return (private$.args)
-    }
-  ),
-
-  "private" = list(
-    .args = NULL
   )
 )
 
@@ -299,11 +273,154 @@ Internal = R6::R6Class("Internal", inherit = Call,
 )
 
 
+
+# Functions
+# --------------------
+
+#' @export
+Callable = R6::R6Class("Callable", inherit = ASTNode,
+  "private" = list(
+    deep_clone = function(name, value) {
+      switch(name,
+        "params" = lapply(value, function(v) v$copy())
+        , super$deep_clone(name, value)
+      )
+    }
+  ),
+
+  "public" = list(
+    params = NULL,
+
+    initialize = function(params, parent = NULL) {
+      super$initialize(parent)
+
+      self$set_params(params)
+    },
+
+    copy = function() {
+      cloned = super$copy()
+
+      for (x in cloned$params)
+        x$parent = cloned
+
+      return (cloned)
+    },
+
+    set_params = function(value) {
+      for (v in value)
+        v$parent = self
+      self$params = value
+    }
+  )
+)
+
+#' @export
+Function = R6::R6Class("Function", inherit = Callable,
+  "public" = list(
+    # FIXME: Need to override $copy() here?
+    body = NULL,
+
+    initialize = function(params, body, parent = NULL) {
+      super$initialize(params, parent)
+
+      self$set_body(body)
+    },
+
+    set_body = function(value) {
+      value$parent = self
+      self$body = value
+    }
+  )
+)
+
+#' @export
+Primitive = R6::R6Class("Primitive", inherit = Callable,
+  "public" = list(
+    name = NULL,
+
+    initialize = function(name, params, parent = NULL) {
+      super$initialize(params, parent)
+      self$name = name
+    }
+  )
+)
+
+
+
+# Assignment
+# --------------------
+
+#' @export
+Assign = R6::R6Class("Assign", inherit = ASTNode,
+  "public" = list(
+    write = NULL,
+    read = NULL,
+
+    initialize = function(write, read, parent = NULL) {
+      super$initialize(parent)
+
+      self$set_write(write)
+      self$set_read(read)
+    },
+
+    set_write = function(value) {
+      value$parent = self
+      self$write = value
+    },
+
+    set_read = function(value) {
+      value$parent = self
+      self$read = value
+    }
+  )
+)
+
+
+#' @export
+Phi = R6::R6Class("Phi", inherit = ASTNode,
+  # FIXME: Phi and Assign should probably have a common superclass for
+  # variable-changing instructions. The Replacement class is also related.
+  "public" = list(
+    base = NULL,
+    write = NULL,
+    blocks = integer(0),
+    read = character(0),
+
+    initialize = function(base, parent = NULL) {
+      super$initialize(parent)
+
+      self$base = base
+      self$write = base
+    },
+
+    set_read = function(block, name) {
+      idx = match(block, self$blocks)
+      if (is.na(idx)) {
+        idx = length(self$blocks) + 1L
+        self$blocks[[idx]] = block
+      }
+      self$read[[idx]] = name
+      names(self$read)[[idx]] = block
+    },
+
+    get_read = function(block) {
+      idx = match(block, self$blocks)
+      self$read[[idx]]
+    }
+  )
+)
+
+
+
+# Symbols
+# --------------------
+
 #' @export
 Symbol = R6::R6Class("Symbol", inherit = ASTNode,
   "public" = list(
     name = NULL,
     type = NULL,
+
     initialize = function(name, type = NULL, parent = NULL) {
       super$initialize(parent)
       self$name = name
@@ -315,127 +432,32 @@ Symbol = R6::R6Class("Symbol", inherit = ASTNode,
 #' @export
 Parameter = R6::R6Class("Parameter", inherit = Symbol,
   "public" = list(
+    default = NULL,
+
     initialize = function(name, default = NULL, type = NULL, parent = NULL) {
       super$initialize(name, type, parent)
 
-      self$default = default
-    }
-  ),
+      self$set_default(default)
+    },
 
-  "active" = list(
-    default = function(value) {
-      if (!missing(value)) {
-        if (!is.null(value))
-          value$parent = self
-        private$.default = value
-      }
-
-      return (private$.default)
-    }
-  ),
-
-  "private" = list(
-    .default = NULL
-  )
-)
-
-#' @export
-Callable = R6::R6Class("Callable", inherit = ASTNode,
-  "public" = list(
-    initialize = function(params, parent = NULL) {
-      super$initialize(parent)
-
-      self$params = params
-    }
-  ),
-
-  "active" = list(
-    params = function(value) {
-      if (!missing(value)) {
-        for (x in value)
-          x$parent = self
-        private$.params = value
-      }
-
-      return (private$.params)
-    }
-  ),
-
-  "private" = list(
-    .params = NULL
-  )
-)
-
-#' @export
-Function = R6::R6Class("Function", inherit = Callable,
-  "public" = list(
-    initialize = function(params, body, parent = NULL) {
-      super$initialize(params, parent)
-
-      self$body = body
-    }
-  ),
-
-  "active" = list(
-    body = function(value) {
-      if (!missing(value)) {
+    set_default = function(value) {
+      if (!is.null(value))
         value$parent = self
-        private$.body = value
-      }
-
-      return (private$.body)
-    }
-  ),
-
-  "private" = list(
-    .body = NULL
-  )
-)
-
-# FIXME:
-#' @export
-Primitive = R6::R6Class("Primitive", inherit = Callable,
-  "public" = list(
-    name = NULL,
-    initialize = function(name, params, parent = NULL) {
-      super$initialize(params, parent)
-      self$name = name
+      self$default = value
     }
   )
 )
 
-#' @export
-Brace = R6::R6Class("Brace", inherit = ASTNode,
-  "public" = list(
-    is_paren = FALSE,
-    initialize = function(body = list(), is_paren = FALSE, parent = NULL) {
-      super$initialize(parent)
-      self$body = body
-      self$is_paren = is_paren
-    }
-  ),
 
-  "active" = list(
-    body = function(value) {
-      if (!missing(value)) {
-        for (x in value)
-          x$parent = self
-        private$.body = value
-      }
 
-      return (private$.body)
-    }
-  ),
-
-  "private" = list(
-    .body = NULL
-  )
-)
+# Literals
+# --------------------
 
 #' @export
 Literal = R6::R6Class("Literal", inherit = ASTNode,
   "public" = list(
     value = NULL,
+
     initialize = function(value, parent = NULL) {
       super$initialize(parent)
       self$value = value
