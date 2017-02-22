@@ -1,9 +1,5 @@
 # Data structure for control-flow graphs.
 
-#' @include stack.R
-#' @include basic_block.R
-NULL
-
 
 #' @export
 CFGraph = R6::R6Class("CFGraph",

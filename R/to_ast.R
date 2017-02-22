@@ -2,9 +2,6 @@
 # Methods for converting to trees of ASTNode objects.
 #
 
-#' @include ast_node.R
-NULL
-
 
 #' Convert Unquoted R Code to ASTNodes
 #'

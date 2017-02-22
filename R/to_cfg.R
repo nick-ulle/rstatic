@@ -2,10 +2,6 @@
 # Methods for converting ASTNode objects to control-flow graphs.
 #
 
-#' @include basic_block.R
-#' @include cfgraph.R
-NULL
-
 
 #' Build Control Flow Graph for an AST
 #'

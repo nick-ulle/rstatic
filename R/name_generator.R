@@ -1,6 +1,4 @@
 
-#' @include stack.R
-NULL
 
 NameStack = R6::R6Class("NameStack",
   "private" = list(

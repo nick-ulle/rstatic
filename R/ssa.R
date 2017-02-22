@@ -1,7 +1,4 @@
 
-#' @include ast_node.R
-NULL
-
 #' Convert CFG Code to Static Single-Assignment Form
 #'
 #' This function converts code in a control flow graph (CFG) to static

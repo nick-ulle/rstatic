@@ -15,18 +15,3 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 5.0.1
-Collate:
-    'as_igraph.R'
-    'ast.R'
-    'ast_node.R'
-    'basic_block.R'
-    'stack.R'
-    'cfgraph.R'
-    'dominators.R'
-    'name_generator.R'
-    'plot.R'
-    'print.R'
-    'ssa.R'
-    'to_ast.R'
-    'to_cfg.R'
-    'to_r.R'
