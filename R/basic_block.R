@@ -22,6 +22,7 @@ BasicBlock = R6::R6Class("BasicBlock",
     },
 
     append = function(node, after = length(self$body)) {
+      node$parent = self
       if (inherits(node, "Phi")) {
         self$phi = append(self$phi, node)
       } else {

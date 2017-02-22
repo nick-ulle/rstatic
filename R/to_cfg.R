@@ -23,12 +23,16 @@ NULL
 #' for-loop makes a cycle.
 #'
 #' @param ast (ASTNode) An abstract syntax tree.
+#' @param in_place (logical) Don't copy AST before generating CFG?
 #'
 #' @return The control flow graph as a CFGraph object. The \code{[[} operator
 #' can be used to extract individual basic blocks from the graph.
 #'
 #' @export
-to_cfg = function(ast) {
+to_cfg = function(ast, in_place = FALSE) {
+  if (!in_place)
+    ast = ast$copy()
+
   if (!inherits(ast, "Function"))
     return (.to_cfg(ast))
 
