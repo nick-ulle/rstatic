@@ -3,7 +3,18 @@
 
 #' @export
 BasicBlock = R6::R6Class("BasicBlock",
-  public = list(
+  "private" = list(
+    deep_clone = function(name, value) {
+      switch(name,
+        "body" = lapply(value, function(v) v$copy()),
+        "phi" = lapply(value, function(v) v$copy()),
+        if (inherits(value, "R6")) value$clone(deep = TRUE)
+        else value
+      )
+    }
+  ),
+
+  "public" = list(
     body = NULL,
     phi = NULL,
     terminator = NULL,
@@ -16,6 +27,18 @@ BasicBlock = R6::R6Class("BasicBlock",
 
       self$phi = list()
       return (self)
+    },
+
+    copy = function() {
+      cloned = self$clone(deep = TRUE)
+
+      for (node in cloned$body)
+        node$parent = cloned
+
+      for (node in cloned$phi)
+        node$parent = cloned
+
+      return (cloned)
     },
 
     add_predecessor = function(block) {
@@ -34,7 +57,7 @@ BasicBlock = R6::R6Class("BasicBlock",
     }
   ),
 
-  active = list(
+  "active" = list(
     is_terminated = function() {
       return (!is.null(self$terminator))
     }

@@ -20,7 +20,7 @@ test_that("$append() sets parent on appended Phi nodes", {
 })
 
 
-test_that("$append() sets parent on appended language nodes", {
+test_that("$append() sets parent on appended body nodes", {
   x = BasicBlock$new()
   x$append(Symbol$new("x"))
 
