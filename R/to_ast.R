@@ -8,7 +8,7 @@
 #' This function uses non-standard evaluation to convert unquoted R code to a
 #' tree of ASTNode objects.
 #'
-#' @param expr unquoted R code to be converted.
+#' @param expr Unquoted R code to be converted.
 #' @export
 to_astq = function(expr) {
   to_ast(substitute(expr))
@@ -19,7 +19,7 @@ to_astq = function(expr) {
 #'
 #' This function converts quoted R code to a tree of ASTNode objects.
 #'
-#' @param expr (language) quoted R code to be converted.
+#' @param expr (language) Quoted R code to be converted.
 #' @export
 to_ast = function(expr) {
   UseMethod("to_ast")
@@ -63,6 +63,8 @@ to_ast.while = function(expr) {
 }
 
 #' Convert a repeat to an ASTNode
+#'
+#' @param expr (language) Quoted R code to be converted.
 #'
 to_ast_repeat = function(expr) {
   While$new(Logical$new(TRUE), to_ast(expr[[2]]), is_repeat = TRUE)
@@ -125,8 +127,9 @@ to_ast.call = function(expr) {
   return (node)
 }
 
-# FIXME:
-#' Convert a function definition to an ASTNode.
+#' Convert a Function Definition to an ASTNode
+#'
+#' @param expr (language) Quoted R code to be converted.
 #'
 to_ast_function_def = function(expr) {
   # TODO: Assign scope to function.

@@ -6,6 +6,9 @@
 \usage{
 to_ast_repeat(expr)
 }
+\arguments{
+\item{expr}{(language) Quoted R code to be converted.}
+}
 \description{
 Convert a repeat to an ASTNode
 }

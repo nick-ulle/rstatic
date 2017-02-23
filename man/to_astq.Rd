@@ -7,7 +7,7 @@
 to_astq(expr)
 }
 \arguments{
-\item{expr}{unquoted R code to be converted.}
+\item{expr}{Unquoted R code to be converted.}
 }
 \description{
 This function uses non-standard evaluation to convert unquoted R code to a

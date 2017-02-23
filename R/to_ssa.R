@@ -29,7 +29,7 @@ to_ssa = function(cfg, in_place = FALSE) {
     for (node in block$body) {
       # TODO: Ignoring all but assignments may skip some reads; do we need to
       # add these reads to the globals set?
-      if (!is(node, "Assign"))
+      if (!inherits(node, "Assign"))
         next
 
       # Add all read variables not in varkill to the globals set.

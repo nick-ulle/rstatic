@@ -2,11 +2,14 @@
 % Please edit documentation in R/to_ast.R
 \name{to_ast_function_def}
 \alias{to_ast_function_def}
-\title{Convert a function definition to an ASTNode.}
+\title{Convert a Function Definition to an ASTNode}
 \usage{
 to_ast_function_def(expr)
 }
+\arguments{
+\item{expr}{(language) Quoted R code to be converted.}
+}
 \description{
-Convert a function definition to an ASTNode.
+Convert a Function Definition to an ASTNode
 }
 

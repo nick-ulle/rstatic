@@ -7,7 +7,7 @@
 to_ast(expr)
 }
 \arguments{
-\item{expr}{(language) quoted R code to be converted.}
+\item{expr}{(language) Quoted R code to be converted.}
 }
 \description{
 This function converts quoted R code to a tree of ASTNode objects.
