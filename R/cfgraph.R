@@ -3,13 +3,36 @@
 
 #' @export
 CFGraph = R6::R6Class("CFGraph",
-  public = list(
+  "private" = list(
+    loop_stack = NULL,
+
+    deep_clone = function(name, value) {
+      switch(name,
+        "blocks" = lapply(value, function(v) v$copy()),
+        if (inherits(value, "R6")) value$clone(deep = TRUE)
+        else value
+      )
+    }
+  ),
+
+  "public" = list(
     blocks = list(),
     entry = NA_integer_,
     exit = NA_integer_,
     exit_fn = NA_integer_,
     len = 0L,
     branch_open = TRUE,
+
+    initialize = function() {
+      self$entry = self$exit = self$new_block()
+      private$loop_stack = Stack$new()
+
+      return (self)
+    },
+
+    copy = function() {
+      self$clone(deep = TRUE)
+    },
 
     get_postorder = function(from = self$entry) {
       # Compute the postorder traversal.
@@ -109,16 +132,10 @@ CFGraph = R6::R6Class("CFGraph",
       self$jump(from = from, entry)
       self$branch_open = FALSE
       return (self)
-    },
-
-    initialize = function() {
-      self$entry = self$exit = self$new_block()
-      private$loop_stack = Stack$new()
-
-      return (self)
     }
   ),
-  active = list(
+
+  "active" = list(
     entry_block = function() {
       return (self$blocks[[self$entry]])
     },
@@ -126,9 +143,6 @@ CFGraph = R6::R6Class("CFGraph",
     exit_block = function() {
       return (self$blocks[[self$exit]])
     }
-  ),
-  private = list(
-    loop_stack = NULL
   )
 )
 
