@@ -2,14 +2,16 @@
 % Please edit documentation in R/to_cfg.R
 \name{to_cfg}
 \alias{to_cfg}
-\title{Build Control Flow Graph for an AST}
+\title{Build Control Flow Graph from ASTNodes}
 \usage{
-to_cfg(ast, in_place = FALSE)
+to_cfg(ast, in_place = FALSE, as_ssa = TRUE)
 }
 \arguments{
 \item{ast}{(ASTNode) An abstract syntax tree.}
 
 \item{in_place}{(logical) Don't copy AST before generating CFG?}
+
+\item{as_ssa}{(logical) Return CFG in SSA form?}
 }
 \value{
 The control flow graph as a CFGraph object. The \code{[[} operator

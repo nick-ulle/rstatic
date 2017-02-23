@@ -3,7 +3,7 @@
 #
 
 
-#' Build Control Flow Graph for an AST
+#' Build Control Flow Graph from ASTNodes
 #'
 #' This function builds the control flow graph (CFG) for an abstract syntax
 #' tree. When the root of the AST is a Function object, the CFG is built for
@@ -20,49 +20,85 @@
 #'
 #' @param ast (ASTNode) An abstract syntax tree.
 #' @param in_place (logical) Don't copy AST before generating CFG?
+#' @param as_ssa (logical) Return CFG in SSA form?
 #'
 #' @return The control flow graph as a CFGraph object. The \code{[[} operator
 #' can be used to extract individual basic blocks from the graph.
 #'
 #' @export
-to_cfg = function(ast, in_place = FALSE) {
+to_cfg = function(ast, in_place = FALSE, as_ssa = TRUE) {
+  UseMethod("to_cfg")
+}
+
+#' @export
+to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
   if (!in_place)
     ast = ast$copy()
 
-  if (!inherits(ast, "Function"))
-    return (.to_cfg(ast))
-
-  # The ast argument is a Function, so set up an exit block.
+  # Set up an exit block.
   cfg = CFGraph$new()
   cfg$exit_fn = cfg$new_block()
 
-  .to_cfg(ast$body, cfg)
+  to_basic_blocks(ast$body, cfg)
 
   # Connect exit block to exit_fn block.
   if (cfg$exit != cfg$exit_fn)
     cfg$jump(cfg$exit_fn)
 
-  return (cfg)
-}
-
-
-.to_cfg = function(node, cfg = CFGraph$new()) {
-  # If exit block is terminated, do nothing until change of branch.
-  if (cfg$branch_open)
-    UseMethod(".to_cfg")
+  if (as_ssa)
+    cfg = ssa(cfg)
 
   return (cfg)
 }
-
 
 #' @export
-.to_cfg.If = function(node, cfg = CFGraph$new()) {
+to_cfg.ASTNode = function(ast, in_place = FALSE, as_ssa = TRUE) {
+  if (!in_place)
+    ast = ast$copy()
+
+  cfg = to_basic_blocks(ast)
+
+  if (as_ssa)
+    cfg = ssa(cfg)
+
+  return (cfg)
+}
+
+#' @export
+to_cfg.default = function(ast, in_place = FALSE, as_ssa = TRUE) {
+  msg = sprintf(
+    "Cannot convert object of class '%s' to CFG.", class(ast)[[1]]
+  )
+  stop(msg)
+}
+
+
+#' Build Basic Blocks from ASTNodes
+#'
+#' This helper function does a depth-first traversal of an AST in order to
+#' build basic blocks for a CFG.
+#'
+#' Generally, this function should only be called from \code{to_cfg()}.
+#'
+#' @param node (ASTNode) An ASTNode to build basic blocks from.
+#' @param cfg (CFGraph) A CFG to insert the basic blocks into.
+#'
+to_basic_blocks = function(node, cfg = CFGraph$new()) {
+  # If exit block is terminated, do nothing until change of branch.
+  if (cfg$branch_open)
+    UseMethod("to_basic_blocks")
+
+  return (cfg)
+}
+
+#' @export
+to_basic_blocks.If = function(node, cfg = CFGraph$new()) {
   entry_t = cfg$new_block()
   entry_f = cfg$new_block()
   cfg$branch(entry_t, entry_f, node$condition)
   exit = cfg$new_block()
 
-  exit_t = .to_cfg(node$true, cfg)$exit
+  exit_t = to_basic_blocks(node$true, cfg)$exit
 
   if (cfg$branch_open)
     cfg$jump(from = exit_t, exit)
@@ -73,7 +109,7 @@ to_cfg = function(ast, in_place = FALSE) {
   if (is.null(node$false))
     exit_f = entry_f
   else
-    exit_f = .to_cfg(node$false, cfg)$exit
+    exit_f = to_basic_blocks(node$false, cfg)$exit
 
   if (cfg$branch_open)
     cfg$jump(from = exit_f, exit)
@@ -85,7 +121,7 @@ to_cfg = function(ast, in_place = FALSE) {
 
 
 #' @export
-.to_cfg.While = function(node, cfg = CFGraph$new()) {
+to_basic_blocks.While = function(node, cfg = CFGraph$new()) {
   entry = cfg$new_block()
   cfg$jump(entry)
 
@@ -96,7 +132,7 @@ to_cfg = function(ast, in_place = FALSE) {
   # Compute flow graph for loop body.
   cfg$loop_push(entry, exit)
 
-  exit_b = .to_cfg(node$body, cfg)$exit
+  exit_b = to_basic_blocks(node$body, cfg)$exit
   if (cfg$branch_open)
     # Add the backedge.
     cfg$jump(from = exit_b, entry)
@@ -111,7 +147,7 @@ to_cfg = function(ast, in_place = FALSE) {
 
 
 #' @export
-.to_cfg.For = function(node, cfg = CFGraph$new()) {
+to_basic_blocks.For = function(node, cfg = CFGraph$new()) {
   # Initialize ._iter_ in block before entry block.
   iter_name = paste0("._iter_", node$ivar$name)
   def_iter = Assign$new(Symbol$new(iter_name), Integer$new(1L))
@@ -140,7 +176,7 @@ to_cfg = function(ast, in_place = FALSE) {
   # Compute flow graph for loop body.
   cfg$loop_push(entry, exit)
 
-  exit_b = .to_cfg(node$body, cfg)$exit
+  exit_b = to_basic_blocks(node$body, cfg)$exit
   if (cfg$branch_open)
     # Add the backedge.
     cfg$jump(from = exit_b, entry)
@@ -155,23 +191,23 @@ to_cfg = function(ast, in_place = FALSE) {
 
 
 #' @export
-.to_cfg.Break = function(node, cfg = CFGraph$new()) {
+to_basic_blocks.Break = function(node, cfg = CFGraph$new()) {
   cfg$loop_break()
   return (cfg)
 }
 
 
 #' @export
-.to_cfg.Next = function(node, cfg = CFGraph$new()) {
+to_basic_blocks.Next = function(node, cfg = CFGraph$new()) {
   cfg$loop_next()
   return (cfg)
 }
 
 
 #' @export
-.to_cfg.Return = function(node, cfg = CFGraph$new()) {
+to_basic_blocks.Return = function(node, cfg = CFGraph$new()) {
   assign = Assign$new(Symbol$new("._return_"), node$args[[1]])
-  .to_cfg(assign, cfg)
+  to_basic_blocks(assign, cfg)
 
   # NOTE: We could keep the Return instead of creating a ._retval_ variable.
   #cfg$exit_block$append(node)
@@ -183,27 +219,27 @@ to_cfg = function(ast, in_place = FALSE) {
 
 
 #' @export
-.to_cfg.Brace = function(node, cfg = CFGraph$new()) {
+to_basic_blocks.Brace = function(node, cfg = CFGraph$new()) {
   # Handle all subexpressions; they'll automatically be added to the graph.
-  lapply(node$body, .to_cfg, cfg)
+  lapply(node$body, to_basic_blocks, cfg)
   return (cfg)
 }
 
 
 #' @export
-.to_cfg.Call = function(node, cfg = CFGraph$new()) {
+to_basic_blocks.Call = function(node, cfg = CFGraph$new()) {
   cfg$exit_block$append(node)
   return (cfg)
 }
 
 #' @export
-.to_cfg.Assign = .to_cfg.Call
+to_basic_blocks.Assign = to_basic_blocks.Call
 #' @export
-.to_cfg.Symbol = .to_cfg.Call
+to_basic_blocks.Symbol = to_basic_blocks.Call
 #' @export
-.to_cfg.Literal = .to_cfg.Call
+to_basic_blocks.Literal = to_basic_blocks.Call
 # Bare function definitions do not change control flow.
 #' @export
-.to_cfg.Function = .to_cfg.Call
+to_basic_blocks.Function = to_basic_blocks.Call
 
 
