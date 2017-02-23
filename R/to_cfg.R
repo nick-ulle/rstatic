@@ -46,7 +46,7 @@ to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
     cfg$jump(cfg$exit_fn)
 
   if (as_ssa)
-    cfg = ssa(cfg)
+    cfg = to_ssa(cfg, in_place = TRUE)
 
   return (cfg)
 }
@@ -59,7 +59,7 @@ to_cfg.ASTNode = function(ast, in_place = FALSE, as_ssa = TRUE) {
   cfg = to_basic_blocks(ast)
 
   if (as_ssa)
-    cfg = ssa(cfg)
+    cfg = to_ssa(cfg, in_place = TRUE)
 
   return (cfg)
 }

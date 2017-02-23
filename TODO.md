@@ -1,6 +1,11 @@
 
 # TODO
 
+* Refactor
+  + [ ] Separate `$get_postorder()` from CFGraph class and add more traversal
+  options
+  * [x] By default, have no side effects on exported functions
+
 * Code Normalization
   * [x] `repeat` is `while (TRUE)`
   * [ ] pull out if-statements nested in other expressions

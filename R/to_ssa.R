@@ -1,16 +1,20 @@
 
-#' Convert CFG Code to Static Single-Assignment Form
+#' Convert CFGraph to Static Single-Assignment Form
 #'
 #' This function converts code in a control flow graph (CFG) to static
 #' single-assignment form.
 #'
 #' @param cfg (CFGraph) A control flow graph.
+#' @param in_place (logical) Don't copy CFG before conversion?
 #'
 #' @return The control flow graph as a CFGraph object, with the code in each
 #' block converted to SSA form.
 #'
 #' @export
-ssa = function(cfg) {
+to_ssa = function(cfg, in_place = FALSE) {
+  if (!in_place)
+    cfg = cfg$copy()
+
   # TODO: make this function's implementation more idiomatic.
   dom_t = dom_tree(cfg)
   dom_f = dom_frontier(cfg, dom_t)
