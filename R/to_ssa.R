@@ -69,27 +69,39 @@ to_ssa = function(cfg, in_place = FALSE) {
   } # end for name
 
   # Rename variables.
-  rewrite(cfg$entry, cfg, dom_t)
+  ssa_rename(cfg$entry, cfg, dom_t)
 
   return (cfg)
 }
 
 
-rewrite = function(block, cfg, dom_t, ns = NameStack$new()) {
+#' Rename CFG Variables with SSA Names
+#'
+#' This function renames variables in the basic blocks of a CFG with their SSA
+#' names.
+#'
+#' Generally, this function should only be called from \code{to_ssa()}.
+#'
+#' @param block (integer) Identifier of a basic block in the CFG.
+#' @param cfg (CFGraph) A control-flow graph.
+#' @param dom_t (integer) The dominator tree for the CFG.
+#' @param ns (NameStack) A stateful object used by the renaming algorithm.
+#'
+ssa_rename = function(block, cfg, dom_t, ns = NameStack$new()) {
   # Rewrite LHS of phi-functions in this block.
   lapply(cfg[[block]]$phi, function(phi) {
     phi$write = ns$new_name(phi$base)
   })
 
   # Rewrite operations in this block.
-  change_names(cfg[[block]]$body, ns)
+  ssa_rename_ast(cfg[[block]]$body, ns)
 
   # Rewrite terminator in this block.
   term = cfg[[block]]$terminator
   if (inherits(term, "BranchInst") && !is.null(term$condition)) {
-    change_names(term$condition, ns)
+    ssa_rename_ast(term$condition, ns)
   } else if (inherits(term, "IterateInst")) {
-    change_names(term$iter, ns)
+    ssa_rename_ast(term$iter, ns)
   }
 
   # Rewrite RHS of phi-functions in successors.
@@ -104,65 +116,52 @@ rewrite = function(block, cfg, dom_t, ns = NameStack$new()) {
   ns$save_locals()
 
   children = setdiff(which(dom_t == block), block)
-  lapply(children, rewrite, cfg, dom_t, ns)
+  lapply(children, ssa_rename, cfg, dom_t, ns)
 
   # End lifetimes of variables defined in this block.
   ns$clear_locals()
 }
 
 
-# FIXME: This doesn't change function names.
-change_names = function(node, ns) {
+#' Rename AST Variables with SSA Names
+#'
+#' This function renames variables in an AST with their SSA names.
+#'
+#' Generally, this function should only be called from \code{ssa_rename()}.
+#'
+#' @param node (ASTNode) An abstract syntax tree.
+#' @param ns (NameStack) A stateful object used by the renaming algorithm.
+#'
+ssa_rename_ast = function(node, ns) {
+  # FIXME: This doesn't change function names.
   # Rename all AST elements.
-  UseMethod("change_names")
+  UseMethod("ssa_rename_ast")
 }
 
 #' @export
-change_names.Assign = function(node, ns) {
-  change_names(node$read, ns)
+ssa_rename_ast.Assign = function(node, ns) {
+  ssa_rename_ast(node$read, ns)
   node$write$name = ns$new_name(node$write$name)
   return (node)
 }
 
 #' @export
-change_names.Call = function(node, ns) {
-  lapply(node$args, change_names, ns)
+ssa_rename_ast.Call = function(node, ns) {
+  lapply(node$args, ssa_rename_ast, ns)
   return (node)
 }
 
 #' @export
-change_names.Symbol = function(node, ns) {
+ssa_rename_ast.Symbol = function(node, ns) {
   node$name = ns$get_name(node$name)
   return (node)
 }
 
 #' @export
-change_names.Literal = function(node, ns) return (node)
+ssa_rename_ast.Literal = function(node, ns) return (node)
 
 #' @export
-change_names.list = function(node, ns) {
-  lapply(node, change_names, ns)
+ssa_rename_ast.list = function(node, ns) {
+  lapply(node, ssa_rename_ast, ns)
   return (node)
-}
-
-
-# FIXME: This doesn't count function names as reads.
-collect_reads = function(node) {
-  UseMethod("collect_reads")
-}
-
-#' @export
-collect_reads.Call = function(node) {
-  names = lapply(node$args, collect_reads)
-  return (unique(unlist(names)))
-}
-
-#' @export
-collect_reads.Symbol = function(node) {
-  return (node$name)
-}
-
-#' @export
-collect_reads.Literal = function(node) {
-  return (character(0))
 }
