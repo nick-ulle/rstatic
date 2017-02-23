@@ -10,8 +10,10 @@ BasicBlock = R6::R6Class("BasicBlock",
     predecessors = integer(0),
 
     initialize = function(body = list()) {
-      # FIXME: Check for phi nodes?
+      for (node in body)
+        node$parent = self
       self$body = body
+
       self$phi = list()
       return (self)
     },
