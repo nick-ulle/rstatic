@@ -145,7 +145,7 @@ to_r.Function = function(node) {
 
 #' @export
 to_r.Primitive = function(node) {
-  .Primitive(node$name)
+  .Primitive(node$func)
 }
 
 
