@@ -5,6 +5,8 @@
   + [ ] Separate `$get_postorder()` from CFGraph class and add more traversal
   options
   * [x] By default, have no side effects on exported functions
+  * [ ] Return class can only have one arg
+  * [ ] Use ASTNode objects for call names, etc...
 
 * Code Normalization
   * [x] `repeat` is `while (TRUE)`
@@ -28,6 +30,8 @@
   * [x] Generate unique names for the for-loop helper variable `._iter_`.
     Nested for-loops will not advance correctly as long as the name is not
     unique.
+  * [ ] Collect reads correctly for replacement functions, function
+    definitions, and any other missing cases. These need unit tests!
 
 * Syntax Objects (ASTNode subclasses)
   * [x] `(`
@@ -39,11 +43,8 @@
   * [ ] `...`
   * [ ] Lists, Data Frames
   * [ ] S4
-  * [ ] Return class can only have one arg.
-  * [ ] Use ASTNode objects for call names, etc...
   * [ ] Closures (Functions must to keep track of parent environment)
   * [ ] Namespace operators `::` and `:::`?
-  * [ ] Remove Brace class (just use lists)?
 
 * [ ] Unit Tests
 * [ ] Expanded data structure discussion in the README.

@@ -16,7 +16,12 @@ collect_reads = function(node) {
 }
 
 #' @export
-collect_reads.Call = function(node) {
+collect_reads.Assign = function(node) {
+  collect_reads(node$read)
+}
+
+#' @export
+collect_reads.Dispatch = function(node) {
   names = lapply(node$args, collect_reads)
   return (unique(unlist(names)))
 }
