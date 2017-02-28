@@ -12,48 +12,20 @@
 #'
 #' @export
 to_ssa = function(cfg, in_place = FALSE) {
+  # TODO: make this function's implementation more idiomatic.
+
   if (!in_place)
     cfg = cfg$copy()
 
-  # TODO: make this function's implementation more idiomatic.
+  cb = collect_crossblock_uses(cfg)
+  uses = cb[[1]]
+  assign_blocks = cb[[2]]
+
   dom_t = dom_tree(cfg)
   dom_f = dom_frontier(cfg, dom_t)
 
-  globals = character(0) # symbols used in more than one block
-  assign_blocks = list() # blocks where global symbols are assigned
-
-  for (i in seq_along(cfg)) {
-    block = cfg[[i]]
-    varkill = character(0)
-
-    for (node in block$body) {
-      # TODO: Ignoring all but assignments may skip some reads; do we need to
-      # add these reads to the globals set?
-      if (!inherits(node, "Assign"))
-        next
-
-      # Add all read variables not in varkill to the globals set.
-      reads = collect_reads(node$read)
-      reads = setdiff(reads, varkill)
-      globals = union(globals, reads)
-
-      # Add write variable to the kill set and add current block to its blocks
-      # set.
-      # FIXME: Does __retval__ need to be ignored?
-      name = node$write$name
-      varkill = union(varkill, name)
-
-      # Check that assign_blocks[[name]] exists.
-      if (is.null(assign_blocks[[name]])) {
-        assign_blocks[[name]] = i
-      } else {
-        assign_blocks[[name]] = union(assign_blocks[[name]], i)
-      }
-    }
-  } # end for
-
   # Insert phi-functions.
-  for (name in globals) {
+  for (name in uses) {
     # Add phi-function to dominance frontier for each block with an assignment.
     worklist = assign_blocks[[name]]
     for (b in worklist) {
