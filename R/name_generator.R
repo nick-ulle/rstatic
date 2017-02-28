@@ -34,14 +34,14 @@ NameStack = R6::R6Class("NameStack",
 
     get_name = function(base) {
       # Peek at a name on the stack.
-      idx = match(base, names(private$name_stack))
-      if (is.na(idx))
+      ns = private$name_stack[[base]]
+      if (is.null(ns) || ns$is_empty)
         # No names defined, so use base_0.
         # FIXME: This is a hack. The base_0 name should be pushed on the stack
         # without altering the locals (base_0 is assumed global).
         return (sprintf("%s_0", base))
 
-      private$name_stack[[idx]]$peek()
+      ns$peek()
     },
 
     new_name = function(base) {
