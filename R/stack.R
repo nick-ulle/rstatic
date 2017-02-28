@@ -14,14 +14,14 @@ Stack = R6::R6Class("Stack",
 
     peek = function() {
       if (private$len == 0)
-        return (NULL)
+        stop("Cannot peek at an empty Stack.")
 
       return (private$buffer[[private$len]])
     },
 
     pop = function() {
       if (private$len == 0)
-        return (NULL)
+        stop("Cannot pop an empty Stack.")
 
       x = private$buffer[[private$len]]
       private$buffer[[private$len]] = NA
