@@ -27,6 +27,12 @@ collect_reads.Dispatch = function(node) {
 }
 
 #' @export
+collect_reads.Replacement = function(node) {
+  names = lapply(node$args[-1], collect_reads)
+  return (unique(unlist(names)))
+}
+
+#' @export
 collect_reads.Symbol = function(node) {
   return (node$name)
 }

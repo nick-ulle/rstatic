@@ -65,3 +65,17 @@ test_that("collecting reads on return(x) returns x", {
   # -----
   expect_equal(result, "x")
 })
+
+
+test_that("collecting reads on x[i] = y returns i, y", {
+  code = Replacement$new("[<-", list(
+      Symbol$new("x"), Symbol$new("i"), Symbol$new("y")
+  ))
+
+  result = collect_reads(code)
+
+  # -----
+  expect_true("i" %in% result)
+  expect_true("y" %in% result)
+  expect_equal(length(result), 2)
+})
