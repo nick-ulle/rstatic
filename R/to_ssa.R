@@ -72,9 +72,13 @@ ssa_rename = function(block, cfg, dom_t, ns = NameStack$new()) {
   term = cfg[[block]]$terminator
   if (inherits(term, "BranchInst") && !is.null(term$condition)) {
     ssa_rename_ast(term$condition, ns)
-  } else if (inherits(term, "IterateInst")) {
-    ssa_rename_ast(term$iter, ns)
   }
+  # NOTE: for-loop iterators already appear in the body because of how
+  # for-loops get translated to CFGs.
+
+  #else if (inherits(term, "IterateInst")) {
+  #  ssa_rename_ast(term$iter, ns)
+  #}
 
   # Rewrite RHS of phi-functions in successors.
   for (id in cfg[[block]]$successors) {
