@@ -23,10 +23,19 @@ CFGraph = R6::R6Class("CFGraph",
     len = 0L,
     branch_open = TRUE,
 
-    initialize = function() {
-      self$entry = self$exit = self$new_block()
-      private$loop_stack = Stack$new()
+    initialize = function(kind = "basic") {
+      if (kind == "basic") {
+        self$entry = self$exit = self$new_block()
 
+      } else if (kind == "function") {
+        self$entry = self$exit = self$new_fn_entry()
+        self$new_fn_exit()
+
+      } else {
+        stop("CFGraph must have kind='basic' or kind='function'.")
+      }
+
+      private$loop_stack = Stack$new()
       return (self)
     },
 
@@ -68,6 +77,21 @@ CFGraph = R6::R6Class("CFGraph",
     new_block = function() {
       self$len = self$len + 1L
       self$blocks[[self$len]] = BasicBlock$new()
+
+      return (self$len)
+    },
+
+    new_fn_entry = function() {
+      self$len = self$len + 1L
+      self$blocks[[self$len]] = FnEntryBlock$new()
+
+      return (self$len)
+    },
+
+    new_fn_exit = function() {
+      self$len = self$len + 1L
+      self$blocks[[self$len]] = FnExitBlock$new()
+      self$exit_fn = self$len
 
       return (self$len)
     },

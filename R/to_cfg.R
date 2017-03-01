@@ -35,9 +35,9 @@ to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
   if (!in_place)
     ast = ast$copy()
 
-  # Set up an exit block.
-  cfg = CFGraph$new()
-  cfg$exit_fn = cfg$new_block()
+  # Set up CFG for a function.
+  cfg = CFGraph$new(kind = "function")
+  cfg[[cfg$entry]]$set_params(ast$params)
 
   to_basic_blocks(ast$body, cfg)
 

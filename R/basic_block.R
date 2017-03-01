@@ -71,6 +71,24 @@ BasicBlock = R6::R6Class("BasicBlock",
 )
 
 
+#' @export
+FnEntryBlock = R6::R6Class("FnEntryBlock", inherit = BasicBlock,
+  "public" = list(
+    params = list(),
+
+    set_params = function(value) {
+      for (v in value)
+        v$parent = self
+
+      self$params = value
+    }
+  )
+)
+
+#' @export
+FnExitBlock = R6::R6Class("FnExitBlock", inherit = BasicBlock)
+
+
 has_phi = function(block, x) {
   # Check if there's a phi-function in block for name x.
   match = vapply(block$phi, function(node) {
