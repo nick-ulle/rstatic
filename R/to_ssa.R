@@ -60,10 +60,13 @@ to_ssa = function(cfg, in_place = FALSE) {
 #' @param ns (NameStack) A stateful object used by the renaming algorithm.
 #'
 ssa_rename = function(block, cfg, dom_t, ns = NameStack$new()) {
+  # Rewrite function arguments in this block (if any).
+  if (inherits(cfg[[block]], "FnEntryBlock")) {
+    ssa_rename_ast(cfg[[block]]$params, ns)
+  }
+  
   # Rewrite LHS of phi-functions in this block.
-  lapply(cfg[[block]]$phi, function(phi) {
-    phi$write = ns$new_name(phi$base)
-  })
+  ssa_rename_ast(cfg[[block]]$phi, ns)
 
   # Rewrite operations in this block.
   ssa_rename_ast(cfg[[block]]$body, ns)
@@ -118,6 +121,20 @@ ssa_rename_ast = function(node, ns) {
 ssa_rename_ast.Assign = function(node, ns) {
   ssa_rename_ast(node$read, ns)
   node$write$name = ns$new_name(node$write$name)
+  return (node)
+}
+
+#' @export
+ssa_rename_ast.Phi = function(node, ns) {
+  node$write = ns$new_name(node$base)
+  return (node)
+}
+
+#' @export
+ssa_rename_ast.Parameter = function(node, ns) {
+  node$name = ns$new_name(node$name)
+  if (!is.null(node$default))
+    ssa_rename_ast(node$default, ns)
   return (node)
 }
 
