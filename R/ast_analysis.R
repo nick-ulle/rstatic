@@ -43,6 +43,26 @@ collect_reads.Literal = function(node) {
 }
 
 #' @export
+collect_reads.ReturnInst = function(node) {
+  collect_reads(node$value)
+}
+
+#' @export
+collect_reads.BranchInst = function(node) {
+  collect_reads(node$condition)
+}
+
+#' @export
+collect_reads.IterateInst = function(node) {
+  collect_reads(node$iter)
+}
+
+#' @export
+collect_reads.NULL = function(node) {
+  return (character(0))
+}
+
+#' @export
 collect_reads.default = function(node) {
   msg = sprintf(
     "Cannot collect reads for object of class '%s'.", class(node)[[1]]

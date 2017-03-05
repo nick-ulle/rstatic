@@ -79,6 +79,21 @@ format.BasicBlock = function(x, show_body = TRUE, ...) {
 #' @export
 print.BasicBlock = .print
 
+#' @export
+format.ReturnInst = function(x, show_tag = TRUE, ...) {
+  value = deparse_string(to_r(x$value))
+  term = sprintf("return %s", value)
+
+  if (show_tag)
+    msg = sprintf("%s\n%s", .format_tag(x), term)
+  else
+    msg = sprintf("%s", term)
+
+  return (msg)
+}
+
+#' @export
+print.ReturnInst = .print
 
 #' @export
 format.BranchInst = function(x, show_tag = TRUE, ...) {

@@ -75,6 +75,8 @@ ssa_rename = function(block, cfg, dom_t, ns = NameStack$new()) {
   term = cfg[[block]]$terminator
   if (inherits(term, "BranchInst") && !is.null(term$condition)) {
     ssa_rename_ast(term$condition, ns)
+  } else if (inherits(term, "ReturnInst")) {
+    ssa_rename_ast(term$value, ns)
   }
   # NOTE: for-loop iterators already appear in the body because of how
   # for-loops get translated to CFGs.

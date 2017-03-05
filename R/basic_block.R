@@ -86,7 +86,15 @@ FnEntryBlock = R6::R6Class("FnEntryBlock", inherit = BasicBlock,
 )
 
 #' @export
-FnExitBlock = R6::R6Class("FnExitBlock", inherit = BasicBlock)
+FnExitBlock = R6::R6Class("FnExitBlock", inherit = BasicBlock,
+  "public" = list(
+    initialize = function(body = list()) {
+      super$initialize(body)
+
+      self$terminator = ReturnInst$new()
+    }
+  )
+)
 
 
 has_phi = function(block, x) {
@@ -100,6 +108,24 @@ has_phi = function(block, x) {
 
 
 Terminator = R6::R6Class("Terminator")
+
+#' @export
+ReturnInst = R6::R6Class("ReturnInst", inherit = Terminator,
+  "public" = list(
+    value = NULL,
+
+    initialize = function(value) {
+      if (missing(value))
+        self$value = Symbol$new("._return_")
+      else
+        self$value = value
+    }
+  ),
+
+  "active" = list(
+    successors = function() integer(0)
+  )
+)
 
 #' @export
 BranchInst = R6::R6Class("BranchInst", inherit = Terminator,

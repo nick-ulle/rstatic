@@ -74,6 +74,11 @@ collect_crossblock_uses = function(cfg) {
       }
     }
 
+    # Collect reads in block terminator.
+    reads = collect_reads(block$terminator)
+    reads = setdiff(reads, preceeding_writes)
+    crossers = union(crossers, reads)
+
     # Now have all writes, so record them in assign_blocks.
     assign_blocks[preceeding_writes] =
       lapply(assign_blocks[preceeding_writes], union, i)
