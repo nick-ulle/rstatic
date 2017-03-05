@@ -12,4 +12,3 @@ to_r(node)
 \description{
 This function converts a tree of ASTNodes to the corresponding R code.
 }
-

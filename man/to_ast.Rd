@@ -12,4 +12,3 @@ to_ast(expr)
 \description{
 This function converts quoted R code to a tree of ASTNode objects.
 }
-

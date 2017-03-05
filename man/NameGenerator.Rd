@@ -12,4 +12,3 @@ NameGenerator
 Generate Unique Variable Names
 }
 \keyword{datasets}
-

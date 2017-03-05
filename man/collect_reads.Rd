@@ -17,4 +17,3 @@ an AST. This function doesn't consider calling a function a read.
 Beware that there are many ASTNode subclasses that this function doesn't
 attempt to handle; the function raises an error for unsupported classes.
 }
-

@@ -23,7 +23,7 @@
 #'
 #' @export
 dom_tree = function(cfg) {
-  po = cfg$get_postorder()
+  po = postorder(cfg)
   rpo = rev(po)
   # FIXME: Assign postorder number to each block instead of using a postorder
   # traversal so that less indirection is necessary here.

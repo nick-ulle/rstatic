@@ -1,4 +1,48 @@
 
+#' Postorder Traversal of a Graph
+#'
+#' Given a graph, this function finds the order nodes are visited by a
+#' postorder traversal.
+#'
+#' @param cfg (CFGraph) The graph on which to compute a traversal.
+#' @param from (integer) A node index where the traversal should start.
+#'
+#' @return (integer) The node indexes in the order they'd be visited.
+#'
+#' @export
+postorder = function(cfg, from = cfg$entry) {
+  # Compute the postorder traversal.
+  to_visit = Stack$new(type = "integer")
+  to_visit$push(from)
+
+  n = length(cfg)
+  is_discovered = logical(n)
+  visited = integer(n)
+  n_visited = 0
+
+  while (!to_visit$is_empty) {
+    idx = to_visit$peek()
+    is_discovered[[idx]] = TRUE
+
+    succ = cfg[[idx]]$successors
+    succ = succ[!is_discovered[succ]]
+
+    if (length(succ) > 0) {
+      # Undiscovered successors, so push them onto stack.
+      to_visit$push_many(succ)
+    } else {
+      # No undiscovered successors, so visit and pop this node.
+      to_visit$pop()
+      n_visited = n_visited + 1
+      visited[n_visited] = idx
+    } # if
+
+  } # while
+
+  return (visited)
+}
+
+
 #' Collect Cross-block Uses in a CFG
 #'
 #' This function collects the (unique) names of all variables that are used in

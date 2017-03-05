@@ -13,4 +13,3 @@ to_astq(expr)
 This function uses non-standard evaluation to convert unquoted R code to a
 tree of ASTNode objects.
 }
-

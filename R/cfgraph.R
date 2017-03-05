@@ -43,37 +43,6 @@ CFGraph = R6::R6Class("CFGraph",
       self$clone(deep = TRUE)
     },
 
-    get_postorder = function(from = self$entry) {
-      # Compute the postorder traversal.
-      to_visit = Stack$new(type = "integer")
-      to_visit$push(from)
-
-      is_discovered = logical(self$len)
-      visited = integer(self$len)
-      n_visited = 0
-
-      while (!to_visit$is_empty) {
-        idx = to_visit$peek()
-        is_discovered[[idx]] = TRUE
-
-        succ = self$blocks[[idx]]$successors
-        succ = succ[!is_discovered[succ]]
-
-        if (length(succ) > 0) {
-          # Undiscovered successors, so push them onto stack.
-          to_visit$push_many(succ)
-        } else {
-          # No undiscovered successors, so visit and pop this node.
-          to_visit$pop()
-          n_visited = n_visited + 1
-          visited[n_visited] = idx
-        } # if
-
-      } # while
-
-      return (visited)
-    },
-
     new_block = function() {
       self$len = self$len + 1L
       self$blocks[[self$len]] = BasicBlock$new()

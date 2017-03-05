@@ -14,4 +14,3 @@ This function converts a CFGraph object to an igraph object, which is useful
 for plotting the graph. The resulting igraph does not retain the code inside
 the basic blocks, only the structure of the original CFGraph.
 }
-

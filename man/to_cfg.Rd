@@ -32,4 +32,3 @@ these branches.
 An if-statement makes a downward diamond in the graph and a while- or
 for-loop makes a cycle.
 }
-

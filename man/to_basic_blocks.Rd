@@ -18,4 +18,3 @@ build basic blocks for a CFG.
 \details{
 Generally, this function should only be called from \code{to_cfg()}.
 }
-

@@ -14,4 +14,3 @@
 \description{
 This method plots a control flow graph using the igraph package.
 }
-

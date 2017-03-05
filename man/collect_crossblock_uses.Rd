@@ -13,4 +13,3 @@ collect_crossblock_uses(cfg)
 This function collects the (unique) names of all variables that are used in
 a different block than the block where they were defined.
 }
-

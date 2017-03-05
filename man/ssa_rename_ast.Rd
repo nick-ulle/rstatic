@@ -17,4 +17,3 @@ This function renames variables in an AST with their SSA names.
 \details{
 Generally, this function should only be called from \code{ssa_rename()}.
 }
-

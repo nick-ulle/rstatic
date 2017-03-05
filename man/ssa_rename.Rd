@@ -22,4 +22,3 @@ names.
 \details{
 Generally, this function should only be called from \code{to_ssa()}.
 }
-

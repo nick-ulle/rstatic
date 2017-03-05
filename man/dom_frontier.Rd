@@ -32,4 +32,3 @@ algorithm. Software Practice & Experience 4, 1-10.
 
 Cooper, K. D. and Torczon, L. (2012) Engineering a Compiler. Elsevier.
 }
-
