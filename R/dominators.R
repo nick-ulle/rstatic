@@ -9,6 +9,7 @@
 #' the immediate dominator for each block until a fixed point is reached.
 #'
 #' @param cfg (CFGraph) A control-flow graph.
+#' @param force (logical) Recompute if cached?
 #'
 #' @return The dominator tree as a vector of immediate dominators. In other
 #' words, if element \eqn{j} is \eqn{i}, then the immediate dominator of block
@@ -22,7 +23,10 @@
 #' Cooper, K. D. and Torczon, L. (2012) Engineering a Compiler. Elsevier.
 #'
 #' @export
-dom_tree = function(cfg) {
+dom_tree = function(cfg, force = FALSE) {
+  if (!is.null(cfg$dom_tree))
+    return (cfg$dom_tree)
+
   po = postorder(cfg)
   rpo = rev(po)
   # FIXME: Assign postorder number to each block instead of using a postorder
@@ -30,9 +34,9 @@ dom_tree = function(cfg) {
   # Map (block index -> postorder number) for later use.
   lookup = order(po, decreasing = FALSE)
 
-  doms = integer(length(cfg))
+  dom_t = integer(length(cfg))
 
-  doms[[1]] = rpo[[1]]
+  dom_t[[1]] = rpo[[1]]
   rpo = rpo[-1]
 
   # Iterate until a fixed point is reached.
@@ -43,7 +47,7 @@ dom_tree = function(cfg) {
     for (i in rpo) {
       # Get predecessors of block i with entries in the dominator tree.
       preds = cfg[[i]]$predecessors
-      preds = preds[doms[preds] != 0]
+      preds = preds[dom_t[preds] != 0]
 
       # Walk up the dominator tree to find a common dominator for predecessors
       # of block i.
@@ -53,22 +57,23 @@ dom_tree = function(cfg) {
         b2 = new_idom
         while(b1 != b2) {
           while (lookup[[b1]] < lookup[[b2]])
-            b1 = doms[[b1]]
+            b1 = dom_t[[b1]]
           while (lookup[[b2]] < lookup[[b1]])
-            b2 = doms[[b2]]
+            b2 = dom_t[[b2]]
         }
         new_idom = b1
       }
 
       # Update dominator tree if necessary.
-      if (doms[[i]] != new_idom) {
-        doms[[i]] = new_idom
+      if (dom_t[[i]] != new_idom) {
+        dom_t[[i]] = new_idom
         changed = TRUE
       }
     }
   }
 
-  return (doms)
+  cfg$dom_tree = dom_t
+  return (dom_t)
 }
 
 
