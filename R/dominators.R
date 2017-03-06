@@ -1,4 +1,35 @@
 
+#' Preorder Traversal of a Tree
+#'
+#' Given a tree in vector form, this function finds the order nodes are visited
+#' by a preorder traversal.
+#'
+#' @param dom_t (integer) The tree on which to compute a traversal, in vector
+#' form. The value at each index should be the index of that node's parent.
+#' @param from (integer) A node index where traversal should start.
+#'
+#' @return (integer) The node indexes in the order they'd be visited.
+#'
+#' @export
+dom_tree_preorder = function(dom_t, from = 1L) {
+  to_visit = Stack$new(type = "integer")
+  to_visit$push(from)
+
+  visited = integer(length(dom_t))
+  n_visited = 0
+  while (!to_visit$is_empty) {
+    idx = to_visit$pop()
+    n_visited = n_visited + 1
+    visited[n_visited] = idx
+
+    # Visit children of this node.
+    children = setdiff(which(dom_t == idx), idx)
+    to_visit$push_many(rev(children))
+  }
+
+  return (visited)
+}
+
 #' Compute Dominator Tree
 #'
 #' This function computes the dominator tree for a control-flow graph.
