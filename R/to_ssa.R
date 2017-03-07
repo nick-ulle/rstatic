@@ -147,6 +147,12 @@ ssa_rename_ast.Call = function(node, ns) {
 }
 
 #' @export
+ssa_rename_ast.Brace = function(node, ns) {
+  lapply(node$body, ssa_rename_ast, ns)
+  return (node)
+}
+
+#' @export
 ssa_rename_ast.Symbol = function(node, ns) {
   node$name = ns$get_name(node$name)
   return (node)
