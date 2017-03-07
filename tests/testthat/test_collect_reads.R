@@ -79,3 +79,13 @@ test_that("collecting reads on x[i] = y returns i, y", {
   expect_true("y" %in% result)
   expect_equal(length(result), 2)
 })
+
+
+test_that("collecting reads on {x} returns x", {
+  code = Brace$new(list(Symbol$new("x")))
+
+  result = collect_reads(code)
+
+  # -----
+  expect_equal(result, "x")
+})

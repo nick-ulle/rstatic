@@ -3,6 +3,7 @@
 S3method("[[",CFGraph)
 S3method(collect_reads,"NULL")
 S3method(collect_reads,Assign)
+S3method(collect_reads,Brace)
 S3method(collect_reads,BranchInst)
 S3method(collect_reads,Dispatch)
 S3method(collect_reads,IterateInst)

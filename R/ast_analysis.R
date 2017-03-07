@@ -33,6 +33,12 @@ collect_reads.Replacement = function(node) {
 }
 
 #' @export
+collect_reads.Brace = function(node) {
+  names = lapply(node$body, collect_reads)
+  return (unique(unlist(names)))
+}
+
+#' @export
 collect_reads.Symbol = function(node) {
   return (node$name)
 }
