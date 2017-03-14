@@ -338,7 +338,7 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
   "public" = list(
     name = NULL,
 
-    initialize = function(name, params, parent = NULL) {
+    initialize = function(params, name, parent = NULL) {
       super$initialize(params, parent)
       self$name = name
     }

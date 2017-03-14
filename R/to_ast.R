@@ -28,18 +28,44 @@ to_ast = function(expr) {
 
 #' @export
 to_ast.function = function(expr) {
-  # Construct a call for the function definition.
-  # FIXME: The function might be a closure.
-  if (is.primitive(expr)) {
-    name = as.character(substitute(expr))
-    params = formals(args(sum))
-    node = Primitive$new(params, name)
-    return (node)
-  }
+  # FIXME: Save the parent environment of the function.
+  name = as.character(substitute(expr))
+  fn = list(name, formals(args(expr)), body(expr))
 
-  expr = call("function", formals(expr), body(expr))
-  to_ast(expr)
+  to_ast_callable(fn, is.primitive(expr))
 }
+
+
+#' Convert a Callable Object to an ASTNode
+#'
+#' This function converts primitives, functions, and function definitions to
+#' ASTNode objects. No distinction is made between functions and function
+#' definitions since they have the same underlying code.
+#'
+#' @param expr (language) Quoted R code to be converted.
+#'
+to_ast_callable = function(expr, is_primitive = FALSE) {
+  # TODO: If this is a function definition, the environment it will exist in
+  # hasn't been created yet, so what should happen?
+  params = Map(function(name, default) {
+    if (inherits(default, "name") && default == "")
+      default = NULL
+    else
+      default = to_ast(default)
+
+    Parameter$new(name, default)
+  }, names(expr[[2]]), expr[[2]])
+
+  if (is_primitive) {
+    # Construct primitive with params and name.
+    Primitive$new(params, expr[[1]])
+
+  } else {
+    # Construct function with params and body.
+    Function$new(params, to_ast(expr[[3]]))
+  }
+}
+
 
 
 #' @export
@@ -103,7 +129,7 @@ to_ast.call = function(expr) {
     # Handle "calls" that don't use the standard call syntax. Most of these are
     # actually keywords.
     if (name == "function")
-      return (to_ast_function_def(expr))
+      return (to_ast_callable(expr))
     else if (name == "repeat")
       return (to_ast_repeat(expr))
     else if (name == "break")
@@ -125,23 +151,6 @@ to_ast.call = function(expr) {
 
   node$args = lapply(expr[-1], to_ast)
   return (node)
-}
-
-#' Convert a Function Definition to an ASTNode
-#'
-#' @param expr (language) Quoted R code to be converted.
-#'
-to_ast_function_def = function(expr) {
-  # TODO: Assign scope to function.
-  params = mapply(function(name, default) {
-    Parameter$new(
-      name,
-      if (class(default) == "name" && default == "") NULL
-      else to_ast(default)
-    )
-  }, names(expr[[2]]), expr[[2]], SIMPLIFY = FALSE)
-
-  Function$new(params, to_ast(expr[[3]]))
 }
 
 
