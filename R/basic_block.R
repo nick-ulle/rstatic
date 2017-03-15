@@ -100,7 +100,7 @@ FnExitBlock = R6::R6Class("FnExitBlock", inherit = BasicBlock,
 has_phi = function(block, x) {
   # Check if there's a phi-function in block for name x.
   match = vapply(block$phi, function(node) {
-    return (node$write == x)
+    return (node$write$base == x)
   }, logical(1))
 
   any(match)

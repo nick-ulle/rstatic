@@ -100,8 +100,7 @@ If = R6::R6Class("If", inherit = ASTNode,
     true = NULL,
     false = NULL,
 
-    initialize = function(condition, true, false = NULL, parent = NULL)
-    { 
+    initialize = function(condition, true, false = NULL, parent = NULL) {
       super$initialize(parent)
 
       self$set_condition(condition)
@@ -242,12 +241,21 @@ Return = R6::R6Class("Return", inherit = Dispatch,
 #' @export
 Call = R6::R6Class("Call", inherit = Dispatch,
   "public" = list(
-    func = NULL,
-    initialize = function(func, args = list(), parent = NULL) {
+    fn = NULL,
+
+    initialize = function(fn, args = list(), parent = NULL) {
       super$initialize(args, parent)
 
-      # FIXME: Set parent for func.
-      self$func = func
+      self$set_fn(fn)
+    },
+
+    set_fn = function(value) {
+      # NOTE: fn could be a Symbol, Function, Primitive, or Call.
+      if (!inherits(value, "ASTNode"))
+        value = Symbol$new(value)
+
+      value$parent = self
+      self$fn = value
     }
   ),
 
@@ -256,9 +264,18 @@ Call = R6::R6Class("Call", inherit = Dispatch,
 #' @export
 Replacement = R6::R6Class("Replacement", inherit = Call,
   "public" = list(
-    initialize = function(func, args = list(), parent = NULL) {
-      func = sprintf("%s<-", as.character(func))
-      super$initialize(func, args, parent)
+    set_fn = function(value) {
+      if (!inherits(value, "ASTNode")) {
+        value = as.character(value)
+
+        if (!endsWith(value, "<-"))
+          value = sprintf("%s<-", value)
+
+        value = Symbol$new(value)
+      }
+
+      value$parent = self
+      self$fn = value
     }
   )
 )
@@ -336,11 +353,20 @@ Function = R6::R6Class("Function", inherit = Callable,
 #' @export
 Primitive = R6::R6Class("Primitive", inherit = Callable,
   "public" = list(
-    name = NULL,
+    fn = NULL,
 
-    initialize = function(params, name, parent = NULL) {
+    initialize = function(params, fn, parent = NULL) {
       super$initialize(params, parent)
-      self$name = name
+
+      self$set_fn(fn)
+    },
+
+    set_fn = function(value) {
+      if (!inherits(value, "Symbol"))
+        value = Symbol$new(value)
+
+      value$parent = self
+      self$fn = value
     }
   )
 )
@@ -381,31 +407,37 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
   # FIXME: Phi and Assign should probably have a common superclass for
   # variable-changing instructions. The Replacement class is also related.
   "public" = list(
-    base = NULL,
     write = NULL,
     blocks = integer(0),
-    read = character(0),
+    read = list(),
 
-    initialize = function(base, parent = NULL) {
+    initialize = function(write, parent = NULL) {
       super$initialize(parent)
 
-      self$base = base
-      self$write = base
+      self$set_write(write)
     },
 
-    set_read = function(block, name) {
+    set_read = function(block, value) {
       idx = match(block, self$blocks)
       if (is.na(idx)) {
         idx = length(self$blocks) + 1L
         self$blocks[[idx]] = block
       }
-      self$read[[idx]] = name
+      self$read[[idx]] = value
       names(self$read)[[idx]] = block
     },
 
     get_read = function(block) {
       idx = match(block, self$blocks)
       self$read[[idx]]
+    },
+
+    set_write = function(value) {
+      if (!inherits(value, "Symbol"))
+        value = Symbol$new(value)
+
+      value$parent = self
+      self$write = value
     }
   )
 )
@@ -418,13 +450,26 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
 #' @export
 Symbol = R6::R6Class("Symbol", inherit = ASTNode,
   "public" = list(
-    name = NULL,
-    type = NULL,
+    base = NULL,
+    n = NULL,
 
-    initialize = function(name, type = NULL, parent = NULL) {
+    initialize = function(name, n = NA_integer_, parent = NULL) {
+      if ( !(is.character(name) || is.symbol(name)) )
+        stop("Symbol name must be a character or a name.", call. = FALSE)
+
       super$initialize(parent)
-      self$name = name
-      self$type = type
+      self$base = as.character(name)
+      self$n = n
+    }
+  ),
+
+  "active" = list(
+    name = function() {
+      n = self$n
+      if (is.na(n))
+        return (self$base)
+
+      return (sprintf("%s_%i", self$base, n))
     }
   )
 )
@@ -434,8 +479,10 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
   "public" = list(
     default = NULL,
 
-    initialize = function(name, default = NULL, type = NULL, parent = NULL) {
-      super$initialize(name, type, parent)
+    initialize = function(name, default = NULL, ssa = NA_integer_,
+      parent = NULL)
+    {
+      super$initialize(name, ssa, parent)
 
       self$set_default(default)
     },

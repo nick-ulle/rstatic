@@ -4,7 +4,7 @@ context("to_cfg")
 test_that("AST is copied when in_place = FALSE", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = to_cfg(ast, in_place = FALSE)
+  cfg = to_cfg(ast, in_place = FALSE, as_ssa = FALSE)
 
   # -----
   node = cfg[[1]]$body[[1]]
@@ -17,7 +17,7 @@ test_that("AST is copied when in_place = FALSE", {
 test_that("AST is not copied when in_place = TRUE", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = to_cfg(ast, in_place = TRUE)
+  cfg = to_cfg(ast, in_place = TRUE, as_ssa = FALSE)
 
   # -----
   node = cfg[[1]]$body[[1]]
@@ -30,7 +30,7 @@ test_that("AST is not copied when in_place = TRUE", {
 test_that("nodes are reparented to containing BasicBlock", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = to_cfg(ast)
+  cfg = to_cfg(ast, as_ssa = FALSE)
 
   # -----
   expect_identical(cfg[[1]], cfg[[1]]$body[[1]]$parent)

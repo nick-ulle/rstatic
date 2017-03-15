@@ -88,19 +88,20 @@ ssa_rename = function(block, cfg, dom_t, ns = NameStack$new()) {
   # Rewrite RHS of phi-functions in successors.
   for (id in cfg[[block]]$successors) {
     lapply(cfg[[id]]$phi, function(phi) {
-      name = ns$get_name(phi$base)
+      n = ns$get_live_def(phi$write$base)
+      name = Symbol$new(phi$write$base, n)
       phi$set_read(block, name)
     })
   }
 
   # Descend to blocks dominated by this block (children in dom tree).
-  ns$save_locals()
+  ns$save_local_defs()
 
   children = setdiff(which(dom_t == block), block)
   lapply(children, ssa_rename, cfg, dom_t, ns)
 
   # End lifetimes of variables defined in this block.
-  ns$clear_locals()
+  ns$clear_local_defs()
 }
 
 
@@ -122,19 +123,19 @@ ssa_rename_ast = function(node, ns) {
 #' @export
 ssa_rename_ast.Assign = function(node, ns) {
   ssa_rename_ast(node$read, ns)
-  node$write$name = ns$new_name(node$write$name)
+  node$write$n = ns$new_def(node$write$base)
   return (node)
 }
 
 #' @export
 ssa_rename_ast.Phi = function(node, ns) {
-  node$write = ns$new_name(node$base)
+  node$write$n = ns$new_def(node$write$base)
   return (node)
 }
 
 #' @export
 ssa_rename_ast.Parameter = function(node, ns) {
-  node$name = ns$new_name(node$name)
+  node$n = ns$new_def(node$base)
   if (!is.null(node$default))
     ssa_rename_ast(node$default, ns)
   return (node)
@@ -154,7 +155,7 @@ ssa_rename_ast.Brace = function(node, ns) {
 
 #' @export
 ssa_rename_ast.Symbol = function(node, ns) {
-  node$name = ns$get_name(node$name)
+  node$n = ns$get_live_def(node$base)
   return (node)
 }
 

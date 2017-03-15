@@ -58,22 +58,16 @@ to_r.Assign = function(node) {
 
 #' @export
 to_r.Call = function(node) {
-  # FIXME: func should probably be an AST object regardless of whether it's a
-  # symbol or not.
-  func = node$func
-  if (is.character(func))
-    func = as.name(func)
-  else
-    func = to_r(func)
-
+  fn = to_r(node$fn)
   args = lapply(node$args, to_r)
-  as.call(append(func, args))
+  as.call(append(fn, args))
 }
 
 #' @export
 to_r.Phi = function(node) {
-  phi = as.call(append(as.name("Phi"), node$read))
-  as.call(list(as.name("="), as.name(node$write), phi))
+  reads = lapply(node$read, to_r)
+  phi = as.call(append(as.name("Phi"), reads))
+  call("=", to_r(node$write), phi)
 }
 
 #' @export
@@ -81,10 +75,15 @@ to_r.Replacement = function(node) {
   args = lapply(node$args, to_r)
   len = length(args)
 
-  # FIXME: Check that node$func is a string.
-  func = gsub("<-", "", node$func, fixed = TRUE)
-  write = do.call(call, append(func, args[-len]), quote = TRUE)
-  call("=", write, args[[len]])
+  # Convert FN<- to FN
+  fn = gsub("<-", "", node$fn$name, fixed = TRUE)
+  fn = as.name(fn)
+
+  write = as.call(append(fn, args[-len]))
+  if (len > 0)
+    call("=", write, args[[len]])
+  else
+    call("=", write)
 }
 
 #' @export
@@ -102,7 +101,7 @@ to_r.Return = function(node) {
 to_r.Internal = function(node) {
   # NOTE: This is a workaround because it's illegal to construct calls to
   # .Internal.
-  node$name = "."
+  node$fn$base = "."
   code = NextMethod()
   code[[1]] = quote(.Internal)
   return (code)
@@ -112,7 +111,7 @@ to_r.Internal = function(node) {
 #' @export
 to_r.Symbol = function(node) {
   # Handle empty arguments.
-  if (node$name == "")
+  if (node$base == "")
     return (quote(expr = ))
 
   as.name(node$name)
@@ -145,7 +144,7 @@ to_r.Function = function(node) {
 
 #' @export
 to_r.Primitive = function(node) {
-  .Primitive(node$func)
+  .Primitive(node$fn$name)
 }
 
 
@@ -157,7 +156,7 @@ to_r.Brace = function(node) {
   else
     name = "{"
 
-  do.call(call, append(name, body), quote = TRUE)
+  as.call(append(as.name(name), body))
 }
 
 #' @export

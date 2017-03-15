@@ -14,16 +14,16 @@ NameStack = R6::R6Class("NameStack",
       private$local_stack = Stack$new(type = "list")
     },
 
-    save_locals = function() {
-      # Save locals on the stack.
+    save_local_defs = function() {
+      # Save local definitions so they can be cleared later.
       private$local_stack$push(private$local)
       private$local = character(0)
 
       invisible (self)
     },
 
-    clear_locals = function() {
-      # Restore locals from the stack, then clear them.
+    clear_local_defs = function() {
+      # Clear saved local definitions.
       local = private$local_stack$pop()
       lapply(local,
         function(base) private$name_stack[[base]]$pop()
@@ -32,33 +32,34 @@ NameStack = R6::R6Class("NameStack",
       invisible (self)
     },
 
-    get_name = function(base) {
-      # Peek at a name on the stack.
+    get_live_def = function(base) {
       ns = private$name_stack[[base]]
       if (is.null(ns) || ns$is_empty)
-        # No names defined, so use base_0.
-        # FIXME: This is a hack. The base_0 name should be pushed on the stack
-        # without altering the locals (base_0 is assumed global).
-        return (sprintf("%s_0", base))
+        # Base has no definitions, so return NA.
+        return (NA_integer_)
 
       ns$peek()
     },
 
-    new_name = function(base) {
-      # Push a new name onto the stack and mark the base as local.
-      name = private$name_gen$get(base)
-
+    new_def = function(base) {
+      # Check whether base already has a definition in this block.
       if (base %in% private$local) {
         private$name_stack[[base]]$pop()
+
       } else {
+        # NOTE: It would probably be okay to use c() instead of union() here.
         private$local = union(base, private$local)
 
+        # Check whether base has a name stack.
         if ( !(base %in% names(private$name_stack)) )
-          private$name_stack[[base]] = Stack$new(type = "character")
+          private$name_stack[[base]] = Stack$new(type = "integer")
       }
-      private$name_stack[[base]]$push(name)
 
-      return (name)
+      # Push a new number onto the stack.
+      n = private$name_gen$get(base)
+      private$name_stack[[base]]$push(n)
+
+      return (n)
     }
   )
 )
@@ -81,7 +82,7 @@ NameGenerator = R6::R6Class("NameGenerator",
       
       private$counter[[base]] = counter
 
-      return (sprintf("%s_%i", base, counter))
+      return (counter)
     }
   )
 )
