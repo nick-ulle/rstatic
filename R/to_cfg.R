@@ -149,9 +149,14 @@ to_basic_blocks.While = function(node, cfg = CFGraph$new()) {
 #' @export
 to_basic_blocks.For = function(node, cfg = CFGraph$new()) {
   # Initialize ._iter_ in block before entry block.
-  iter_name = paste0("._iter_", node$ivar$name)
+  iter_name = paste0("._iter_", node$ivar$base)
   def_iter = Assign$new(Symbol$new(iter_name), Integer$new(1L))
+  def_i = Assign$new(
+    write = Symbol$new(node$ivar$base),
+    read  = Call$new("[[", list(node$iter, Symbol$new(iter_name)))
+  )
   cfg$exit_block$append(def_iter)
+  cfg$exit_block$append(def_i)
 
   # Create entry block; advance ._iter_ and ivar here.
   entry = cfg$new_block()
@@ -163,7 +168,7 @@ to_basic_blocks.For = function(node, cfg = CFGraph$new()) {
   )
   adv_i = Assign$new(
     write = Symbol$new(node$ivar$name),
-    read  = Call$new("[[", list(node$iter, Symbol$new(iter_name)))
+    read  = Call$new("[[", list(node$iter$copy(), Symbol$new(iter_name)))
   )
   cfg[[entry]]$append(adv_iter)
   cfg[[entry]]$append(adv_i)
