@@ -34,7 +34,7 @@ devtools::install_github("nick-ulle/rstatic")
 The function `to_ast` converts functions or quoted R code to a tree of ASTNode objects. For example:
 
 ``` r
-library("ast")
+library("rstatic")
 
 f = function(x = 1, y = 1) {
   return (x^2 + y^2)
