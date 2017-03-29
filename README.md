@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-ast
-===
+rstatic
+=======
 
 A package of data structures and tools for manipulating R code.
 
@@ -26,7 +26,7 @@ The easiest way to install this package is with devtools:
 ``` r
 install.packages("devtools")
 
-devtools::install_github("nick-ulle/ast")
+devtools::install_github("nick-ulle/rstatic")
 ```
 
 ### Usage
@@ -42,7 +42,7 @@ f = function(x = 1, y = 1) {
 
 f_ast = to_ast(f)
 print(f_ast)
-## <Function> $body $clone $initialize $params $parent
+## <Function> $body $clone $copy $initialize $params $parent $set_body $set_params
 ## function(x = 1, y = 1) {
 ##     return(x^2 + y^2)
 ## }
@@ -53,12 +53,12 @@ The output shows that the root node has class `Function`, which has several fiel
 ``` r
 f_ast$params
 ## $x
-## <Parameter> $clone $default $initialize $name $parent $type
+## <Parameter> $base $clone $copy $default $initialize $n $name $parent $set_default
 ## pairlist(x = 1) 
 ## 
 ## 
 ## $y
-## <Parameter> $clone $default $initialize $name $parent $type
+## <Parameter> $base $clone $copy $default $initialize $n $name $parent $set_default
 ## pairlist(y = 1)
 ```
 
@@ -68,17 +68,17 @@ In interactive use, the `to_astq` function, which automatically quotes its argum
 ast = to_astq(mean(c(4, 2, NA), na.rm = TRUE))
 
 print(ast)
-## <Call> $args $clone $func $initialize $parent
+## <Call> $args $clone $copy $fn $initialize $parent $set_args $set_fn
 ## mean(c(4, 2, NA), na.rm = TRUE)
 
 ast$args
 ## [[1]]
-## <Call> $args $clone $func $initialize $parent
+## <Call> $args $clone $copy $fn $initialize $parent $set_args $set_fn
 ## c(4, 2, NA) 
 ## 
 ## 
 ## $na.rm
-## <Logical> $clone $initialize $parent $value
+## <Logical> $clone $copy $initialize $parent $value
 ## TRUE
 ```
 

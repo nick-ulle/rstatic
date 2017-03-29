@@ -1,5 +1,5 @@
-Package: ast
-Title: Manipulate Abstract Syntax Trees
+Package: rstatic
+Title: Static Analysis Tools for R Code
 Version: 0.0.0.9003
 Authors@R: person(
   "Nick", "Ulle", email = "nick.ulle@gmail.com", role = c("aut", "cre"))

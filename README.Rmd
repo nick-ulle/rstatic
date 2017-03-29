@@ -11,7 +11,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ast
+# rstatic
 
 A package of data structures and tools for manipulating R code.
 
@@ -57,7 +57,7 @@ The easiest way to install this package is with devtools:
 ```{r, eval = FALSE}
 install.packages("devtools")
 
-devtools::install_github("nick-ulle/ast")
+devtools::install_github("nick-ulle/rstatic")
 ```
 
 ### Usage 
