@@ -41,7 +41,9 @@ to_ssa = function(cfg, in_place = FALSE) {
   } # end for name
 
   # Rename variables.
-  ssa_rename(cfg$entry, cfg, dom_t)
+  ns = NameStack$new()
+  ssa_rename(cfg$entry, cfg, dom_t, ns)
+  cfg$usedef = ns$usedef
 
   return (cfg)
 }
@@ -89,8 +91,10 @@ ssa_rename = function(block, cfg, dom_t, ns = NameStack$new()) {
   for (id in cfg[[block]]$successors) {
     lapply(cfg[[id]]$phi, function(phi) {
       n = ns$get_live_def(phi$write$base)
-      name = Symbol$new(phi$write$base, n)
-      phi$set_read(block, name)
+      node = Symbol$new(phi$write$base, n)
+      ns$register_use(node$name, node)
+
+      phi$set_read(block, node)
     })
   }
 
@@ -116,28 +120,35 @@ ssa_rename = function(block, cfg, dom_t, ns = NameStack$new()) {
 #'
 ssa_rename_ast = function(node, ns) {
   # FIXME: This doesn't change function names.
-  # Rename all AST elements.
   UseMethod("ssa_rename_ast")
 }
 
 #' @export
 ssa_rename_ast.Assign = function(node, ns) {
   ssa_rename_ast(node$read, ns)
+
   node$write$n = ns$new_def(node$write$base)
+  ns$register_def(node$write$name, node)
+
   return (node)
 }
 
 #' @export
 ssa_rename_ast.Phi = function(node, ns) {
   node$write$n = ns$new_def(node$write$base)
+  ns$register_def(node$write$name, node)
+
   return (node)
 }
 
 #' @export
 ssa_rename_ast.Parameter = function(node, ns) {
-  node$n = ns$new_def(node$base)
   if (!is.null(node$default))
     ssa_rename_ast(node$default, ns)
+
+  node$n = ns$new_def(node$base)
+  ns$register_def(node$name, node)
+
   return (node)
 }
 
@@ -156,6 +167,8 @@ ssa_rename_ast.Brace = function(node, ns) {
 #' @export
 ssa_rename_ast.Symbol = function(node, ns) {
   node$n = ns$get_live_def(node$base)
+  ns$register_use(node$name, node)
+
   return (node)
 }
 

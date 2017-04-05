@@ -9,6 +9,8 @@ NameStack = R6::R6Class("NameStack",
   ),
 
   "public" = list(
+    usedef = NULL,
+
     initialize = function() {
       private$name_gen = NameGenerator$new()
       private$local_stack = Stack$new(type = "list")
@@ -60,6 +62,30 @@ NameStack = R6::R6Class("NameStack",
       private$name_stack[[base]]$push(n)
 
       return (n)
+    },
+
+    register_use = function(name, at) {
+      usedef = self$usedef[[name]]
+      if (is.null(usedef)) {
+        usedef = list(def = NULL, use = list(at))
+      } else {
+        usedef[[2]] = append(usedef[[2]], at)
+      }
+      self$usedef[[name]] = usedef
+
+      return (self)
+    },
+
+    register_def = function(name, at) {
+      usedef = self$usedef[[name]]
+      if (is.null(usedef)) {
+        usedef = list(def = at, use = list())
+      } else {
+        usedef[[1]] = at
+      }
+      self$usedef[[name]] = usedef
+
+      return (self)
     }
   )
 )

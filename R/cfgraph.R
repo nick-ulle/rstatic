@@ -23,6 +23,7 @@ CFGraph = R6::R6Class("CFGraph",
     len = 0L,
     branch_open = TRUE,
     dom_tree = NULL,
+    usedef = NULL,
 
     initialize = function(kind = "basic") {
       if (kind == "basic") {
