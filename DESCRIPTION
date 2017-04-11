@@ -1,15 +1,15 @@
 Package: rstatic
 Title: Static Analysis Tools for R Code
-Version: 0.0.0.9003
+Version: 0.0.0.9004
 Authors@R: person(
   "Nick", "Ulle", email = "nick.ulle@gmail.com", role = c("aut", "cre"))
 Description: Tools and classes for manipulating abstract syntax trees.
 Depends:
     R (>= 3.2.0)
 Imports:
-    R6
+    R6,
+    igraph
 Suggests:
-    igraph,
     testthat
 License: GPL-3
 Encoding: UTF-8

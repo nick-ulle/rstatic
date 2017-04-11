@@ -36,14 +36,18 @@ to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
     ast = ast$copy()
 
   # Set up CFG for a function.
-  cfg = CFGraph$new(kind = "function")
-  cfg[[cfg$entry]]$set_params(ast$params)
+  cfg = FlowGraph$new()
+  # FIXME: Set params for the function.
+  #cfg = CFGraph$new(kind = "function")
+  #cfg[[cfg$entry]]$set_params(ast$params)
 
-  to_basic_blocks(ast$body, cfg)
+  builder = CFGBuilder$new(cfg)
 
-  # Connect exit block to exit_fn block.
-  if (cfg$exit != cfg$exit_fn)
-    cfg$jump(cfg$exit_fn)
+  build_cfg(ast$body, builder)
+
+  # Always flow to the exit block.
+  if (builder$insert_block != cfg$exit)
+    builder$jump(cfg$exit)
 
   if (as_ssa)
     cfg = to_ssa(cfg, in_place = TRUE)
@@ -56,7 +60,12 @@ to_cfg.ASTNode = function(ast, in_place = FALSE, as_ssa = TRUE) {
   if (!in_place)
     ast = ast$copy()
 
-  cfg = to_basic_blocks(ast)
+  cfg = FlowGraph$new()
+  builder = CFGBuilder$new(cfg)
+  build_cfg(ast, builder)
+
+  if (builder$insert_block != cfg$exit)
+    builder$jump(cfg$exit)
 
   if (as_ssa)
     cfg = to_ssa(cfg, in_place = TRUE)
@@ -80,88 +89,85 @@ to_cfg.default = function(ast, in_place = FALSE, as_ssa = TRUE) {
 #'
 #' Generally, this function should only be called from \code{to_cfg()}.
 #'
-#' @param node (ASTNode) An ASTNode to build basic blocks from.
-#' @param cfg (CFGraph) A CFG to insert the basic blocks into.
+#' @param node (ASTNode) An ASTNode to build the graph from.
+#' @param builder (CFGBuilder) The graph builder.
 #'
-to_basic_blocks = function(node, cfg = CFGraph$new()) {
-  # If exit block is terminated, do nothing until change of branch.
-  if (cfg$branch_open)
-    UseMethod("to_basic_blocks")
-
-  return (cfg)
+build_cfg = function(node, builder) {
+  # Don't do anything if no insert block is set.
+  if (is.na(builder$insert_block))
+    invisible (NULL)
+  
+  UseMethod("build_cfg")
 }
 
 #' @export
-to_basic_blocks.If = function(node, cfg = CFGraph$new()) {
-  entry_t = cfg$new_block()
-  entry_f = cfg$new_block()
-  cfg$branch(entry_t, entry_f, node$condition)
-  exit = cfg$new_block()
+build_cfg.If = function(node, builder) {
+  entry_t = builder$new_block()
+  entry_f = builder$new_block()
+  builder$branch(entry_t, entry_f, node$condition)
 
-  exit_t = to_basic_blocks(node$true, cfg)$exit
+  # FIXME: 
+  exit = builder$new_block()
 
-  if (cfg$branch_open)
-    cfg$jump(from = exit_t, exit)
+  build_cfg(node$true, builder)
+  # Flow to the exit if control didn't flow elsewhere.
+  if (!is.na(builder$insert_block))
+    builder$jump(exit)
 
-  # Change to "false" branch.
-  cfg$change_branch(entry_f)
+  builder$insert_block = entry_f
+  build_cfg(node$false, builder)
+  if (!is.na(builder$insert_block))
+    builder$jump(exit)
 
-  if (is.null(node$false))
-    exit_f = entry_f
-  else
-    exit_f = to_basic_blocks(node$false, cfg)$exit
-
-  if (cfg$branch_open)
-    cfg$jump(from = exit_f, exit)
-
-  cfg$exit = exit
-
-  return (cfg)
+  builder$insert_block = exit
+  invisible (NULL)
 }
 
 
 #' @export
-to_basic_blocks.While = function(node, cfg = CFGraph$new()) {
-  entry = cfg$new_block()
-  cfg$jump(entry)
+build_cfg.While = function(node, builder) {
+  entry = builder$new_block()
+  builder$jump(entry)
 
-  entry_b = cfg$new_block()
-  exit = cfg$new_block()
-  cfg$branch(entry_b, exit, node$condition)
+  entry_b = builder$new_block()
+  exit = builder$new_block()
+  builder$branch(entry_b, exit, node$condition)
 
-  # Compute flow graph for loop body.
-  cfg$loop_push(entry, exit)
+  # Push a new context so break/next flow to the correct place.
+  builder$loop_push(entry, exit)
 
-  exit_b = to_basic_blocks(node$body, cfg)$exit
-  if (cfg$branch_open)
-    # Add the backedge.
-    cfg$jump(from = exit_b, entry)
+  build_cfg(node$body, builder)
+  if (!is.na(builder$insert_block))
+    builder$jump(entry)
 
-  cfg$loop_pop()
+  builder$loop_pop()
 
-  # Switch branches.
-  cfg$change_branch(exit)
-
-  return (cfg)
+  builder$insert_block = exit
+  invisible (NULL)
 }
 
 
 #' @export
-to_basic_blocks.For = function(node, cfg = CFGraph$new()) {
-  # Initialize ._iter_ in block before entry block.
+build_cfg.For = function(node, builder) {
+  # Loop Setup (before entry)
+  # =========================
+  # Initialize ._iter_ and ivar.
   iter_name = paste0("._iter_", node$ivar$base)
   def_iter = Assign$new(Symbol$new(iter_name), Integer$new(1L))
   def_i = Assign$new(
     write = Symbol$new(node$ivar$base),
     read  = Call$new("[[", list(node$iter, Symbol$new(iter_name)))
   )
-  cfg$exit_block$append(def_iter)
-  cfg$exit_block$append(def_i)
+  # FIXME:
+  builder$append(def_iter)
+  builder$append(def_i)
 
-  # Create entry block; advance ._iter_ and ivar here.
-  entry = cfg$new_block()
-  cfg$jump(entry)
+  # Loop Entry
+  # ==========
+  entry = builder$new_block()
+  builder$jump(entry)
 
+  # Advance ._iter_ and ivar.
   adv_iter = Assign$new(
     write = Symbol$new(iter_name),
     read  = Call$new("+", list(Symbol$new(iter_name), Integer$new(1L)))
@@ -170,81 +176,77 @@ to_basic_blocks.For = function(node, cfg = CFGraph$new()) {
     write = Symbol$new(node$ivar$name),
     read  = Call$new("[[", list(node$iter$copy(), Symbol$new(iter_name)))
   )
-  cfg[[entry]]$append(adv_iter)
-  cfg[[entry]]$append(adv_i)
+  builder$cfg[[entry]]$append(adv_iter)
+  builder$cfg[[entry]]$append(adv_i)
 
-  # Create exit block and first body block; check loop condition first in body.
-  entry_b = cfg$new_block()
-  exit = cfg$new_block()
-  cfg$iterate(entry_b, exit, node$ivar, node$iter)
+  # Loop Body
+  # =========
+  entry_b = builder$new_block()
+  exit = builder$new_block()
+  builder$iterate(entry_b, exit, node$ivar, node$iter)
 
-  # Compute flow graph for loop body.
-  cfg$loop_push(entry, exit)
+  # Push a new context so break/next flow to the correct place.
+  builder$loop_push(entry, exit)
 
-  exit_b = to_basic_blocks(node$body, cfg)$exit
-  if (cfg$branch_open)
-    # Add the backedge.
-    cfg$jump(from = exit_b, entry)
+  build_cfg(node$body, builder)
+  if (!is.na(builder$insert_block))
+    builder$jump(entry)
 
-  cfg$loop_pop()
+  builder$loop_pop()
 
-  # Set CFG exit block reference to the exit block.
-  cfg$change_branch(exit)
-
-  return (cfg)
+  builder$insert_block = exit
+  invisible (NULL)
 }
 
 
 #' @export
-to_basic_blocks.Break = function(node, cfg = CFGraph$new()) {
-  cfg$loop_break()
-  return (cfg)
+build_cfg.Break = function(node, builder) {
+  builder$loop_break()
+  invisible (NULL)
 }
 
 
 #' @export
-to_basic_blocks.Next = function(node, cfg = CFGraph$new()) {
-  cfg$loop_next()
-  return (cfg)
+build_cfg.Next = function(node, builder) {
+  builder$loop_next()
+  invisible (NULL)
 }
 
 
 #' @export
-to_basic_blocks.Return = function(node, cfg = CFGraph$new()) {
-  assign = Assign$new(Symbol$new("._return_"), node$args[[1]])
-  to_basic_blocks(assign, cfg)
-
+build_cfg.Return = function(node, builder) {
   # NOTE: We could keep the Return instead of creating a ._retval_ variable.
-  #cfg$exit_block$append(node)
 
-  cfg$fn_return()
+  assign = Assign$new(Symbol$new("._return_"), node$args[[1]])
+  build_cfg(assign, builder)
+  builder$fn_return()
 
-  return (cfg)
+  invisible (NULL)
 }
 
 
 #' @export
-to_basic_blocks.Brace = function(node, cfg = CFGraph$new()) {
+build_cfg.Brace = function(node, builder) {
   # Handle all subexpressions; they'll automatically be added to the graph.
-  lapply(node$body, to_basic_blocks, cfg)
-  return (cfg)
+  lapply(node$body, build_cfg, builder)
+  invisible (NULL)
 }
 
 
 #' @export
-to_basic_blocks.Call = function(node, cfg = CFGraph$new()) {
-  cfg$exit_block$append(node)
-  return (cfg)
+build_cfg.Call = function(node, builder) {
+  builder$append(node)
+  invisible (NULL)
 }
 
 #' @export
-to_basic_blocks.Assign = to_basic_blocks.Call
+build_cfg.Assign = build_cfg.Call
 #' @export
-to_basic_blocks.Symbol = to_basic_blocks.Call
+build_cfg.Symbol = build_cfg.Call
 #' @export
-to_basic_blocks.Literal = to_basic_blocks.Call
+build_cfg.Literal = build_cfg.Call
 # Bare function definitions do not change control flow.
 #' @export
-to_basic_blocks.Function = to_basic_blocks.Call
+build_cfg.Function = build_cfg.Call
 
 
