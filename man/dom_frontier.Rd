@@ -7,7 +7,7 @@
 dom_frontier(cfg, dom_tree)
 }
 \arguments{
-\item{cfg}{(CFGraph) A control-flow graph.}
+\item{cfg}{(ControlFlowGraph) A control-flow graph.}
 
 \item{dom_tree}{(integer) The dominator tree for the control-flow graph.}
 }

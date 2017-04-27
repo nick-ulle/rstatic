@@ -36,10 +36,8 @@ to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
     ast = ast$copy()
 
   # Set up CFG for a function.
-  cfg = FlowGraph$new()
-  # FIXME: Set params for the function.
-  #cfg = CFGraph$new(kind = "function")
-  #cfg[[cfg$entry]]$set_params(ast$params)
+  cfg = ControlFlowGraph$new()
+  cfg$set_params(ast$params)
 
   builder = CFGBuilder$new(cfg)
 
@@ -47,7 +45,7 @@ to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
 
   # Always flow to the exit block.
   if (builder$insert_block != cfg$exit)
-    builder$jump(cfg$exit)
+    builder$create_br(cfg$exit)
 
   if (as_ssa)
     cfg = to_ssa(cfg, in_place = TRUE)
@@ -60,12 +58,12 @@ to_cfg.ASTNode = function(ast, in_place = FALSE, as_ssa = TRUE) {
   if (!in_place)
     ast = ast$copy()
 
-  cfg = FlowGraph$new()
+  cfg = ControlFlowGraph$new()
   builder = CFGBuilder$new(cfg)
   build_cfg(ast, builder)
 
   if (builder$insert_block != cfg$exit)
-    builder$jump(cfg$exit)
+    builder$create_br(cfg$exit)
 
   if (as_ssa)
     cfg = to_ssa(cfg, in_place = TRUE)
@@ -104,7 +102,7 @@ build_cfg = function(node, builder) {
 build_cfg.If = function(node, builder) {
   entry_t = builder$new_block()
   entry_f = builder$new_block()
-  builder$branch(entry_t, entry_f, node$condition)
+  builder$create_cond_br(entry_t, entry_f, node$condition)
 
   # FIXME: 
   exit = builder$new_block()
@@ -112,12 +110,12 @@ build_cfg.If = function(node, builder) {
   build_cfg(node$true, builder)
   # Flow to the exit if control didn't flow elsewhere.
   if (!is.na(builder$insert_block))
-    builder$jump(exit)
+    builder$create_br(exit)
 
   builder$insert_block = entry_f
   build_cfg(node$false, builder)
   if (!is.na(builder$insert_block))
-    builder$jump(exit)
+    builder$create_br(exit)
 
   builder$insert_block = exit
   invisible (NULL)
@@ -127,18 +125,18 @@ build_cfg.If = function(node, builder) {
 #' @export
 build_cfg.While = function(node, builder) {
   entry = builder$new_block()
-  builder$jump(entry)
+  builder$create_br(entry)
 
   entry_b = builder$new_block()
   exit = builder$new_block()
-  builder$branch(entry_b, exit, node$condition)
+  builder$create_cond_br(entry_b, exit, node$condition)
 
   # Push a new context so break/next flow to the correct place.
   builder$loop_push(entry, exit)
 
   build_cfg(node$body, builder)
   if (!is.na(builder$insert_block))
-    builder$jump(entry)
+    builder$create_br(entry)
 
   builder$loop_pop()
 
@@ -165,7 +163,7 @@ build_cfg.For = function(node, builder) {
   # Loop Entry
   # ==========
   entry = builder$new_block()
-  builder$jump(entry)
+  builder$create_br(entry)
 
   # Advance ._iter_ and ivar.
   adv_iter = Assign$new(
@@ -183,14 +181,14 @@ build_cfg.For = function(node, builder) {
   # =========
   entry_b = builder$new_block()
   exit = builder$new_block()
-  builder$iterate(entry_b, exit, node$ivar, node$iter)
+  builder$create_iter(entry_b, exit, node$ivar, node$iter)
 
   # Push a new context so break/next flow to the correct place.
   builder$loop_push(entry, exit)
 
   build_cfg(node$body, builder)
   if (!is.na(builder$insert_block))
-    builder$jump(entry)
+    builder$create_br(entry)
 
   builder$loop_pop()
 
@@ -201,14 +199,14 @@ build_cfg.For = function(node, builder) {
 
 #' @export
 build_cfg.Break = function(node, builder) {
-  builder$loop_break()
+  builder$create_break()
   invisible (NULL)
 }
 
 
 #' @export
 build_cfg.Next = function(node, builder) {
-  builder$loop_next()
+  builder$create_next()
   invisible (NULL)
 }
 
@@ -219,7 +217,7 @@ build_cfg.Return = function(node, builder) {
 
   assign = Assign$new(Symbol$new("._return_"), node$args[[1]])
   build_cfg(assign, builder)
-  builder$fn_return()
+  builder$create_ret()
 
   invisible (NULL)
 }

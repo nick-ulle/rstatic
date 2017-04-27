@@ -21,7 +21,8 @@ to_ssa = function(cfg, in_place = FALSE) {
   uses = cb[[1]]
   assign_blocks = cb[[2]]
 
-  dom_t = dom_tree(cfg)
+  entry_idx = cfg$get_index(cfg$entry)
+  dom_t = dom_tree(cfg, entry_idx)
   dom_f = dom_frontier(cfg, dom_t)
 
   # Insert phi-functions.
@@ -42,8 +43,11 @@ to_ssa = function(cfg, in_place = FALSE) {
 
   # Rename variables.
   ns = NameStack$new()
-  ssa_rename(cfg$entry, cfg, dom_t, ns)
-  cfg$usedef = ns$usedef
+  # TODO: Parameter renaming should happen in `ssa_rename()`.
+  ssa_rename_ast(cfg$params, ns)
+  ssa_rename(entry_idx, cfg, dom_t, ns)
+  #cfg$ssa_graph = ns$ssa_graph
+  browser() # FIXME:
 
   return (cfg)
 }
@@ -56,45 +60,38 @@ to_ssa = function(cfg, in_place = FALSE) {
 #'
 #' Generally, this function should only be called from \code{to_ssa()}.
 #'
-#' @param block (integer) Identifier of a basic block in the CFG.
+#' @param block (integer) Index of a basic block in the CFG.
 #' @param cfg (CFGraph) A control-flow graph.
 #' @param dom_t (integer) The dominator tree for the CFG.
 #' @param ns (NameStack) A stateful object used by the renaming algorithm.
 #'
 ssa_rename = function(block, cfg, dom_t, ns = NameStack$new()) {
-  # Rewrite function arguments in this block (if any).
-  if (inherits(cfg[[block]], "FnEntryBlock")) {
-    ssa_rename_ast(cfg[[block]]$params, ns)
-  }
-  
   # Rewrite LHS of phi-functions in this block.
   ssa_rename_ast(cfg[[block]]$phi, ns)
 
-  # Rewrite operations in this block.
   ssa_rename_ast(cfg[[block]]$body, ns)
 
   # Rewrite terminator in this block.
   term = cfg[[block]]$terminator
-  if (inherits(term, "BranchInst") && !is.null(term$condition)) {
+  if (inherits(term, "IterTerminator")) {
+    # FIXME: Conditions for for-loops should be generated with the CFG. Once
+    # they are, this no-op case can be removed.
+
+  } else if (inherits(term, "CondBrTerminator")) {
     ssa_rename_ast(term$condition, ns)
-  } else if (inherits(term, "ReturnInst")) {
+  } else if (inherits(term, "RetTerminator")) {
     ssa_rename_ast(term$value, ns)
   }
-  # NOTE: for-loop iterators already appear in the body because of how
-  # for-loops get translated to CFGs.
-
-  #else if (inherits(term, "IterateInst")) {
-  #  ssa_rename_ast(term$iter, ns)
-  #}
 
   # Rewrite RHS of phi-functions in successors.
-  for (id in cfg[[block]]$successors) {
-    lapply(cfg[[id]]$phi, function(phi) {
+  block_name = cfg$get_name(block)
+  for (i in neighbors(cfg$graph, block, "out")) {
+    lapply(cfg[[i]]$phi, function(phi) {
       n = ns$get_live_def(phi$write$base)
       node = Symbol$new(phi$write$base, n)
       ns$register_use(node$name, node)
 
-      phi$set_read(block, node)
+      phi$set_read(block_name, node)
     })
   }
 

@@ -39,8 +39,7 @@ dom_tree_preorder = function(dom_t, from = 1L) {
 #' reflexive: every block dominates itself. This function iteratively computes
 #' the immediate dominator for each block until a fixed point is reached.
 #'
-#' @param cfg (CFGraph) A control-flow graph.
-#' @param force (logical) Recompute if cached?
+#' @param cfg (ControlFlowGraph) A control-flow graph.
 #'
 #' @return The dominator tree as a vector of immediate dominators. In other
 #' words, if element \eqn{j} is \eqn{i}, then the immediate dominator of block
@@ -54,56 +53,13 @@ dom_tree_preorder = function(dom_t, from = 1L) {
 #' Cooper, K. D. and Torczon, L. (2012) Engineering a Compiler. Elsevier.
 #'
 #' @export
-dom_tree = function(cfg, force = FALSE) {
-  if (!is.null(cfg$dom_tree))
-    return (cfg$dom_tree)
+dom_tree = function(cfg, entry_idx = cfg$entry_index()) {
+  dom_t = igraph::dominator_tree(cfg$graph, entry_idx)[["dom"]]
+  dom_t = as.vector(dom_t)
 
-  po = postorder(cfg)
-  rpo = rev(po)
-  # FIXME: Assign postorder number to each block instead of using a postorder
-  # traversal so that less indirection is necessary here.
-  # Map (block index -> postorder number) for later use.
-  lookup = order(po, decreasing = FALSE)
+  # Set entry as the immediate dominator of itself to avoid off-by-one indexes.
+  dom_t = append(dom_t, entry_idx, after = entry_idx - 1L)
 
-  dom_t = integer(length(cfg))
-
-  dom_t[[1]] = rpo[[1]]
-  rpo = rpo[-1]
-
-  # Iterate until a fixed point is reached.
-  changed = TRUE
-  while (changed) {
-    changed = FALSE
-
-    for (i in rpo) {
-      # Get predecessors of block i with entries in the dominator tree.
-      preds = cfg[[i]]$predecessors
-      preds = preds[dom_t[preds] != 0]
-
-      # Walk up the dominator tree to find a common dominator for predecessors
-      # of block i.
-      new_idom = preds[[1]]
-      for (j in preds[-1]) {
-        b1 = j
-        b2 = new_idom
-        while(b1 != b2) {
-          while (lookup[[b1]] < lookup[[b2]])
-            b1 = dom_t[[b1]]
-          while (lookup[[b2]] < lookup[[b1]])
-            b2 = dom_t[[b2]]
-        }
-        new_idom = b1
-      }
-
-      # Update dominator tree if necessary.
-      if (dom_t[[i]] != new_idom) {
-        dom_t[[i]] = new_idom
-        changed = TRUE
-      }
-    }
-  }
-
-  cfg$dom_tree = dom_t
   return (dom_t)
 }
 
@@ -118,7 +74,7 @@ dom_tree = function(cfg, force = FALSE) {
 #' set of blocks immediately beyond the blocks dominated by \eqn{b}, where
 #' control-flow merges from a separate part of the program.
 #'
-#' @param cfg (CFGraph) A control-flow graph.
+#' @param cfg (ControlFlowGraph) A control-flow graph.
 #' @param dom_tree (integer) The dominator tree for the control-flow graph.
 #' 
 #' @return The dominance frontiers as a list of integer vectors. Each element
@@ -137,7 +93,7 @@ dom_frontier = function(cfg, dom_tree) {
   dom_f[] = list(integer(0))
 
   for (i in seq_along(cfg)) {
-    preds = cfg[[i]]$predecessors
+    preds = igraph::neighbors(cfg$graph, i, "in")
     if (length(preds) > 1) {
       # Walk up dom tree for each predecessor
       for (j in preds) {

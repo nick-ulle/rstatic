@@ -14,19 +14,9 @@ CFGBuilder = R6::R6Class("CFGBuilder",
 
     initialize = function(cfg) {
       self$cfg = cfg
+      self$insert_block = cfg$entry
       self$loop_stack = Stack$new()
 
-      # Assume this is a function.
-      # NOTE: This setup step should really be handled by the CFG.
-      entry = self$cfg$add_vertex()
-      self$cfg$entry = entry
-      self$cfg[[entry]] = FnEntryBlock$new()
-
-      exit = self$cfg$add_vertex()
-      self$cfg$exit = exit
-      self$cfg[[exit]] = FnExitBlock$new()
-
-      self$insert_block = entry
       return (self)
     },
 
@@ -37,69 +27,67 @@ CFGBuilder = R6::R6Class("CFGBuilder",
       return (id)
     },
 
-    jump = function(to, from = self$insert_block) {
-      self$cfg$add_edge(from, to)
+    create_br = function(dest, src = self$insert_block) {
+      self$cfg$add_edge(src, dest)
 
-      self$cfg[[from]]$terminator = BranchInst$new(to)
-      self$cfg[[to]]$add_predecessor(from)
-      self$insert_block = to
-      return (self)
+      self$cfg[[src]]$terminator = BrTerminator$new(dest)
+      self$insert_block = dest
+      invisible (NULL)
     },
 
-    branch = function(to_t, to_f, condition, from = self$insert_block) {
-      self$cfg$add_edge(from, to_t)
-      self$cfg$add_edge(from, to_f)
+    create_cond_br = function(true, false, condition, src = self$insert_block)
+    {
+      self$cfg$add_edge(src, true)
+      self$cfg$add_edge(src, false)
 
-      self$cfg[[from]]$terminator = BranchInst$new(to_t, to_f, condition)
-      self$cfg[[to_t]]$add_predecessor(from)
-      self$cfg[[to_f]]$add_predecessor(from)
-      self$insert_block = to_t
-      return (self)
+      self$cfg[[src]]$terminator = CondBrTerminator$new(true, false, condition)
+      self$insert_block = true
+      invisible (NULL)
     },
 
-    iterate = function(to_t, to_f, ivar, iter, from = self$insert_block) {
-      self$cfg$add_edge(from, to_t)
-      self$cfg$add_edge(from, to_f)
+    create_iter = function(body, exit, ivar, iter, src = self$insert_block) {
+      self$cfg$add_edge(src, body)
+      self$cfg$add_edge(src, exit)
 
-      self$cfg[[from]]$terminator = IterateInst$new(to_t, to_f, ivar, iter)
-      self$cfg[[to_t]]$add_predecessor(from)
-      self$cfg[[to_f]]$add_predecessor(from)
-      self$insert_block = to_t
-      return (self)
+      self$cfg[[src]]$terminator = IterTerminator$new(body, exit, ivar, iter)
+      self$insert_block = body
+      invisible (NULL)
     },
 
-    fn_return = function(from = self$insert_block) {
-      # FIXME:
-      if (is.na(self$exit_fn))
-        stop("no exit block to return to.",
-          "\n  Did you attempt to use return() outside of a function?")
+    create_ret = function(src = self$insert_block) {
+      # NOTE: This function doesn't actually create a RetTerminator. Instead,
+      # it creates an unconditional branch to the the exit block. This way
+      # there is always exactly one exit block, and the correct return value
+      # arrives there through SSA.
 
-      self$jump(from = from, self$exit_fn)
+      self$cfg$add_edge(src, self$cfg$exit)
+
+      self$create_br(src = src, self$cfg$exit)
       self$insert_block = NA_character_
-      return (self)
+      invisible (NULL)
     },
 
     loop_push = function(entry, exit) {
       self$loop_stack$push(c(entry, exit))
-      return (self)
+      invisible (NULL)
     },
 
     loop_pop = function() {
       return (self$loop_stack$pop())
     },
 
-    loop_break = function(from = self$insert_block) {
+    create_break = function(src = self$insert_block) {
       exit = self$loop_stack$peek()[[2]]
-      self$jump(from = from, exit)
+      self$create_br(src = src, exit)
       self$insert_block = NA_character_
-      return (self)
+      invisible (NULL)
     },
 
-    loop_next = function(from = self$insert_block) {
+    create_next = function(src = self$insert_block) {
       entry = self$loop_stack$peek()[[1]]
-      self$jump(from = from, entry)
+      self$create_br(src = src, entry)
       self$insert_block = NA_character_
-      return (self)
+      invisible (NULL)
     },
 
     append = function(node) {

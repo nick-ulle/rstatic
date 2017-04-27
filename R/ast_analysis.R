@@ -49,17 +49,24 @@ collect_reads.Literal = function(node) {
 }
 
 #' @export
-collect_reads.ReturnInst = function(node) {
+collect_reads.RetTerminator = function(node) {
   collect_reads(node$value)
 }
 
 #' @export
-collect_reads.BranchInst = function(node) {
+collect_reads.BrTerminator = function(node) {
+  return (character(0))
+}
+
+#' @export
+collect_reads.CondBrTerminator = function(node) {
   collect_reads(node$condition)
 }
 
 #' @export
-collect_reads.IterateInst = function(node) {
+collect_reads.IterTerminator = function(node) {
+  # FIXME: This shouldn't be a special case of CondBr. Loop code is generated
+  # with the CFG, and that should include the loop's condition.
   collect_reads(node$iter)
 }
 

@@ -4,12 +4,10 @@
 \alias{dom_tree}
 \title{Compute Dominator Tree}
 \usage{
-dom_tree(cfg, force = FALSE)
+dom_tree(cfg, entry_idx = cfg$entry_index())
 }
 \arguments{
-\item{cfg}{(CFGraph) A control-flow graph.}
-
-\item{force}{(logical) Recompute if cached?}
+\item{cfg}{(ControlFlowGraph) A control-flow graph.}
 }
 \value{
 The dominator tree as a vector of immediate dominators. In other

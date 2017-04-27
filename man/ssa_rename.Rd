@@ -7,7 +7,7 @@
 ssa_rename(block, cfg, dom_t, ns = NameStack$new())
 }
 \arguments{
-\item{block}{(integer) Identifier of a basic block in the CFG.}
+\item{block}{(integer) Index of a basic block in the CFG.}
 
 \item{cfg}{(CFGraph) A control-flow graph.}
 

@@ -19,33 +19,30 @@ print.ASTNode = .print
 
 
 #' @export
-format.CFGraph = function(x, ...) {
+format.FlowGraph = function(x, ...) {
   # Format:
   #
-  #   <CFGraph> 5 vertices
-  #   [[1]]
-  #   <BasicBlock>
+  #   <CFGraph> 5 blocks
+  #
+  #   %v1 <BasicBlock>
   #   # branch %2
   #
-  #   [[2]]
-  #   <BasicBlock>
+  #   %v2 <BasicBlock>
   #   # if (z > 3) %3 else %4
 
   tag = .format_tag(x)
-  if (x$len == 1)
-    v_count = sprintf("%i block", x$len)
-  else
-    v_count = sprintf("%i blocks", x$len)
+  msg = if (length(x) == 1) "%i block" else "%i blocks"
+  v_count = sprintf(msg, length(x))
 
-  fmt = vapply(x$blocks, format, character(1), show_body = FALSE)
-  blocks = sprintf("[[%i]]\n%s", seq_along(x$blocks), fmt)
+  fmt = vapply(x$blocks, format, character(1))
+  blocks = sprintf('%%%s %s', names(x$blocks), fmt)
   blocks = paste0(blocks, collapse = "\n\n")
 
-  sprintf("%s %s\n%s", tag, v_count, blocks)
+  sprintf("%s %s\n\n%s", tag, v_count, blocks)
 }
 
 #' @export
-print.CFGraph = .print
+print.FlowGraph = .print
 
 
 #' @export
@@ -58,7 +55,7 @@ format.BasicBlock = function(x, show_body = TRUE, ...) {
   #   foo(x)
   #   # if (x < 4) %3 else %4
   #
-  terminator = format(x$terminator, show_tag = FALSE)
+  display = paste0("# ", format(x$terminator, show_tag = FALSE))
 
   if (show_body) {
     to_str = function(line) deparse_string(to_r(line))
@@ -66,12 +63,10 @@ format.BasicBlock = function(x, show_body = TRUE, ...) {
     phi = vapply(x$phi, to_str, character(1))
     body = vapply(x$body, to_str, character(1))
 
-    body = paste0(c(phi, body), collapse = "\n")
+    display = paste0(c(phi, body, display), collapse = "\n")
+  }
 
-    msg = sprintf("%s\n%s\n# %s", .format_tag(x), body, terminator)
-
-  } else
-    msg = sprintf("%s\n# %s", .format_tag(x), terminator)
+  msg = sprintf("%s\n%s", .format_tag(x), display)
 
   return (msg)
 }
@@ -79,10 +74,11 @@ format.BasicBlock = function(x, show_body = TRUE, ...) {
 #' @export
 print.BasicBlock = .print
 
+
 #' @export
-format.ReturnInst = function(x, show_tag = TRUE, ...) {
+format.RetTerminator = function(x, show_tag = TRUE, ...) {
   value = deparse_string(to_r(x$value))
-  term = sprintf("return %s", value)
+  term = sprintf("ret %s", value)
 
   if (show_tag)
     msg = sprintf("%s\n%s", .format_tag(x), term)
@@ -93,16 +89,8 @@ format.ReturnInst = function(x, show_tag = TRUE, ...) {
 }
 
 #' @export
-print.ReturnInst = .print
-
-#' @export
-format.BranchInst = function(x, show_tag = TRUE, ...) {
-  if (is.null(x$condition)) {
-    term = sprintf("branch %%%s", x$true)
-  } else {
-    condition = deparse_string(to_r(x$condition))
-    term = sprintf("branch (%s) %%%i, %%%i", condition, x$true, x$false)
-  }
+format.BrTerminator = function(x, show_tag = TRUE, ...) {
+  term = sprintf("br %%%s", x$dest)
 
   if (show_tag)
     msg = sprintf("%s\n%s", .format_tag(x), term)
@@ -113,15 +101,24 @@ format.BranchInst = function(x, show_tag = TRUE, ...) {
 }
 
 #' @export
-print.BranchInst = .print
+format.CondBrTerminator = function(x, show_tag = TRUE, ...) {
+  condition = deparse_string(to_r(x$condition))
+  term = sprintf("br (%s) %%%s, %%%s", condition, x$true, x$false)
 
+  if (show_tag)
+    msg = sprintf("%s\n%s", .format_tag(x), term)
+  else 
+    msg = sprintf("%s", term)
+
+  return (msg)
+}
 
 #' @export
-format.IterateInst = function(x, show_tag = TRUE, ...) {
+format.IterTerminator = function(x, show_tag = TRUE, ...) {
 
   ivar = deparse_string(to_r(x$ivar))
   iter = deparse_string(to_r(x$iter))
-  term = sprintf("iterate (%s in %s) %%%i, %%%i", ivar, iter, x$body, x$exit)
+  term = sprintf("iter (%s in %s) %%%s, %%%s", ivar, iter, x$true, x$false)
 
   if (show_tag)
     msg = sprintf("%s\n%s", .format_tag(x), term)
@@ -130,6 +127,9 @@ format.IterateInst = function(x, show_tag = TRUE, ...) {
 
   return (msg)
 }
+
+#' @export
+print.Terminator = .print
 
 
 deparse_string = function(expr, ...) {
