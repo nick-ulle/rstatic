@@ -1,4 +1,4 @@
 library(testthat)
-library(ast)
+library(rstatic)
 
-test_check("ast")
+test_check("rstatic")
