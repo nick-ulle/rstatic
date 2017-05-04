@@ -20,18 +20,18 @@
 #'
 #' @param ast (ASTNode) An abstract syntax tree.
 #' @param in_place (logical) Don't copy AST before generating CFG?
-#' @param as_ssa (logical) Return CFG in SSA form?
+#' @param ssa (logical) Return CFG in SSA form?
 #'
 #' @return The control flow graph as a CFGraph object. The \code{[[} operator
 #' can be used to extract individual basic blocks from the graph.
 #'
 #' @export
-to_cfg = function(ast, in_place = FALSE, as_ssa = TRUE) {
+to_cfg = function(ast, in_place = FALSE, ssa = TRUE) {
   UseMethod("to_cfg")
 }
 
 #' @export
-to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
+to_cfg.Function = function(ast, in_place = FALSE, ssa = TRUE) {
   if (!in_place)
     ast = ast$copy()
 
@@ -49,14 +49,14 @@ to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
   else if (builder$insert_block != cfg$exit)
     builder$create_br(cfg$exit)
 
-  if (as_ssa)
+  if (ssa)
     cfg = to_ssa(cfg, in_place = TRUE)
 
   return (cfg)
 }
 
 #' @export
-to_cfg.ASTNode = function(ast, in_place = FALSE, as_ssa = TRUE) {
+to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE) {
   if (!in_place)
     ast = ast$copy()
 
@@ -67,14 +67,14 @@ to_cfg.ASTNode = function(ast, in_place = FALSE, as_ssa = TRUE) {
   if (builder$insert_block != cfg$exit)
     builder$create_br(cfg$exit)
 
-  if (as_ssa)
+  if (ssa)
     cfg = to_ssa(cfg, in_place = TRUE)
 
   return (cfg)
 }
 
 #' @export
-to_cfg.default = function(ast, in_place = FALSE, as_ssa = TRUE) {
+to_cfg.default = function(ast, in_place = FALSE, ssa = TRUE) {
   msg = sprintf(
     "Cannot convert object of class '%s' to CFG.", class(ast)[[1]]
   )

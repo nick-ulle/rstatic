@@ -4,14 +4,14 @@
 \alias{to_cfg}
 \title{Build Control Flow Graph from ASTNodes}
 \usage{
-to_cfg(ast, in_place = FALSE, as_ssa = TRUE)
+to_cfg(ast, in_place = FALSE, ssa = TRUE)
 }
 \arguments{
 \item{ast}{(ASTNode) An abstract syntax tree.}
 
 \item{in_place}{(logical) Don't copy AST before generating CFG?}
 
-\item{as_ssa}{(logical) Return CFG in SSA form?}
+\item{ssa}{(logical) Return CFG in SSA form?}
 }
 \value{
 The control flow graph as a CFGraph object. The \code{[[} operator

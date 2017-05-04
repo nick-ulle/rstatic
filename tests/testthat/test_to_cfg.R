@@ -10,7 +10,7 @@ test_that("if-statement graph has correct structure", {
     Assign$new(Symbol$new("x"), Integer$new(4L))
   )
 
-  result = to_cfg(ast, as_ssa = FALSE)
+  result = to_cfg(ast, ssa = FALSE)
   g = result$graph
 
   # -----
@@ -24,7 +24,7 @@ test_that("while-loop graph has correct structure", {
 
   ast = While$new(Logical$new(TRUE), Integer$new(42L))
 
-  result = to_cfg(ast, as_ssa = FALSE)
+  result = to_cfg(ast, ssa = FALSE)
   g = result$graph
 
   # -----
@@ -41,7 +41,7 @@ test_that("for-loop graph has correct structure", {
     Integer$new(42L)
   )
 
-  result = to_cfg(ast, as_ssa = FALSE)
+  result = to_cfg(ast, ssa = FALSE)
   g = result$graph
 
   # -----
@@ -53,7 +53,7 @@ test_that("for-loop graph has correct structure", {
 test_that("AST is copied when in_place = FALSE", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = to_cfg(ast, in_place = FALSE, as_ssa = FALSE)
+  cfg = to_cfg(ast, in_place = FALSE, ssa = FALSE)
 
   # -----
   node = cfg[[1]]$body[[1]]
@@ -66,7 +66,7 @@ test_that("AST is copied when in_place = FALSE", {
 test_that("AST is not copied when in_place = TRUE", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = to_cfg(ast, in_place = TRUE, as_ssa = FALSE)
+  cfg = to_cfg(ast, in_place = TRUE, ssa = FALSE)
 
   # -----
   node = cfg[[1]]$body[[1]]
@@ -79,7 +79,7 @@ test_that("AST is not copied when in_place = TRUE", {
 test_that("nodes are reparented to containing BasicBlock", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = to_cfg(ast, as_ssa = FALSE)
+  cfg = to_cfg(ast, ssa = FALSE)
 
   # -----
   expect_identical(cfg[[1]], cfg[[1]]$body[[1]]$parent)
