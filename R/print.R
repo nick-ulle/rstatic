@@ -35,7 +35,7 @@ format.FlowGraph = function(x, ...) {
   v_count = sprintf(msg, length(x))
 
   fmt = vapply(x$blocks, format, character(1))
-  blocks = sprintf('%%%s %s', names(x$blocks), fmt)
+  blocks = sprintf('%s %s', names(x), fmt)
   blocks = paste0(blocks, collapse = "\n\n")
 
   sprintf("%s %s\n\n%s", tag, v_count, blocks)

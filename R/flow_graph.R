@@ -10,9 +10,11 @@ FlowGraph = R6::R6Class("FlowGraph",
       self$graph = igraph::make_empty_graph()
     },
 
-    add_vertex = function() {
-      id = sprintf("v%i", self$next_id)
-      self$next_id = self$next_id + 1L
+    add_vertex = function(id) {
+      if (missing(id)) {
+        id = sprintf("%%%i", self$next_id)
+        self$next_id = self$next_id + 1L
+      }
 
       self$graph = self$graph + igraph::vertex(id)
 
