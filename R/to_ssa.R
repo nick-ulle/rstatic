@@ -42,12 +42,11 @@ to_ssa = function(cfg, in_place = FALSE) {
   } # end for name
 
   # Rename variables.
-  ns = NameStack$new()
+  builder = SSABuilder$new()
   # TODO: Parameter renaming should happen in `ssa_rename()`.
-  ssa_rename_ast(cfg$params, ns)
-  ssa_rename(entry_idx, cfg, dom_t, ns)
+  ssa_rename_ast(cfg$params, builder)
+  ssa_rename(entry_idx, cfg, dom_t, builder)
   #cfg$ssa_graph = ns$ssa_graph
-  browser() # FIXME:
 
   return (cfg)
 }
