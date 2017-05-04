@@ -7,7 +7,7 @@
 to_cfg(ast, in_place = FALSE, ssa = TRUE)
 }
 \arguments{
-\item{ast}{(ASTNode) An abstract syntax tree.}
+\item{ast}{A quoted R expression or an abstract syntax tree.}
 
 \item{in_place}{(logical) Don't copy AST before generating CFG?}
 
@@ -18,9 +18,9 @@ The control flow graph as a CFGraph object. The \code{[[} operator
 can be used to extract individual basic blocks from the graph.
 }
 \description{
-This function builds the control flow graph (CFG) for an abstract syntax
-tree. When the root of the AST is a Function object, the CFG is built for
-its body.
+This function builds the control flow graph (CFG) for a quoted R expression
+or abstract syntax tree. When the root of the AST is a Function object, the
+CFG is built for its body.
 }
 \details{
 A control flow graph is a directed graph that represents the flow of control

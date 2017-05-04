@@ -2,12 +2,26 @@
 # Methods for converting ASTNode objects to control-flow graphs.
 #
 
+#' Build Control Flow Graph from R Expression
+#'
+#' This function builds the control flow graph (CFG) for an unquoted R
+#' expression.
+#'
+#' @param expr An unquoted R expression.
+#' @param ... Additional arguments to \code{to_cfg()}.
+#'
+#' @export
+to_cfgq = function(expr, ...) {
+  ast = to_ast(substitute(expr))
+  to_cfg(ast, ...)
+}
+
 
 #' Build Control Flow Graph from ASTNodes
 #'
-#' This function builds the control flow graph (CFG) for an abstract syntax
-#' tree. When the root of the AST is a Function object, the CFG is built for
-#' its body.
+#' This function builds the control flow graph (CFG) for a quoted R expression
+#' or abstract syntax tree. When the root of the AST is a Function object, the
+#' CFG is built for its body.
 #'
 #' A control flow graph is a directed graph that represents the flow of control
 #' in a program. Each node or "basic block" contains a linear sequence of
@@ -18,7 +32,7 @@
 #' An if-statement makes a downward diamond in the graph and a while- or
 #' for-loop makes a cycle.
 #'
-#' @param ast (ASTNode) An abstract syntax tree.
+#' @param ast A quoted R expression or an abstract syntax tree.
 #' @param in_place (logical) Don't copy AST before generating CFG?
 #' @param ssa (logical) Return CFG in SSA form?
 #'
@@ -75,10 +89,8 @@ to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE) {
 
 #' @export
 to_cfg.default = function(ast, in_place = FALSE, ssa = TRUE) {
-  msg = sprintf(
-    "Cannot convert object of class '%s' to CFG.", class(ast)[[1]]
-  )
-  stop(msg)
+  ast = to_ast(ast)
+  to_cfg(ast, in_place = TRUE, ssa = ssa)
 }
 
 
