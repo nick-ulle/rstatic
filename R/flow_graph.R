@@ -1,6 +1,16 @@
 
 #' @export
 FlowGraph = R6::R6Class("FlowGraph",
+  "private" = list(
+    deep_clone = function(name, value) {
+      switch(name,
+        "blocks" = lapply(value, function(v) v$copy()),
+        if (inherits(value, "R6")) value$clone(deep = TRUE)
+        else value
+      )
+    }
+  ),
+
   "public" = list(
     next_id = 1L,
     blocks = list(),
@@ -9,6 +19,8 @@ FlowGraph = R6::R6Class("FlowGraph",
     initialize = function() {
       self$graph = igraph::make_empty_graph()
     },
+
+    copy = function() self$clone(deep = TRUE),
 
     add_vertex = function(id) {
       if (missing(id)) {
