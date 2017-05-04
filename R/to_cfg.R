@@ -44,7 +44,9 @@ to_cfg.Function = function(ast, in_place = FALSE, as_ssa = TRUE) {
   build_cfg(ast$body, builder)
 
   # Always flow to the exit block.
-  if (builder$insert_block != cfg$exit)
+  if (is.na(builder$insert_block))
+    builder$insert_block = cfg$exit
+  else if (builder$insert_block != cfg$exit)
     builder$create_br(cfg$exit)
 
   if (as_ssa)
@@ -113,7 +115,8 @@ build_cfg.If = function(node, builder) {
     builder$create_br(exit)
 
   builder$insert_block = entry_f
-  build_cfg(node$false, builder)
+  if (!is.null(node$false))
+    build_cfg(node$false, builder)
   if (!is.na(builder$insert_block))
     builder$create_br(exit)
 
