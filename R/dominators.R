@@ -53,7 +53,7 @@ dom_tree_preorder = function(dom_t, from = 1L) {
 #' Cooper, K. D. and Torczon, L. (2012) Engineering a Compiler. Elsevier.
 #'
 #' @export
-dom_tree = function(cfg, entry_idx = cfg$entry_index()) {
+dom_tree = function(cfg, entry_idx = cfg$get_index(cfg$entry)) {
   dom_t = igraph::dominator_tree(cfg$graph, entry_idx)[["dom"]]
   dom_t = as.vector(dom_t)
 
