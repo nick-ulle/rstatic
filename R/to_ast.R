@@ -121,7 +121,6 @@ to_ast_repeat = function(expr) {
 
 #' @export
 to_ast.call = function(expr) {
-  # Handle calls to anonymous functions.
   func = expr[[1]]
   if (inherits(func, "name")) {
     name = as.character(func)
@@ -145,11 +144,13 @@ to_ast.call = function(expr) {
       , ".Internal" = Internal$new()
       , Call$new(name)
     )
+
   } else {
+    # Handle calls to anonymous functions.
     node = Call$new(to_ast(func))
   }
 
-  node$args = lapply(expr[-1], to_ast)
+  node$set_args( lapply(expr[-1], to_ast) )
   return (node)
 }
 
