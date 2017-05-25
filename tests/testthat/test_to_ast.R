@@ -1,5 +1,14 @@
 context("to_ast")
 
+test_that("call args have correct parent", {
+  result = to_ast( call("is.na", 42L) )
+
+  # -----
+  expect_is(result, "Call")
+  expect_is(result$args[[1]], "Integer")
+  expect_identical(result, result$args[[1]]$parent)
+})
+
 
 test_that("primitives are converted to Primitives", {
   result = to_ast(sum)
