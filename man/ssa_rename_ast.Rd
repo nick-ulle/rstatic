@@ -4,12 +4,13 @@
 \alias{ssa_rename_ast}
 \title{Rename AST Variables with SSA Names}
 \usage{
-ssa_rename_ast(node, ns)
+ssa_rename_ast(node, builder)
 }
 \arguments{
 \item{node}{(ASTNode) An abstract syntax tree.}
 
-\item{ns}{(NameStack) A stateful object used by the renaming algorithm.}
+\item{builder}{(SSABuilder) A stateful object used by the renaming
+algorithm.}
 }
 \description{
 This function renames variables in an AST with their SSA names.

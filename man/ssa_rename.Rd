@@ -4,7 +4,7 @@
 \alias{ssa_rename}
 \title{Rename CFG Variables with SSA Names}
 \usage{
-ssa_rename(block, cfg, dom_t, ns = NameStack$new())
+ssa_rename(block, cfg, dom_t, builder)
 }
 \arguments{
 \item{block}{(integer) Index of a basic block in the CFG.}
@@ -13,7 +13,8 @@ ssa_rename(block, cfg, dom_t, ns = NameStack$new())
 
 \item{dom_t}{(integer) The dominator tree for the CFG.}
 
-\item{ns}{(NameStack) A stateful object used by the renaming algorithm.}
+\item{builder}{(SSABuilder) A stateful object used by the renaming
+algorithm.}
 }
 \description{
 This function renames variables in the basic blocks of a CFG with their SSA

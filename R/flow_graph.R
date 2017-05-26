@@ -94,6 +94,7 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
     params = list(),
     entry = NULL,
     exit = NULL,
+    ssa = NULL,
 
     initialize = function() {
       super$initialize()
