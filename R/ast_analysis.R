@@ -21,6 +21,12 @@ collect_reads.Assign = function(node) {
 }
 
 #' @export
+collect_reads.Phi = function(node) {
+  names = lapply(node$read, collect_reads)
+  return (unique(unlist(names)))
+}
+
+#' @export
 collect_reads.Dispatch = function(node) {
   names = lapply(node$args, collect_reads)
   return (unique(unlist(names)))
@@ -41,6 +47,11 @@ collect_reads.Brace = function(node) {
 #' @export
 collect_reads.Symbol = function(node) {
   return (node$name)
+}
+
+#' @export
+collect_reads.Parameter = function(node) {
+  collect_reads(node$default)
 }
 
 #' @export
