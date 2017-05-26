@@ -1,4 +1,6 @@
-Terminator = R6::R6Class("Terminator",
+# FIXME: Copying Terminators doesn't handle circular references correctly.
+
+Terminator = R6::R6Class("Terminator", inherit = ASTNode,
   "public" = list(
     successors = function() integer(0)
   )
@@ -10,6 +12,11 @@ RetTerminator = R6::R6Class("RetTerminator", inherit = Terminator,
     value = NULL,
 
     initialize = function(value = Symbol$new("._return_")) {
+      self$set_value(value)
+    },
+
+    set_value = function(value) {
+      value$parent = self
       self$value = value
     }
   )
@@ -36,11 +43,16 @@ CondBrTerminator = R6::R6Class("CondBrTerminator", inherit = Terminator,
     initialize = function(true, false, condition) {
       self$true = true
       self$false = false
-      self$condition = condition
+      self$set_condition(condition)
     },
 
     successors = function() {
       c(self$true, self$false)
+    },
+
+    set_condition = function(value) {
+      value$parent = self
+      self$condition = value
     }
   )
 )
@@ -53,8 +65,18 @@ IterTerminator = R6::R6Class("IterTerminator", inherit = CondBrTerminator,
 
     initialize = function(body, exit, ivar, iter) {
       super$initialize(body, exit, NULL)
-      self$ivar = ivar
-      self$iter = iter
+      self$set_ivar(ivar)
+      self$set_iter(iter)
+    },
+
+    set_ivar = function(value) {
+      value$parent = self
+      self$ivar = value
+    },
+
+    set_iter = function(value) {
+      value$parent = self
+      self$iter = value
     }
   )
 )
