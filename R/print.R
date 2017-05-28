@@ -90,7 +90,7 @@ format.RetTerminator = function(x, show_tag = TRUE, ...) {
 
 #' @export
 format.BrTerminator = function(x, show_tag = TRUE, ...) {
-  term = sprintf("br %%%s", x$dest)
+  term = sprintf("br %s", x$dest)
 
   if (show_tag)
     msg = sprintf("%s\n%s", .format_tag(x), term)
@@ -103,7 +103,7 @@ format.BrTerminator = function(x, show_tag = TRUE, ...) {
 #' @export
 format.CondBrTerminator = function(x, show_tag = TRUE, ...) {
   condition = deparse_string(to_r(x$condition))
-  term = sprintf("br (%s) %%%s, %%%s", condition, x$true, x$false)
+  term = sprintf("br (%s) %s, %s", condition, x$true, x$false)
 
   if (show_tag)
     msg = sprintf("%s\n%s", .format_tag(x), term)
@@ -118,7 +118,7 @@ format.IterTerminator = function(x, show_tag = TRUE, ...) {
 
   ivar = deparse_string(to_r(x$ivar))
   iter = deparse_string(to_r(x$iter))
-  term = sprintf("iter (%s in %s) %%%s, %%%s", ivar, iter, x$true, x$false)
+  term = sprintf("iter (%s in %s) %s, %s", ivar, iter, x$true, x$false)
 
   if (show_tag)
     msg = sprintf("%s\n%s", .format_tag(x), term)
