@@ -51,7 +51,9 @@ CondBrTerminator = R6::R6Class("CondBrTerminator", inherit = Terminator,
     },
 
     set_condition = function(value) {
-      value$parent = self
+      if (!is.null(value))
+        value$parent = self
+
       self$condition = value
     }
   )
