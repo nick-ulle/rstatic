@@ -2,7 +2,7 @@ context("BasicBlock")
 
 
 test_that("$new() sets parents on body nodes", {
-  x = BasicBlock$new(list(
+  x = BasicBlock$new(body = list(
     Assign$new(Symbol$new("x"), Integer$new(3L))
   ))
 

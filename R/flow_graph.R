@@ -100,10 +100,10 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
       super$initialize()
 
       self$entry = self$add_vertex()
-      self$blocks[[self$entry]] = BasicBlock$new()
+      self$blocks[[self$entry]] = BasicBlock$new(self$entry)
 
       self$exit = self$add_vertex()
-      exit_block = BasicBlock$new()
+      exit_block = BasicBlock$new(self$exit)
       exit_block$terminator = RetTerminator$new()
       self$blocks[[self$exit]] = exit_block
 

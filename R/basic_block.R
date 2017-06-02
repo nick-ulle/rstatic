@@ -18,11 +18,13 @@ BasicBlock = R6::R6Class("BasicBlock",
     phi = list(),
     body = NULL,
     terminator = NULL,
+    name = NULL,
 
-    initialize = function(body = list()) {
+    initialize = function(name = NULL, body = list()) {
       for (node in body)
         node$parent = self
       self$body = body
+      self$name = name
 
       return (self)
     },

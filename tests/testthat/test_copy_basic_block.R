@@ -2,7 +2,7 @@ context("BasicBlock$copy")
 
 
 test_that("copying sets parents on body nodes", {
-  x = BasicBlock$new(list(
+  x = BasicBlock$new(body = list(
     Assign$new(Symbol$new("x"), Integer$new(3L))
     , Assign$new(Symbol$new("x"), Symbol$new("y"))
   ))

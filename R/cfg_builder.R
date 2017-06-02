@@ -22,7 +22,7 @@ CFGBuilder = R6::R6Class("CFGBuilder",
 
     new_block = function() {
       id = self$cfg$add_vertex()
-      self$cfg[[id]] = BasicBlock$new()
+      self$cfg[[id]] = BasicBlock$new(id)
 
       return (id)
     },
