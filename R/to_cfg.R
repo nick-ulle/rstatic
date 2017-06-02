@@ -45,40 +45,25 @@ to_cfg = function(ast, in_place = FALSE, ssa = TRUE) {
 }
 
 #' @export
-to_cfg.Function = function(ast, in_place = FALSE, ssa = TRUE) {
+to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE) {
   if (!in_place)
     ast = ast$copy()
 
   # Set up CFG for a function.
   cfg = ControlFlowGraph$new()
-  cfg$set_params(ast$params)
+  if (inherits(ast, "Function")) {
+    cfg$set_params(ast$params)
+    ast = ast$body
+  }
 
   builder = CFGBuilder$new(cfg)
 
-  build_cfg(ast$body, builder)
+  build_cfg(ast, builder)
 
   # Always flow to the exit block.
   if (is.na(builder$insert_block))
     builder$insert_block = cfg$exit
   else if (builder$insert_block != cfg$exit)
-    builder$create_br(cfg$exit)
-
-  if (ssa)
-    cfg = to_ssa(cfg, in_place = TRUE)
-
-  return (cfg)
-}
-
-#' @export
-to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE) {
-  if (!in_place)
-    ast = ast$copy()
-
-  cfg = ControlFlowGraph$new()
-  builder = CFGBuilder$new(cfg)
-  build_cfg(ast, builder)
-
-  if (builder$insert_block != cfg$exit)
     builder$create_br(cfg$exit)
 
   if (ssa)
