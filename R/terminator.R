@@ -65,8 +65,8 @@ IterTerminator = R6::R6Class("IterTerminator", inherit = CondBrTerminator,
     ivar = NULL,
     iter = NULL,
 
-    initialize = function(body, exit, ivar, iter) {
-      super$initialize(body, exit, NULL)
+    initialize = function(body, exit, condition, ivar, iter) {
+      super$initialize(body, exit, condition)
       self$set_ivar(ivar)
       self$set_iter(iter)
     },

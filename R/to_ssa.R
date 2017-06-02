@@ -74,11 +74,7 @@ ssa_rename = function(block, cfg, dom_t, builder) {
 
   # Rewrite terminator in this block.
   term = cfg[[block]]$terminator
-  if (inherits(term, "IterTerminator")) {
-    # FIXME: Conditions for for-loops should be generated with the CFG. Once
-    # they are, this no-op case can be removed.
-
-  } else if (inherits(term, "CondBrTerminator")) {
+  if (inherits(term, "CondBrTerminator")) {
     ssa_rename_ast(term$condition, builder)
   } else if (inherits(term, "RetTerminator")) {
     ssa_rename_ast(term$value, builder)

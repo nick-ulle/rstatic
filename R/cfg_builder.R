@@ -45,11 +45,14 @@ CFGBuilder = R6::R6Class("CFGBuilder",
       invisible (NULL)
     },
 
-    create_iter = function(body, exit, ivar, iter, src = self$insert_block) {
+    create_iter = function(body, exit, condition, ivar, iter,
+      src = self$insert_block)
+    {
       self$cfg$add_edge(src, body)
       self$cfg$add_edge(src, exit)
 
-      self$cfg[[src]]$terminator = IterTerminator$new(body, exit, ivar, iter)
+      self$cfg[[src]]$terminator = IterTerminator$new(body, exit, condition,
+        ivar, iter)
       self$insert_block = body
       invisible (NULL)
     },

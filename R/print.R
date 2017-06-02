@@ -113,20 +113,19 @@ format.CondBrTerminator = function(x, show_tag = TRUE, ...) {
   return (msg)
 }
 
-#' @export
-format.IterTerminator = function(x, show_tag = TRUE, ...) {
-
-  ivar = deparse_string(to_r(x$ivar))
-  iter = deparse_string(to_r(x$iter))
-  term = sprintf("iter (%s in %s) %s, %s", ivar, iter, x$true, x$false)
-
-  if (show_tag)
-    msg = sprintf("%s\n%s", .format_tag(x), term)
-  else
-    msg = sprintf("%s", term)
-
-  return (msg)
-}
+#format.IterTerminator = function(x, show_tag = TRUE, ...) {
+#
+#  ivar = deparse_string(to_r(x$ivar))
+#  iter = deparse_string(to_r(x$iter))
+#  term = sprintf("iter (%s in %s) %s, %s", ivar, iter, x$true, x$false)
+#
+#  if (show_tag)
+#    msg = sprintf("%s\n%s", .format_tag(x), term)
+#  else
+#    msg = sprintf("%s", term)
+#
+#  return (msg)
+#}
 
 #' @export
 print.Terminator = .print

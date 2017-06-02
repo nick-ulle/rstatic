@@ -192,11 +192,17 @@ build_cfg.For = function(node, builder) {
   builder$cfg[[entry]]$append(adv_iter)
   builder$cfg[[entry]]$append(adv_i)
 
+  # Condition
+  cond = Call$new("<=", list(
+    Symbol$new(iter_name),
+    Call$new("length", list(node$iter$copy()))
+  ))
+
   # Loop Body
   # =========
   entry_b = builder$new_block()
   exit = builder$new_block()
-  builder$create_iter(entry_b, exit, node$ivar, node$iter)
+  builder$create_iter(entry_b, exit, cond, node$ivar, node$iter)
 
   # Push a new context so break/next flow to the correct place.
   builder$loop_push(entry, exit)
