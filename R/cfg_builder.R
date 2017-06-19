@@ -63,8 +63,6 @@ CFGBuilder = R6::R6Class("CFGBuilder",
       # there is always exactly one exit block, and the correct return value
       # arrives there through SSA.
 
-      self$cfg$add_edge(src, self$cfg$exit)
-
       self$create_br(src = src, self$cfg$exit)
       self$insert_block = NA_character_
       invisible (NULL)
