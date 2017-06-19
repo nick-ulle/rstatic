@@ -115,6 +115,7 @@ scc_visit_exp = function(node, helper) {
 }
 
 
+#' @export
 scc_visit_exp.Assign = function(node, helper) {
   name = node$write$name
 
@@ -131,7 +132,7 @@ scc_visit_exp.Assign = function(node, helper) {
   invisible (NULL)
 }
 
-
+#' @export
 scc_visit_exp.Phi = function(node, helper) {
   # Compute meet of values of all operands to this phi-function.
   # Need to look backwards (to defs) in the SSA graph. We can find the phi in
@@ -157,12 +158,14 @@ scc_visit_exp.Phi = function(node, helper) {
   invisible (NULL)
 }
 
+#' @export
 scc_visit_exp.Replacement = function(node, helper) {
   # FIXME: For now, don't update anything, since we completely ignore vectors
   # during constant analysis. Eventually this could update array SSA names.
   invisible (NULL)
 }
 
+#' @export
 scc_visit_exp.default = function(node, helper) {
   browser()
 }
@@ -173,6 +176,7 @@ scc_const_eval = function(node, helper) {
   UseMethod("scc_const_eval")
 }
 
+#' @export
 scc_const_eval.Call = function(node, helper) {
   if (node$fn$name %in% c(">", "<", ">=", "<=", "==", "length", ":",
       "-", "+", "*", "/")
@@ -189,6 +193,7 @@ scc_const_eval.Call = function(node, helper) {
   return (NONCONST)
 }
 
+#' @export
 scc_const_eval.Symbol = function(node, helper) {
   idx = match(node$name, names(helper$values))
   if (is.na(idx))
@@ -196,13 +201,15 @@ scc_const_eval.Symbol = function(node, helper) {
 
   return (helper$values[[idx]])
 }
-
+ 
+#' @export
 scc_const_eval.Brace = function(node, helper) {
   val = lapply(node$body, scc_const_eval, helper)
 
   return (val[[length(node$body)]])
 }
 
+#' @export
 scc_const_eval.Literal = function(node, helper) {
   return (node$value)
 }
