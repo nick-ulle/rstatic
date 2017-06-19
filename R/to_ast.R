@@ -43,6 +43,7 @@ to_ast.function = function(expr) {
 #' definitions since they have the same underlying code.
 #'
 #' @param expr (language) Quoted R code to be converted.
+#' @param is_primitive (logical) Whether or not the expression is a primitive.
 #'
 to_ast_callable = function(expr, is_primitive = FALSE) {
   # TODO: If this is a function definition, the environment it will exist in

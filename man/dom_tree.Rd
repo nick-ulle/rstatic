@@ -8,6 +8,8 @@ dom_tree(cfg, entry_idx = cfg$get_index(cfg$entry))
 }
 \arguments{
 \item{cfg}{(ControlFlowGraph) A control-flow graph.}
+
+\item{entry_idx}{(integer) Index of the root node of the graph.}
 }
 \value{
 The dominator tree as a vector of immediate dominators. In other

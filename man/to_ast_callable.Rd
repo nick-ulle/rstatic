@@ -8,6 +8,8 @@ to_ast_callable(expr, is_primitive = FALSE)
 }
 \arguments{
 \item{expr}{(language) Quoted R code to be converted.}
+
+\item{is_primitive}{(logical) Whether or not the expression is a primitive.}
 }
 \description{
 This function converts primitives, functions, and function definitions to

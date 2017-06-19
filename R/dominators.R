@@ -40,6 +40,7 @@ dom_tree_preorder = function(dom_t, from = 1L) {
 #' the immediate dominator for each block until a fixed point is reached.
 #'
 #' @param cfg (ControlFlowGraph) A control-flow graph.
+#' @param entry_idx (integer) Index of the root node of the graph.
 #'
 #' @return The dominator tree as a vector of immediate dominators. In other
 #' words, if element \eqn{j} is \eqn{i}, then the immediate dominator of block
