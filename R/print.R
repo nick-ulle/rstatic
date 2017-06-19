@@ -131,6 +131,10 @@ format.CondBrTerminator = function(x, show_tag = TRUE, ...) {
 print.Terminator = .print
 
 
+format.NONCONST = function(x, ...) "NONCONST"
+print.NONCONST = function(x, ...) cat(format(x, ...), "\n")
+
+
 deparse_string = function(expr, ...) {
   # Safely deparse() to a single string.
   paste0(deparse(expr, ...), collapse = "\n")
