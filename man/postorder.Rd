@@ -2,12 +2,12 @@
 % Please edit documentation in R/cfg_analysis.R
 \name{postorder}
 \alias{postorder}
-\title{Postorder Traversal of a Graph}
+\title{Postordering of a Graph}
 \usage{
-postorder(cfg, from = cfg$entry)
+postorder(g, from = g$entry)
 }
 \arguments{
-\item{cfg}{(CFGraph) The graph on which to compute a traversal.}
+\item{g}{(FlowGraph) The graph on which to compute a traversal.}
 
 \item{from}{(integer) A node index where the traversal should start.}
 }
@@ -15,6 +15,13 @@ postorder(cfg, from = cfg$entry)
 (integer) The node indexes in the order they'd be visited.
 }
 \description{
-Given a graph, this function finds the order nodes are visited by a
-postorder traversal.
+Given a graph, this function finds a postordering of the nodes.
+}
+\details{
+A postordering gives nodes in the order they were last visited by a
+depth-first search (as opposed to first visited). That is, the deepest nodes
+appear first in the postordering. A postordering is not necessarily unique.
+
+For an acyclic graph, a reversed postordering is equivalent to a topological
+sort.
 }

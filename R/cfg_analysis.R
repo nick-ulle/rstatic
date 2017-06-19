@@ -1,45 +1,25 @@
 
-#' Postorder Traversal of a Graph
+#' Postordering of a Graph
 #'
-#' Given a graph, this function finds the order nodes are visited by a
-#' postorder traversal.
+#' Given a graph, this function finds a postordering of the nodes.
 #'
-#' @param cfg (CFGraph) The graph on which to compute a traversal.
+#' A postordering gives nodes in the order they were last visited by a
+#' depth-first search (as opposed to first visited). That is, the deepest nodes
+#' appear first in the postordering. A postordering is not necessarily unique.
+#'
+#' For an acyclic graph, a reversed postordering is equivalent to a topological
+#' sort.
+#'
+#' @param g (FlowGraph) The graph on which to compute a traversal.
 #' @param from (integer) A node index where the traversal should start.
 #'
 #' @return (integer) The node indexes in the order they'd be visited.
 #'
 #' @export
-postorder = function(cfg, from = cfg$entry) {
-  # Compute the postorder traversal.
-  to_visit = Stack$new(type = "integer")
-  to_visit$push(from)
+postorder = function(g, from = g$entry) {
+  dfs = igraph::dfs(g$graph, root = from, order = FALSE, order.out = TRUE)
 
-  n = length(cfg)
-  is_discovered = logical(n)
-  visited = integer(n)
-  n_visited = 0
-
-  while (!to_visit$is_empty) {
-    idx = to_visit$peek()
-    is_discovered[[idx]] = TRUE
-
-    succ = cfg[[idx]]$successors
-    succ = succ[!is_discovered[succ]]
-
-    if (length(succ) > 0) {
-      # Undiscovered successors, so push them onto stack.
-      to_visit$push_many(succ)
-    } else {
-      # No undiscovered successors, so visit and pop this node.
-      to_visit$pop()
-      n_visited = n_visited + 1
-      visited[n_visited] = idx
-    } # if
-
-  } # while
-
-  return (visited)
+  return (dfs$order.out)
 }
 
 
