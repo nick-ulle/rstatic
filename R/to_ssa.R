@@ -43,7 +43,7 @@ to_ssa = function(cfg, in_place = FALSE) {
 
   # Rename variables.
   builder = SSABuilder$new()
-  # TODO: Parameter renaming should happen in `ssa_rename()`.
+  # TODO: Parameter renaming should happen in `ssa_rename()`, not here.
   ssa_rename_ast(cfg$params, builder)
   ssa_rename(entry_idx, cfg, dom_t, builder)
 
@@ -88,6 +88,21 @@ ssa_rename = function(block, cfg, dom_t, builder) {
       node = Symbol$new(phi$write$base, n)
 
       phi$set_read(block_name, node)
+
+      # Add a backedge if the phi-function's LHS has been renamed already.
+      #
+      # NOTE: The second check is in case the read symbol is a global; globals
+      # are not included in the SSA graph. Globals appear in phi-functions when
+      # the definition of a symbol is conditional, e.g.,
+      #
+      #   if ( ... )
+      #     x = 3
+      #
+      # Minimal SSA form prevents extraneous phi-functions from being generated
+      # when the symbol is only live inside the body of the conditional.
+      if (!is.na(phi$write$n) && !is.na(node$n))
+        # TODO: This should be in the builder API.
+        builder$ssa$add_edge(node$name, phi$write$name)
     })
   }
 

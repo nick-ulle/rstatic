@@ -87,6 +87,21 @@ test_that("nodes and edges are added for phi-functions", {
 })
 
 
+test_that("backedges are added for phi-functions", {
+  exp = quote(
+    for (i in 1:10)
+      x = 12
+  )
+
+  cfg = to_cfg(exp)
+  ssa = cfg$ssa
+
+  # -----
+  expect_true(ssa$graph[from = "._iter_i_2", to = "._iter_i_3"] == 1)
+  expect_true(ssa$graph[from = "._iter_i_3", to = "._iter_i_2"] == 1)
+})
+
+
 test_that("nodes and edges are added for parameters", {
   fn = function(x) {
     y = x
