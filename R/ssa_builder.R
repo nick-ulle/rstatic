@@ -83,8 +83,13 @@ SSABuilder = R6::R6Class("SSABuilder",
         self$ssa[[id]] = at
 
         reads = collect_reads(at)
-        for (r in reads)
-          self$ssa$add_edge(r, name)
+        defs = names(self$ssa)
+        for (r in reads) {
+          if (r %in% defs)
+            self$ssa$add_edge(r, name)
+          else
+            warning(sprintf("not adding global name '%s' to SSA graph.", r))
+        }
 
       } else {
         stop(sprintf("symbol '%s' already defined.", name))
