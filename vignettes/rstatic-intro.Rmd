@@ -1,0 +1,129 @@
+---
+title: "Introduction to rstatic"
+author: "Nick Ulle"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette introduces the __rstatic__ API for accessing information about an
+program.
+
+## Interacting With Code
+
+__rstatic__ uses __R6__ classes to represent individual components of R
+expressions. The parent class of all components is `ASTNode`, since each
+expression is an abstract syntax tree (AST) with the components as nodes.
+Abstract syntax trees are structurally similar to the parse trees built into R,
+but provide some simplifications to make them more amenable to analysis. 
+
+Note that in contrast to most R objects, __R6__ objects are references. This
+means that assigning an __R6__ object to a new variable will not create a copy,
+and changes to the new variable will affect the original object. Fields and
+methods on an __R6__ object are accessed with the `$` operator.
+
+The `ASTNode` class only has one field and one method. The `parent` field holds
+the node's in the abstract syntax tree or control flow graph. The `copy()`
+method creates a copy of the node and its children.
+
+### An Example
+
+Let's start by examining the AST for an R implementation of the quadratic
+formula. The `to_ast()` function converts functions and quoted R expressions to
+abstract syntax trees.
+```{r}
+quad = function(a, b, c) {
+  rad = sqrt(b^2 - 4*a*c)
+  roots = (-b + c(rad, -rad)) / 2*a
+
+  return (roots)
+}
+
+library(rstatic)
+
+ast = to_ast(quad)
+
+print(ast)
+```
+
+Printing `ast` reveals that it's a `Function` object and shows the code inside.
+For convenience, descendants of `ASTNode` list all field and method names when
+printed.
+```{r}
+class(ast)
+```
+
+The contents of the function are in the `body` field. Since the function has
+multiple lines, they're wrapped in curly braces. Thus the `body` field holds a
+`Brace` object.
+```{r}
+braces = ast$body
+
+print(braces)
+```
+
+`Brace` objects also have a `body` field, which lists the lines being wrapped.
+For this example, there are three lines: two assignments and a return
+statement, represented by `Assign` and `Return` objects, respectively.
+```{r}
+print(braces$body)
+```
+
+Inspecting the first `Assign`, we see that it has members `read`, `set_read`,
+`set_write`, and `write`, in addition to the inherited `ASTNode` members. The
+`write` field holds the variable being assigned (that is, the left side of the
+assignment).
+```{r}
+print(braces$body[[1]]$write)
+```
+
+The `set_write` method assigns a value to the `write` field. Unlike assigning
+`write` directly, `set_write` makes sure the `parent` field on the object
+assigned to `write` is updated correctly. The `set_read` method is analogous
+for the `read` field. In general, `set_` methods the preferred way to assign
+values to fields when they are present.
+
+
+### Literals
+
+Literal numbers, strings, logicals and nulls are represented by subclasses of
+`Literal`.
+
+In the example below, the literal `6.28` is converted to a code object.
+```{r}
+x = to_astq(6.28)
+
+x
+```
+In this case, the result is a `Numeric` object, which is a subclass of
+`Literal`.
+```{r}
+class(x)
+```
+The `value` field stores the `Literal`'s value.
+```{r}
+x$value
+```
+
+### Symbols & Parameters
+
+Variable names or _symbols_ are represented by the `Symbol` class.
+
+
+
+### Calls
+
+### Brackets & Control Structures
+
+
+## Control Flow Graphs
+
+### Branches
+
+### Loops
+
+
+## Static Single-Assignment Form

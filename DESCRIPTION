@@ -10,8 +10,11 @@ Imports:
     R6,
     igraph
 Suggests:
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
+VignetteBuilder: knitr
