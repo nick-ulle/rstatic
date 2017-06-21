@@ -190,7 +190,7 @@ While = R6::R6Class("While", inherit = ASTNode,
 # --------------------
 
 #' export
-Dispatch = R6::R6Class("Dispatch", inherit = ASTNode,
+Application = R6::R6Class("Application", inherit = ASTNode,
   "private" = list(
     deep_clone = function(name, value) {
       switch(name,
@@ -227,7 +227,7 @@ Dispatch = R6::R6Class("Dispatch", inherit = ASTNode,
 )
 
 #' @export
-Return = R6::R6Class("Return", inherit = Dispatch,
+Return = R6::R6Class("Return", inherit = Application,
   "public" = list(
     is_invisible = FALSE,
     initialize = function(args = list(), is_invisible = FALSE, parent = NULL) {
@@ -239,7 +239,7 @@ Return = R6::R6Class("Return", inherit = Dispatch,
 )
 
 #' @export
-Call = R6::R6Class("Call", inherit = Dispatch,
+Call = R6::R6Class("Call", inherit = Application,
   "public" = list(
     fn = NULL,
 

@@ -55,7 +55,7 @@ test_that("copying a Brace sets correct parents", {
 })
 
 
-test_that("copying a Dispatch sets correct parents", {
+test_that("copying a Application sets correct parents", {
   x = Call$new("*", list(Symbol$new("x"), Numeric$new(4.2)))
 
   y = x$copy()

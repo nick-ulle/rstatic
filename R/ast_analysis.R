@@ -27,7 +27,7 @@ collect_reads.Phi = function(node) {
 }
 
 #' @export
-collect_reads.Dispatch = function(node) {
+collect_reads.Application = function(node) {
   names = lapply(node$args, collect_reads)
   return (unique(unlist(names)))
 }
