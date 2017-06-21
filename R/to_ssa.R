@@ -84,8 +84,8 @@ ssa_rename = function(block, cfg, dom_t, builder) {
   block_name = cfg$get_name(block)
   for (i in neighbors(cfg$graph, block, "out")) {
     lapply(cfg[[i]]$phi, function(phi) {
-      n = builder$get_live_def(phi$write$base)
-      node = Symbol$new(phi$write$base, n)
+      n = builder$get_live_def(phi$write$basename)
+      node = Symbol$new(phi$write$basename, n)
 
       phi$set_read(block_name, node)
 
@@ -100,7 +100,7 @@ ssa_rename = function(block, cfg, dom_t, builder) {
       #
       # Minimal SSA form prevents extraneous phi-functions from being generated
       # when the symbol is only live inside the body of the conditional.
-      if (!is.na(phi$write$n) && !is.na(node$n))
+      if (!is.na(phi$write$ssa_number) && !is.na(node$ssa_number))
         # TODO: This should be in the builder API.
         builder$ssa$add_edge(node$name, phi$write$name)
     })
@@ -138,7 +138,7 @@ ssa_rename_ast.Assign = function(node, builder) {
   ssa_rename_ast(node$read, builder)
   builder$register_uses = TRUE
 
-  node$write$n = builder$new_def(node$write$base)
+  node$write$ssa_number = builder$new_def(node$write$basename)
   builder$register_def(node$write$name, node)
 
   return (node)
@@ -146,7 +146,7 @@ ssa_rename_ast.Assign = function(node, builder) {
 
 #' @export
 ssa_rename_ast.Phi = function(node, builder) {
-  node$write$n = builder$new_def(node$write$base)
+  node$write$ssa_number = builder$new_def(node$write$basename)
   builder$register_def(node$write$name, node)
 
   return (node)
@@ -157,7 +157,7 @@ ssa_rename_ast.Parameter = function(node, builder) {
   if (!is.null(node$default))
     ssa_rename_ast(node$default, builder)
 
-  node$n = builder$new_def(node$base)
+  node$ssa_number = builder$new_def(node$basename)
   # FIXME: Parameter processing order might not put all defs before uses.
   builder$register_def(node$name, node)
 
@@ -178,7 +178,7 @@ ssa_rename_ast.Brace = function(node, builder) {
 
 #' @export
 ssa_rename_ast.Symbol = function(node, builder) {
-  node$n = builder$get_live_def(node$base)
+  node$ssa_number = builder$get_live_def(node$basename)
 
   if (builder$register_uses) {
     # FIXME: This should register the use on the line of code that contains the

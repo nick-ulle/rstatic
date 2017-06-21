@@ -58,7 +58,7 @@ BasicBlock = R6::R6Class("BasicBlock",
 has_phi = function(block, x) {
   # Check if there's a phi-function in block for name x.
   match = vapply(block$phi, function(node) {
-    return (node$write$base == x)
+    return (node$write$basename == x)
   }, logical(1))
 
   any(match)

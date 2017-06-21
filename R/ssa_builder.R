@@ -26,14 +26,14 @@ SSABuilder = R6::R6Class("SSABuilder",
       # Clear saved local definitions.
       local = self$local_stack$pop()
       lapply(local,
-        function(base) self$name_stack[[base]]$pop()
+        function(basename) self$name_stack[[basename]]$pop()
       )
 
       invisible (self)
     },
 
-    get_live_def = function(base) {
-      ns = self$name_stack[[base]]
+    get_live_def = function(basename) {
+      ns = self$name_stack[[basename]]
       if (is.null(ns) || ns$is_empty)
         # Base has no definitions, so return NA.
         return (NA_integer_)
@@ -41,23 +41,23 @@ SSABuilder = R6::R6Class("SSABuilder",
       ns$peek()
     },
 
-    new_def = function(base) {
-      # Check whether base already has a definition in this block.
-      if (base %in% self$local) {
-        self$name_stack[[base]]$pop()
+    new_def = function(basename) {
+      # Check whether basename already has a definition in this block.
+      if (basename %in% self$local) {
+        self$name_stack[[basename]]$pop()
 
       } else {
         # NOTE: It would probably be okay to use c() instead of union() here.
-        self$local = union(base, self$local)
+        self$local = union(basename, self$local)
 
-        # Check whether base has a name stack.
-        if ( !(base %in% names(self$name_stack)) )
-          self$name_stack[[base]] = Stack$new(type = "integer")
+        # Check whether basename has a name stack.
+        if ( !(basename %in% names(self$name_stack)) )
+          self$name_stack[[basename]] = Stack$new(type = "integer")
       }
 
       # Push a new number onto the stack.
-      n = self$name_gen$get(base)
-      self$name_stack[[base]]$push(n)
+      n = self$name_gen$get(basename)
+      self$name_stack[[basename]]$push(n)
 
       return (n)
     },
@@ -109,14 +109,14 @@ NameGenerator = R6::R6Class("NameGenerator",
   ),
 
   "public" = list(
-    get = function(base) {
-      if (base %in% names(private$counter)) {
-        counter = private$counter[[base]] + 1L
+    get = function(basename) {
+      if (basename %in% names(private$counter)) {
+        counter = private$counter[[basename]] + 1L
       } else {
         counter = 1L
       }
       
-      private$counter[[base]] = counter
+      private$counter[[basename]] = counter
 
       return (counter)
     }

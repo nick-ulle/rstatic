@@ -100,7 +100,7 @@ to_r.Return = function(node) {
 #' @export
 to_r.Symbol = function(node) {
   # Handle empty arguments.
-  if (node$base == "")
+  if (node$basename == "")
     return (quote(expr = ))
 
   as.name(node$name)

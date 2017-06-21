@@ -450,26 +450,26 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
 #' @export
 Symbol = R6::R6Class("Symbol", inherit = ASTNode,
   "public" = list(
-    base = NULL,
-    n = NULL,
+    basename = NULL,
+    ssa_number = NULL,
 
-    initialize = function(name, n = NA_integer_, parent = NULL) {
-      if ( !(is.character(name) || is.symbol(name)) )
-        stop("Symbol name must be a character or a name.", call. = FALSE)
+    initialize = function(basename, ssa_number = NA_integer_, parent = NULL) {
+      if ( !(is.character(basename) || is.symbol(basename)) )
+        stop("Symbol basename must be a character or a name.", call. = FALSE)
 
       super$initialize(parent)
-      self$base = as.character(name)
-      self$n = n
+      self$basename = as.character(basename)
+      self$ssa_number = ssa_number
     }
   ),
 
   "active" = list(
     name = function() {
-      n = self$n
-      if (is.na(n))
-        return (self$base)
+      ssa_number = self$ssa_number
+      if (is.na(ssa_number))
+        return (self$basename)
 
-      return (sprintf("%s_%i", self$base, n))
+      return (sprintf("%s_%i", self$basename, ssa_number))
     }
   )
 )

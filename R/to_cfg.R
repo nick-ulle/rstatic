@@ -150,10 +150,10 @@ build_cfg.For = function(node, builder) {
   # Loop Setup (before entry)
   # =========================
   # Initialize ._iter_ and ivar.
-  iter_name = paste0("._iter_", node$ivar$base)
+  iter_name = paste0("._iter_", node$ivar$basename)
   def_iter = Assign$new(Symbol$new(iter_name), Integer$new(1L))
   def_i = Assign$new(
-    write = Symbol$new(node$ivar$base),
+    write = Symbol$new(node$ivar$basename),
     read  = Call$new("[[", list(node$iter, Symbol$new(iter_name)))
   )
   # FIXME:
