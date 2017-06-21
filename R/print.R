@@ -9,9 +9,15 @@
 
 #' @export
 format.ASTNode = function(x, indent = 0, ...) {
-  fields = paste("$", ls(x), sep = "", collapse = " ")
+  members = setdiff(ls(x), c("initialize", "clone"))
+  is_method = vapply(members, function(f) is.function(x[[f]]), TRUE)
+
+  members[is_method] = paste(members[is_method], "()", sep = "")
+  members = members[order(is_method, members)]
+  members = paste("$", members, sep = "", collapse = " ")
+
   code = deparse_string(to_r(x))
-  sprintf("<%s> %s\n%s", class(x)[1], fields, code)
+  sprintf("<%s> %s\n%s", class(x)[1], members, code)
 }
 
 #' @export
