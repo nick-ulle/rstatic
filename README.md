@@ -40,7 +40,8 @@ The package includes a vignette that serves as an introduction. To access the
 vignette, open an R prompt and run:
 
 ```r
-vignette()
+library(rstatic)
+vignette("rstatic-intro")
 ```
 
 

@@ -46,7 +46,7 @@ library(rstatic)
 
 ast = to_ast(quad)
 
-print(ast)
+ast
 ```
 
 Printing `ast` reveals that it's a `Function` object and shows the code inside.
@@ -62,14 +62,14 @@ multiple lines, they're wrapped in curly braces. Thus the `body` field holds a
 ```{r}
 braces = ast$body
 
-print(braces)
+braces
 ```
 
 `Brace` objects also have a `body` field, which lists the lines being wrapped.
 For this example, there are three lines: two assignments and a return
 statement, represented by `Assign` and `Return` objects, respectively.
 ```{r}
-print(braces$body)
+braces$body
 ```
 
 Inspecting the first `Assign`, we see that it has members `read`, `set_read`,
@@ -77,7 +77,9 @@ Inspecting the first `Assign`, we see that it has members `read`, `set_read`,
 `write` field holds the variable being assigned (that is, the left side of the
 assignment).
 ```{r}
-print(braces$body[[1]]$write)
+lhs = braces$body[[1]]$write
+
+lhs
 ```
 
 The `set_write` method assigns a value to the `write` field. Unlike assigning
@@ -86,37 +88,349 @@ assigned to `write` is updated correctly. The `set_read` method is analogous
 for the `read` field. In general, `set_` methods the preferred way to assign
 values to fields when they are present.
 
+Drilling down further, `lhs` holds a `Symbol`, which has fields `basename`,
+`ssa_number`, and `name` in addition to the inherited members. The `basename`
+field is original name of the variable in the R program, as a string.
+```{r}
+lhs$basename
+```
+
+The `ssa_number` and `name` fields are used for SSA form, which is discussed in
+a subsequent section of this vignette. We can change `basename` to change the
+name of the variable in the code.
+```{r}
+lhs$basename = "radical"
+
+ast
+```
+
+ASTs are cumbersome to manipulate by hand. In practice, the easiest way to
+apply operations to a whole AST is to write a recursive S3 method. For
+instance, if we wanted to rename all instances of a variable, we could use the
+method below:
+```{r}
+replace_var = function(node, old, new) {
+  UseMethod("replace_var")
+}
+
+replace_var.Symbol = function(node, old, new) {
+  if (node$basename == old)
+    node$basename = new
+  invisible(NULL)
+}
+
+replace_var.Brace =
+function(node, old, new) {
+  lapply(node$body, replace_var, old, new)
+  invisible(NULL)
+}
+
+replace_var.Application = function(node, old, new) {
+  lapply(node$args, replace_var, old, new)
+  invisible(NULL)
+}
+
+replace_var.Function = function(node, old, new) {
+  replace_var(node$body, old, new)
+  invisible(NULL)
+}
+
+replace_var.Assign = function(node, old, new) {
+  replace_var(node$read, old, new)
+  replace_var(node$write, old, new)
+  invisible(NULL)
+}
+
+replace_var.Literal = function(node, old, new) { }
+```
+
+This makes it easy to change `rad` to `radical` globally:
+```{r}
+replace_var(ast, "rad", "radical")
+
+ast
+```
+
+There are a few things worth noting in this example. First, the AST is updated
+in place rather than returned by `replace_var`. The `NULL` return values are
+not strictly necessary, but emphasize that `replace_var` is used only for its
+side effects. Although it wasn't necessary here, it's often useful to define a
+helper __R6__ class to hold additional state during recursive tree traversal.
+
+Second, the method had to be defined for every class of node that could appear
+in the tree. This boilerplate is a tradeoff for flexibility. Intermediate
+classes such as `Application` (for expressions that have arguments) and
+`Literal` (for literals) help to reduce the boilerplate. For convenience, the
+package may have more intermediate classes in the future.
+
+Third, in this example there's no real benefit, other than clarity, in
+traversing the AST rather than the parse tree for the code. This is usually the
+case for operations that don't use information about each node's context in the
+tree. On the other hand, for operations that do use contextual information, the
+AST makes it possible to inspect and even modify ancestors the current node.
+
+Finally, the method could be vectorized in `old` and `new` by changing
+`replace_var.Symbol()`.
+
+The remainder of this section is a reference on the subclasses of `ASTNode`.
 
 ### Literals
 
 Literal numbers, strings, logicals and nulls are represented by subclasses of
 `Literal`.
 
-In the example below, the literal `6.28` is converted to a code object.
+In the example below, the literal `6.28` is converted to a code object. The
+`to_astq()` function is like `to_ast()`, but automatically quotes its argument.
 ```{r}
-x = to_astq(6.28)
+tau = to_astq(6.28)
 
-x
+tau
 ```
 In this case, the result is a `Numeric` object, which is a subclass of
 `Literal`.
 ```{r}
-class(x)
+class(tau)
 ```
 The `value` field stores the `Literal`'s value.
 ```{r}
-x$value
+tau$value
 ```
 
 ### Symbols & Parameters
 
 Variable names or _symbols_ are represented by the `Symbol` class.
 
+The code below creates a new symbol named `x`.
+```{r}
+x = Symbol$new("x")
 
+x
+```
 
-### Calls
+`Symbol`s have fields `basename`, `ssa_number`, and `name`. The `basename`
+field is the name of the symbol as it appears in the original R program.
+```{r}
+x$basename
+```
 
-### Brackets & Control Structures
+The `ssa_number` field is the SSA number assigned to this symbol or `NA` if
+none was assigned.
+```{r}
+x$ssa_number
+```
+
+The `name` field is read-only and contains the SSA name of the symbol. When
+`ssa_number` is `NA`, `name` is the same as the `basename`.
+```{r}
+x$name
+```
+```{r}
+x$ssa_number = 3
+
+x$name
+```
+
+Function parameters are represented by the `Parameter` class, a subclass of
+`Symbol`. In addition to inherited members, `Parameter`s have a `default` field
+for storing the default argument to the parameter.
+
+As an example, the code below creates a parameter called `bins` with default
+argument `8`.
+```{r}
+Parameter$new("bins", Integer$new(8))
+```
+Note that the R representation of a lone parameter is a pairlist with one
+element, which is why the parameter is displayed as a pairlist.
+
+### Assignments
+
+Assignments with `=` or `<-` are represented by the `Assign` class, which has
+fields `read` and `write`, and respective `set_` methods. The `write` field
+holds the left-hand side of the assignment, and the `read` field holds the
+right-hand side.
+
+As an example, consider the code below, which assigns the complex number `3+2i`
+to the variable `z`.
+```{r}
+assign = to_astq(z <- 3+2i)
+```
+
+Here, the `write` field holds a symbol and the `read` field holds a complex
+value.
+```{r}
+assign$write
+```
+```{r}
+assign$read
+```
+
+The setter methods should be used to set `write` and `read`, rather than
+setting the fields directly. They ensure that children of the `Assign` node
+have the `parent` field set appropriately.
+
+### Function Calls
+
+Expressions with arguments are represented by the `Application` class. Calls
+and return statements are represented by `Call` and `Return`, which are
+subclasses of `Application`.
+
+For instance, the snippet below creates a call to `sum()` with no arguments.
+```{r}
+call_sum = Call$new("sum")
+```
+
+All `Application`s have an `args` field and `set_args()` method. The `args`
+field holds the list of arguments. For `call_sum`, this is an empty list.
+```{r}
+call_sum$args
+```
+
+It's not a good idea to set `args` on an `Application` directly, because each
+node in the argument list needs to have its `parent` field set to the
+`Application`. The `set_args()` function takes care of setting `parent` fields,
+so it's the preferred method for setting `args`.
+
+We can set the sum in the example to have two arguments, the integers `4` and
+`6`.
+```{r}
+args = list(Integer$new(4), Integer$new(6))
+call_sum$set_args(args)
+
+call_sum
+```
+
+In addition to the members inherited from `Application`, `Call`s also have a
+`fn` field and `set_fn()` method. The `fn` field holds the function being
+called, either as a `Symbol` or as a `Function` (for calls to anonymous
+functions).
+
+In the sum example, the `fn` field is a symbol named `sum`.
+```{r}
+call_sum$fn
+```
+
+Specialized calls such as replacement functions and `.Internal()` are
+represented by subclasses of `Call`. This makes it easy to use S3 dispatch to
+treat them like any other `Call` or to handle them as special cases.
+
+The `Replacement` class represents a call to a replacement functions. This
+class does not add any new members, but changes the `set_fn()` method to make
+sure the function name `fn` ends with `"<-"`, which is required for all
+replacement functions.
+
+The `Internal` class, which represents a call to `.Internal()`, does not add
+any new members or functionality. It exists only to distinguish these calls
+from others.
+
+### Braces
+
+Parentheses and curly braces are represented by the `Brace` class. This class
+has fields `body` and `is_paren`, and method `set_body()`. The `is_paren` field
+is `TRUE` if the `Brace` object represents parentheses and `FALSE` if the
+object represents curly braces.
+
+As an example, the code shown below converts a parenthetical expression to a
+`Brace`.
+```{r}
+paren = to_astq( (2 + 2) )
+
+paren
+```
+
+The `body` field holds the list of expressions inside the `Brace`. For
+parentheses, this list must have length 0 or 1 to be valid. The list can be any
+length for curly braces.
+```{r}
+paren$body
+```
+
+As usual, the `set_body()` method should be used to set the `body` field rather
+than setting the field directly.
+
+### Functions & Primitives
+
+Callable objects are represented by the `Callable` class. The `Callable` class
+defines a `params` field and corresponding `set_params()` method. The `params`
+field holds a list of parameters (and default arguments) for the callable
+object.
+
+`Function` and `Primitive`, both subclasses of `Callable`, represent functions
+and primitives, respectively. The `Function` class adds a `body` field and
+`set_body()` method to the members inherited from `Callable`. The `body` field
+holds the single expression inside the function; for functions that contain
+more than one expresion, `body` holds a `Brace` object.
+
+For example, the code below converts a function to a `Function` object.
+```{r}
+to_celsius = function(x) {
+  (x - 32) * 5 / 9
+}
+
+to_celsius = to_ast(to_celsius)
+
+to_celsius
+```
+
+The parameter `x` is in the `params` field.
+```{r}
+to_celsius$params
+```
+
+The code inside the function definition is in the `body` field.
+```{r}
+to_celsius$body
+```
+
+Since primitives have names but do not contain any R code, the `Primitive`
+class adds a `fn` field and `set_fn()` method to the members inherited from
+`Callable`. The `fn` field holds the name of the primitive, and is similar to
+the `fn` field on the `Call` class.
+
+### Control Structures
+
+Control structures are represented by the `Next`, `Break`, `If`, `For`, and
+`While` classes. `Next` and `Break` do not add any new functionality to
+`ASTNode`, and are merely meant for method method dispatch.
+
+The `If` class has fields `condition`, `true`, and `false`, with corresponding
+`set_` methods. These fields hold to the if-statement's condition, "if" branch,
+and "else" branch, respectively. The `false` field is `NULL` for if-statements
+that don't have an "else" branch.
+
+For instance, the code below shows the AST for an if-statement.
+```{r}
+ast = to_astq(
+  if (x > 0) {
+    x = x + sqrt(x)
+  })
+
+ast
+```
+
+The condition on the if-statement is `x > 0`, and the `condition` field
+reflects this.
+```{r}
+ast$condition
+```
+
+The body of the if-statement is held in the `true` field. The `false` field is
+`NULL` since the if-statement does not have an "else" branch.
+```{r}
+ast$true
+```
+
+The `For` class has fields `ivar`, `iter`, and `body`, along with respective
+`set_` methods. The `ivar` field holds the iteration variable, the `iter` field
+holds the object being iterated over, and the `body` field holds the list of
+expressions that make up the body of the loop.
+
+The `While` class has fields `condition`, `body`, and `is_repeat`. There are
+also set methods `set_condition()` and `set_body()`. Similar to the `If` class,
+the `condition` field holds the condition for the loop. The `body` field holds
+the list of expressions that make up the body of the loop. The `is_repeat`
+field is `TRUE` if the loop is a `repeat` loop and `FALSE` if the loop is a
+`while` loop. When `is_repeat` is `TRUE`, the `condition` field is ignored (and
+defaults to `NULL`).
 
 
 ## Control Flow Graphs
@@ -127,3 +441,6 @@ Variable names or _symbols_ are represented by the `Symbol` class.
 
 
 ## Static Single-Assignment Form
+
+
+## Basic Analysis Functions
