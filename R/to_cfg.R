@@ -40,12 +40,12 @@ to_cfgq = function(expr, ...) {
 #' can be used to extract individual basic blocks from the graph.
 #'
 #' @export
-to_cfg = function(ast, in_place = FALSE, ssa = TRUE) {
+to_cfg = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE) {
   UseMethod("to_cfg")
 }
 
 #' @export
-to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE) {
+to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE) {
   if (!in_place)
     ast = ast$copy()
 
@@ -73,7 +73,8 @@ to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE) {
 }
 
 #' @export
-to_cfg.default = function(ast, in_place = FALSE, ssa = TRUE) {
+to_cfg.default = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE) {
+  ast = insertReturn(ast)
   ast = to_ast(ast)
   to_cfg(ast, in_place = TRUE, ssa = ssa)
 }
