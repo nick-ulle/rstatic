@@ -4,6 +4,20 @@ isSelect =
 function(call)
   length(call) == 4 && all(sapply(call[3:4], isSingleExpression))
 
+isSingleExpression =
+function(e)
+{
+  if(is.atomic(e))
+      return(TRUE)
+
+     # if the expression is return(expr)  then say no.
+  if(is.call(e) && as.character(e[[1]]) == "return")
+      return(FALSE)
+  
+  ((is(e, "{") && length(e) == 2 && ( is.call(k <- e[[2]]) ) ) || (is.call(k <- e))) &&
+      !(class(k) %in% c("while", "for", "if", "=", "<-", "<<-", "{"))
+ }
+
 
 insertReturn =
   # Checks to see if we need to enclose the final expression
@@ -23,6 +37,9 @@ insertReturn =
 function(expr, nested = FALSE, isVoid = FALSE, ...)
   UseMethod("insertReturn")
 
+insert.NULL =
+function(expr, nested = FALSE, isVoid = FALSE, ...)
+    NULL
 
 `insertReturn.{` =
 function(expr, nested = FALSE, isVoid = FALSE, ...)
@@ -88,6 +105,8 @@ function(expr, nested = FALSE, isVoid = FALSE, ...)
 {
 #   body(expr) = insertReturn(body(expr))
    b = body(expr)
+   if(is.null(b)) # bytecode compiled
+      return(expr)
    if(class(b) == "{") {
       b[[length(b)]] = if(FALSE && isSelect(b[[length(b)]])) #XXX we had no FALSE && here. Why did we want that?
                          substitute(return(x), list(x = b[[length(b)]]))
