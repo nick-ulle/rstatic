@@ -58,7 +58,7 @@ test_that("collecting reads on x = y returns y", {
 
 
 test_that("collecting reads on return(x) returns x", {
-  code = Return$new(list(Symbol$new("x")))
+  code = Return$new(Symbol$new("x"))
 
   result = collect_reads(code)
 

@@ -24,8 +24,8 @@ test_that("if-statement with dual returns has correct structure", {
 
   ast = If$new(
     Call$new(">", list(Symbol$new("x"), Integer$new(0)) ),
-    Return$new(list(Integer$new(3))),
-    Return$new(list(Integer$new(-1)))
+    Return$new(Integer$new(3)),
+    Return$new(Integer$new(-1))
   )
 
   result = to_cfg(ast, ssa = FALSE)
