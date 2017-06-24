@@ -108,16 +108,24 @@ build_cfg.If = function(node, builder) {
 
   build_cfg(node$true, builder)
   # Flow to the exit if control didn't flow elsewhere.
-  if (!is.na(builder$insert_block))
+  true_flows_to_exit = !is.na(builder$insert_block)
+  if (true_flows_to_exit)
     builder$create_br(exit)
 
   builder$insert_block = entry_f
   if (!is.null(node$false))
     build_cfg(node$false, builder)
-  if (!is.na(builder$insert_block))
-    builder$create_br(exit)
 
-  builder$insert_block = exit
+  if (!is.na(builder$insert_block)) # false flows to exit
+    builder$create_br(exit)
+  else if (true_flows_to_exit) # only true flows to exit
+    builder$insert_block = exit
+  else { # neither branch flows to exit
+    # Delete the exit block and indicate that there is no control flow out of
+    # this if-statement back to the caller (by leaving insert_block as NA).
+    builder$remove_block(exit)
+  }
+
   invisible (NULL)
 }
 

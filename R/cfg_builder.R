@@ -27,6 +27,13 @@ CFGBuilder = R6::R6Class("CFGBuilder",
       return (id)
     },
 
+    remove_block = function(id) {
+      self$cfg$remove_vertex(id)
+      self$cfg[[id]] = NULL
+
+      invisible (NULL)
+    },
+
     create_br = function(dest, src = self$insert_block) {
       self$cfg$add_edge(src, dest)
 
