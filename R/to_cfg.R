@@ -40,6 +40,7 @@ to_cfgq = function(expr, ...) {
 #' can be used to extract individual basic blocks from the graph.
 #'
 #' @export
+
 to_cfg = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE, ...) {
   UseMethod("to_cfg")
 }
