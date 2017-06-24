@@ -231,6 +231,9 @@ Return = R6::R6Class("Return", inherit = Application,
   "public" = list(
     is_invisible = FALSE,
     initialize = function(args = list(), is_invisible = FALSE, parent = NULL) {
+      if (!is.list(args))
+        args = list(args)
+
       super$initialize(args, parent)
 
       self$is_invisible = is_invisible
