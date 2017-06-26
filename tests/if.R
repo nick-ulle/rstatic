@@ -21,3 +21,14 @@ function(x)
 {
  return(if(x > 0) 20 else -1)
 }
+
+
+f3 =
+function(x)
+{
+   a = if(x > 0)
+          20
+       else
+         -1
+   a
+}

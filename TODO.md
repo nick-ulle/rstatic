@@ -1,6 +1,8 @@
 
 # TODO
 
+* THe following fails. a = rstatic::to_cfg(function(x) { x[1, 2]  = function(x) {1} ; x})
+
 * Refactor
   + [ ] Separate `$get_postorder()` from CFGraph class and add more traversal
   options
