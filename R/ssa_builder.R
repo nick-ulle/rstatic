@@ -76,7 +76,7 @@ SSABuilder = R6::R6Class("SSABuilder",
     # A node can be a use and a def when one variable is used to define
     # another. We need to register the def and then add edges to the def from
     # all the older defs it uses.
-    register_def = function(name, at) {
+    register_def = function(name, at, paramNames = character()) {
       if (is.null(self$ssa[[name]])) {
         # Add node to the graph.
         id = self$ssa$add_vertex(name)
@@ -87,8 +87,10 @@ SSABuilder = R6::R6Class("SSABuilder",
         for (r in reads) {
           if (r %in% defs)
             self$ssa$add_edge(r, name)
-          else
+          else if(!(r %in% paramNames)) {
+browser()              
             warning(sprintf("not adding global name '%s' to SSA graph.", r))
+          }
         }
 
       } else {
