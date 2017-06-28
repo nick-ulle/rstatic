@@ -88,7 +88,6 @@ SSABuilder = R6::R6Class("SSABuilder",
           if (r %in% defs)
             self$ssa$add_edge(r, name)
           else if(!(r %in% paramNames)) {
-browser()              
             warning(sprintf("not adding global name '%s' to SSA graph.", r))
           }
         }
