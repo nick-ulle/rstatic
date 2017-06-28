@@ -111,16 +111,24 @@ build_cfg.If = function(node, builder) {
 
   build_cfg(node$true, builder)
   # Flow to the exit if control didn't flow elsewhere.
-  if (!is.na(builder$insert_block))
+  true_flows_to_exit = !is.na(builder$insert_block)
+  if (true_flows_to_exit)
     builder$create_br(exit)
 
   builder$insert_block = entry_f
   if (!is.null(node$false))
     build_cfg(node$false, builder)
-  if (!is.na(builder$insert_block))
-    builder$create_br(exit)
 
-  builder$insert_block = exit
+  if (!is.na(builder$insert_block)) # false flows to exit
+    builder$create_br(exit)
+  else if (true_flows_to_exit) # only true flows to exit
+    builder$insert_block = exit
+  else { # neither branch flows to exit
+    # Delete the exit block and indicate that there is no control flow out of
+    # this if-statement back to the caller (by leaving insert_block as NA).
+    builder$remove_block(exit)
+  }
+
   invisible (NULL)
 }
 
@@ -152,45 +160,47 @@ build_cfg.While = function(node, builder) {
 build_cfg.For = function(node, builder) {
   # Loop Setup (before entry)
   # =========================
-  # Initialize ._iter_ and ivar.
-  iter_name = paste0("._iter_", node$ivar$basename)
-  def_iter = Assign$new(Symbol$new(iter_name), Integer$new(1L))
-  def_i = Assign$new(
-    write = Symbol$new(node$ivar$basename),
-    read  = Call$new("[[", list(node$iter, Symbol$new(iter_name)))
+  # Initialize the iterator.
+  iterator_name = paste0("._iterator_", node$ivar$basename)
+  iterator = Assign$new(Symbol$new(iterator_name), node$iter$copy())
+
+  builder$append(iterator)
+
+  # Initialize the counter and loop variable.
+  counter_name = paste0("._counter_", node$ivar$basename)
+  counter = Assign$new(Symbol$new(counter_name), Integer$new(1L))
+  builder$append(counter)
+
+  loop_var = Assign$new(
+    Symbol$new(node$ivar$basename),
+    Call$new("[[", list(Symbol$new(iterator_name), Symbol$new(counter_name)))
   )
-  # FIXME:
-  builder$append(def_iter)
-  builder$append(def_i)
+  builder$append(loop_var)
 
   # Loop Entry
   # ==========
   entry = builder$new_block()
   builder$create_br(entry)
 
-  # Advance ._iter_ and ivar.
-  adv_iter = Assign$new(
-    write = Symbol$new(iter_name),
-    read  = Call$new("+", list(Symbol$new(iter_name), Integer$new(1L)))
+  # Advance the counter and loop variable.
+  counter = Assign$new(
+    Symbol$new(counter_name),
+    Call$new("+", list(Symbol$new(counter_name), Integer$new(1L)))
   )
-  adv_i = Assign$new(
-    write = Symbol$new(node$ivar$name),
-    read  = Call$new("[[", list(node$iter$copy(), Symbol$new(iter_name)))
-  )
-  builder$cfg[[entry]]$append(adv_iter)
-  builder$cfg[[entry]]$append(adv_i)
+  builder$cfg[[entry]]$append(counter)
+  builder$cfg[[entry]]$append(loop_var$copy())
 
   # Condition
-  cond = Call$new("<=", list(
-    Symbol$new(iter_name),
-    Call$new("length", list(node$iter$copy()))
+  condition = Call$new("<=", list(
+    Symbol$new(counter_name),
+    Call$new("length", list(Symbol$new(iterator_name)))
   ))
 
   # Loop Body
   # =========
   entry_b = builder$new_block()
   exit = builder$new_block()
-  builder$create_iter(entry_b, exit, cond, node$ivar, node$iter)
+  builder$create_iter(entry_b, exit, condition, node$ivar, node$iter)
 
   # Push a new context so break/next flow to the correct place.
   builder$loop_push(entry, exit)

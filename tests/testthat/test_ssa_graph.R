@@ -97,8 +97,8 @@ test_that("backedges are added for phi-functions", {
   ssa = cfg$ssa
 
   # -----
-  expect_true(ssa$graph[from = "._iter_i_2", to = "._iter_i_3"] == 1)
-  expect_true(ssa$graph[from = "._iter_i_3", to = "._iter_i_2"] == 1)
+  expect_true(ssa$graph[from = "._counter_i_2", to = "._counter_i_3"] == 1)
+  expect_true(ssa$graph[from = "._counter_i_3", to = "._counter_i_2"] == 1)
 })
 
 

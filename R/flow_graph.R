@@ -33,6 +33,11 @@ FlowGraph = R6::R6Class("FlowGraph",
       return (id)
     },
 
+    remove_vertex = function(id) {
+      self$graph = self$graph - igraph::vertex(id)
+      invisible (NULL)
+    },
+
     add_edge = function(from, to) {
       self$graph = self$graph + igraph::edge(from, to)
 

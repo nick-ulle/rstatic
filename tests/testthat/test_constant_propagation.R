@@ -66,7 +66,7 @@ test_that("loop variables are nonconstant", {
   const = scc_propagate(cfg)
 
   # -----
-  expect_identical(const[["._iter_i_2"]], NONCONST)
+  expect_identical(const[["._counter_i_2"]], NONCONST)
 
   expect_equal(const[["x_1"]], 42L)
   expect_identical(const[["x_2"]], NONCONST)
