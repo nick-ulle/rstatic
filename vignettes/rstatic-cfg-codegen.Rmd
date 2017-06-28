@@ -1,0 +1,263 @@
+---
+title: "Generating Code for Control Flow Graphs"
+author: "Nick Ulle"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Generating Code for Control Flow Graphs}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+The purpose of this document is to explain how and why __rstatic__ generates
+code when extracting control flow graphs from abstract syntax trees. The
+intended audience is compiler developers interested in tweaking the way
+__rstatic__ extracts control flow graphs.
+
+<!--
+There is also a discussion of how to modify this code generation, with
+examples.
+-->
+
+## Introduction
+
+For-loops are a high-level control flow structure. In addition to branching to
+different program points based on a condition, they automatically set a
+variable on each iteration. Thus when the control flow graph is extracted for a
+for-loop, some code must be generated to set the loop variable.
+
+Developers may want to customize how code generated for the control flow graph.
+For example, there are multiple strategies to generate the code for for-loops;
+these are discussed here. More generally, we want to enable developers to
+create extensions for the R language and custom languages based on R. These
+languages could introduce new control flow structures that require special
+handling when the control flow graph is extracted.
+
+Consider a for-loop that adds up the first ten numbers
+
+```{r, eval = FALSE}
+x = 0
+for (i in 1:10) {
+  x = x + i
+}
+```
+
+To extract the control flow graph, we first need to translate the for-loop into
+a while-loop. The while-loop captures the underlying control flow but does not
+include any other (implicit) operations. One way we can do this is
+
+```{r, eval = FALSE}
+x = 0
+
+iterator = 1:10
+counter = 1
+while (counter <= length(iterator)) {
+  i = iterator[counter]
+  counter = counter + 1
+
+  x = x + i
+}
+```
+
+In this case, we use the variable `iterator` to store the object being iterated
+over and `counter` to explicitly count the iterations. Using `iterator` is
+important because `1:10` is not a constant, but rather a call to `:`, the
+sequence operator. Evaluating `1:10` at each point where we need to use it
+would waste CPU cycles. The length of the iterator is explicitly computed in
+the condition because in the general case, the value of `iterator` might not be
+known until run-time. We could precompute the length and store it in a
+variable, but the performance benefit would likely be miniscule.
+
+For for-loops where the iterator is a sequence, such as `1:10` here, there's a
+better translation. Instead of computing the entire sequence before the loop
+and holding it in memory, we can compute the next element of the sequence at
+the beginning of each iteration
+
+```{r, eval = FALSE}
+x = 0
+
+i = 1
+while (i <= 10) {
+  x = x + i
+
+  i = i + 1
+}
+```
+
+Now the `iterator` and `counter` variables are no longer needed, and the loop
+is substanstially simpler. Because the elements are computed one-by-one, this
+version of the loop uses less memory than the previous version. Only one
+element needs to be held in memory at a time. There's also no time wasted on
+computing unnused elements of the iterator if the program exits the loop early.
+However, notice that we need explicit information about the beginning, end, and
+step size of the sequence at compile time. We do not need to know the exact
+values, but if these values are set at run-time, we need to know where to find
+them. When the iterator is an arbitrary vector rather than a sequence, we can't
+use this strategy at all.
+
+This second strategy also fails if the loop variable `i` is set by the program
+within the loop. For instance, consider
+
+```{r, eval = FALSE}
+x = 0
+for (i in 1:10) {
+  i = i^2
+  x = x + i
+}
+```
+
+A literal translation of this code to a while-loop using the second strategy
+gives us
+
+```{r, eval = FALSE}
+x = 0
+
+i = 1
+while (i <= 10) {
+  i = i^2
+  x = x + i
+
+  i = i + 1
+}
+```
+
+This is clearly not correct, as `i` will take values `1, 2, 5` and then the
+loop will exit due to the condition. Thus we need to use static analysis to
+make sure that the loop variable is not set within the loop. In the case where
+it is, the `counter` variable is needed to keep track of the current element,
+as in
+
+```{r, eval = FALSE}
+x = 0
+
+counter = 1
+while (i <= 10) {
+  i = counter
+  counter = counter + 1
+
+  i = i^2
+  x = x + i
+}
+```
+
+This strategy has most of the advantages of the second strategy, but requires
+storing two scalar values (the counter and the loop variable) instead of just
+one. Like the second strategy, it does not apply when the iterator is not a
+sequence.
+
+The functions for extracting control flow graphs don't explicitly translate the
+R code for a for-loop into R code for a while-loop. Instead, the translation
+happens when the basic blocks for the loop are created. This is because there's
+no obvious benefit in constructing the translation as R code only to
+immediately extract basic blocks, although it's possible that there are
+applications where this would be useful.
+
+One way explicit translation could be used here is to decouple the translation
+strategy from control flow graph extraction. However, this would require
+additional bookkeeping in order to keep track of the fact that the loop was
+originally a for-loop. We want to keep this information may because it
+indicates the high-level intent of the program's author, and may be useful in
+later stages of analysis and compilation.
+
+Generating basic blocks for a for-loop is similar to generating basic blocks
+for a while-loop. First, an entry block, body block, and exit block are created
+for the loop. The entry block is where the loop counter and variable are
+updated. The entry block terminates with a conditional branch; control flows to
+the body block if the loop condition is true, and the exit block if not. The
+terminator instruction has the special class `IterTerminator` to indicate that
+it's part of a loop rather than an if-statement. Control flow for the body of
+the loop is computed recursively. The body block is used as a starting point
+for code insertion, but additional blocks are added if there is nested control
+flow. Once the control flow graph has been computed for the body of the loop,
+the last block is set to branch back to the entry block, which creates a
+literal loop (a cycle) in the graph. Finally, the insertion point for the CFG
+is set to the exit block, so that extraction can proceed for any code that
+comes after the loop.
+
+<!-- FIXME: Give examples of how/why we might modify this procedure -->
+
+<!-- FIXME: Explain how break/next/return are handled -->
+
+<!-- FIXME: Add an example and a diagram -->
+
+<!-- FIXME: Finish this example
+
+## Example: Extending the R Language
+
+Suppose we want to update the loop variable in a loop by calling a closure that
+generates the next value. When a closure is used this way, we call it a
+_generator_. Generators are useful because they generate elements of the
+sequence being iterated over on demand. This avoids the memory cost of storing
+the entire sequence and if the loop terminates early, it avoids the cost of
+computing the unused elements at the end of the sequence.
+
+We can already use generators in base R with a while-loop, by writing
+
+```{r, eval = FALSE}
+i = generator()
+while (!is.null(i)) {
+  # do something
+  # ...
+  i = generator()
+}
+```
+
+However, it would be convenient to simply write
+
+```{r, eval = FALSE}
+for (i in generator) {
+  # do something
+  # ...
+}
+```
+
+This syntax is preferable because it clearly communicates the programmer's
+intention to iterate over the generated values and reduces chance that the
+generator will be called at the wrong point in the loop due to programmer
+error.
+
+-->
+
+<!-- FIXME: Move to basic discussion of how CFG is extracted
+
+## Control Flow
+
+The order in which expressions in a program are evaluated is called the
+_control flow_ of the program. Program control flow is an important piece of
+information for most static analysis algorithms. For instance, _constant
+propagation_ is a static analysis algorithm that replaces constant variables
+(ones whose value does not change over the course of a program) with their
+value. This is useful because it improves program performance by eliminating
+the run-time cost of looking up the value of the variable. The control flow of
+the program determines which values can be propagated.
+
+For example, in the program below, expressions are evaluated in sequence,
+starting from the first line. First `42` is assigned to `x`, then the value of
+`x` is assigned to `y`. In this program, evaluation proceeds in a straight line
+from the first line to the last line. We call this _linear_ control flow. 
+
+```{r, eval = FALSE}
+x = 42
+y = x
+```
+
+Because the first line is always evaluated, the value of `x` that gets assigned
+to `y` is always `42`. Thus the constant propagation algorithm can replace `x`
+with `42`.
+
+On the other hand, consider the program
+
+```{r, eval = FALSE}
+if ()
+  x = 42
+else
+  x = 8
+
+y = x
+```
+
+The if-statement in this program
+
+If-statements, and other expressions that only evaluate code when a condition
+is met, introduce nonlinear control flow to programs.
+-->
