@@ -104,6 +104,11 @@ lhs$basename = "radical"
 ast
 ```
 
+
+<!-- SEE THE R/ASTTraverse.R code which is a more convenient way to do this. 
+Good to explain you can do this also, but best to lead with the astTraverse() function
+and some examples.  
+-->
 ASTs are cumbersome to manipulate by hand. In practice, the easiest way to
 apply operations to a whole AST is to write a recursive S3 method. For
 instance, if we wanted to rename all instances of a variable, we could use the
