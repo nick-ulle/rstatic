@@ -108,6 +108,7 @@ export(Complex)
 export(CondBrTerminator)
 export(ControlFlowGraph)
 export(FlowGraph)
+S3method("[", "FlowGraph")
 export(For)
 export(Function)
 export(If)
@@ -143,3 +144,9 @@ export(to_ssa)
 import(R6)
 import(igraph)
 importFrom(graphics,plot)
+
+
+export(findPhiAssignVarNames)
+
+export(astTraverse)
+export(rewriteFor)

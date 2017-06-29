@@ -54,6 +54,13 @@ FlowGraph = R6::R6Class("FlowGraph",
   )
 )
 
+#' @export
+`[.FlowGraph` = function(x, i) {
+      # No S4 so can't do multiple dispatch!
+  if(is(i, "igraph.vs"))
+    i = as_ids(i)
+  x$blocks[i]
+}
 
 #' @export
 `[[.FlowGraph` = function(x, i) {

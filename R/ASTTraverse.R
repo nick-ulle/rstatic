@@ -103,7 +103,7 @@ function(node, ...)
        # might want to write Call(++, i) or Call(intIncr, i) so the compiler could recognize this.
     inc = rstatic::Call$new("+", list(node$ivar, rstatic::Integer$new(1L)))
     o = b = node$body$copy()
- browser()
+
     if(!is(b, "Brace"))
         b = rstatic::Brace$new(list(b))
 
