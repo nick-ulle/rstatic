@@ -46,7 +46,8 @@ to_cfg = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE, ...) {
 }
 
 #' @export
-to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE, ...) {
+to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE, ...)
+{
   if (!in_place)
     ast = ast$copy()
 
