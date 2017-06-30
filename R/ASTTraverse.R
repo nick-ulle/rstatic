@@ -80,7 +80,7 @@ function(into, node, value, multi = is.list(value), field = "body")
 
   if(multi) {
       tmp = split(into$body, cumsum(w))
-      into$body = c(tmp[[1]],  value, tmp[[2]])
+      into$body = c(tmp[[1]],  value, tmp[[2]][-1])
       sapply(value, function(x) x$parent = into)
   } else {
     into$body[[which(w)]] = value
@@ -99,9 +99,9 @@ function(node, ...)
 
      # cond = substitute(i < n, list(i = as.name(i)
      #XXX cover more situations of course e.g. n:2 and i >= 2,  1:length(x)
-    cond = rstatic::Call$new("<", list(node$ivar$copy(), node$iter$args[[2]]$copy()))
+    cond = Call$new("<=", list(node$ivar$copy(), node$iter$args[[2]]$copy()))
        # might want to write Call(++, i) or Call(intIncr, i) so the compiler could recognize this.
-    inc = rstatic::Call$new("+", list(node$ivar, rstatic::Integer$new(1L)))
+    inc = Assign$new(node$ivar$copy(), Call$new("+", list(node$ivar, Integer$new(1L))))
     o = b = node$body$copy()
 
     if(!is(b, "Brace"))
@@ -109,7 +109,8 @@ function(node, ...)
 
     b$body = append(b$body, inc)
     whileLoop = rstatic::While$new(cond, b)
-    init = rstatic::Assign$new(node$ivar$copy(), node$iter$args[[1]]$copy())    
+    init = rstatic::Assign$new(node$ivar$copy(), node$iter$args[[1]]$copy())
+
     replaceNode(node$parent, node, list(init, whileLoop))
    }
   

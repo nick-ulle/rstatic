@@ -150,3 +150,19 @@ export(findPhiAssignVarNames)
 
 export(astTraverse)
 export(rewriteFor)
+
+
+
+S3method(astTraverse,Assign)
+S3method(astTraverse,Brace)
+S3method(astTraverse,Call)
+S3method(astTraverse,For)
+S3method(astTraverse,Function)
+S3method(astTraverse,Literal)
+S3method(astTraverse,Return)
+S3method(astTraverse,Symbol)
+# To implement
+#S3method(astTraverse,While)
+#S3method(astTraverse,If)
+#S3method(astTraverse,Next)
+#S3method(astTraverse,Break)
