@@ -111,7 +111,7 @@ to_ast_repeat = function(expr, insertReturn = TRUE, ...) {
   if (inherits(write, "call")) {
     # FIXME: the read argument is for the "value" parameter.
     args = append(lapply(write[-1], to_ast), to_ast(read))
-    node = Replacement$new(write[[1]], args)
+    node = Replacement$new(write = args[[1]]$copy(), fn = write[[1]], args)
 
   } else {
     # FIXME: Eval read before write?

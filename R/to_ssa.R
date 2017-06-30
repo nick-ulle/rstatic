@@ -174,7 +174,7 @@ ssa_rename_ast.Call = function(node, builder, paramNames = character()) {
 }
 
 #' @export
-
+if(FALSE) { # Nick removed this
 ssa_rename_ast.Replacement = function(node, builder, paramNames = character()) {
   lapply(node$args[-1], ssa_rename_ast, builder, paramNames)
 
@@ -186,6 +186,7 @@ ssa_rename_ast.Replacement = function(node, builder, paramNames = character()) {
   builder$register_def(write$name, write)
 
   return (node)
+}
 }
 
 #' @export
