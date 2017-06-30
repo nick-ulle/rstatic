@@ -33,12 +33,6 @@ collect_reads.Application = function(node) {
 }
 
 #' @export
-collect_reads.Replacement = function(node) {
-  names = lapply(node$args[-1], collect_reads)
-  return (unique(unlist(names)))
-}
-
-#' @export
 collect_reads.Brace = function(node) {
   names = lapply(node$body, collect_reads)
   return (unique(unlist(names)))

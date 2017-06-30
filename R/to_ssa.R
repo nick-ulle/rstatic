@@ -171,20 +171,6 @@ ssa_rename_ast.Call = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Replacement = function(node, builder) {
-  lapply(node$args[-1], ssa_rename_ast, builder)
-
-  # FIXME: This assigns a new SSA number for the variable being replaced, but
-  # doesn't keep track of the previous SSA number. We should probably track
-  # both in the Replacement.
-  write = node$args[[1]]
-  write$ssa_number = builder$new_def(write$basename)
-  builder$register_def(write$name, write)
-
-  return (node)
-}
-
-#' @export
 ssa_rename_ast.Brace = function(node, builder) {
   lapply(node$body, ssa_rename_ast, builder)
   return (node)

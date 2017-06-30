@@ -49,8 +49,6 @@ collect_crossblock_uses = function(cfg) {
       # Record all writes.
       if (inherits(node, "Assign")) {
         preceeding_writes = union(preceeding_writes, node$write$name)
-      } else if (inherits(node, "Replacement")) {
-        preceeding_writes = union(preceeding_writes, node$args[[1]]$name)
       }
     }
 

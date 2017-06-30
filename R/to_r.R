@@ -72,18 +72,19 @@ to_r.Phi = function(node) {
 
 #' @export
 to_r.Replacement = function(node) {
-  args = lapply(node$args, to_r)
-  len = length(args)
+  lhs = to_r(node$read)
 
-  # Convert FN<- to FN
-  fn = gsub("<-", "", node$fn$name, fixed = TRUE)
-  fn = as.name(fn)
+  # Delete the <- in the function name.
+  fn = as.character(lhs[[1]])
+  fn = gsub("<-", "", fn, fixed = TRUE)
+  lhs[[1]] = as.symbol(fn)
 
-  write = as.call(append(fn, args[-len]))
-  if (len > 0)
-    call("=", write, args[[len]])
-  else
-    call("=", write)
+  # Set the write variable.
+  lhs[[2]] = to_r(node$write)
+
+  len = length(lhs)
+
+  call("=", lhs[-len], lhs[[len]])
 }
 
 #' @export

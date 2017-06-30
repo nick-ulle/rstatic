@@ -265,25 +265,6 @@ Call = R6::R6Class("Call", inherit = Application,
 )
 
 #' @export
-Replacement = R6::R6Class("Replacement", inherit = Call,
-  "public" = list(
-    set_fn = function(value) {
-      if (!inherits(value, "ASTNode")) {
-        value = as.character(value)
-
-        if (!endsWith(value, "<-"))
-          value = sprintf("%s<-", value)
-
-        value = Symbol$new(value)
-      }
-
-      value$parent = self
-      self$fn = value
-    }
-  )
-)
-
-#' @export
 Internal = R6::R6Class("Internal", inherit = Call,
   "public" = list(
     initialize = function(args = NULL, parent = NULL) {
@@ -400,6 +381,27 @@ Assign = R6::R6Class("Assign", inherit = ASTNode,
     set_read = function(value) {
       value$parent = self
       self$read = value
+    }
+  )
+)
+
+
+#' @export
+Replacement = R6::R6Class("Replacement", inherit = Assign,
+  "public" = list(
+    initialize = function(write, fn, args, parent = NULL) {
+      if (!inherits(fn, "ASTNode")) {
+        fn = as.character(fn)
+
+        if (!endsWith(fn, "<-"))
+          fn = paste0(fn, "<-")
+
+        fn = Symbol$new(fn)
+      }
+
+      read = Call$new(fn, args)
+
+      super$initialize(write, read, parent)
     }
   )
 )

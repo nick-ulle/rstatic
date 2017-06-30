@@ -68,9 +68,11 @@ test_that("collecting reads on return(x) returns x", {
 
 
 test_that("collecting reads on x[i] = y returns i, y", {
-  code = Replacement$new("[<-", list(
-      Symbol$new("x"), Symbol$new("i"), Symbol$new("y")
-  ))
+  code = Replacement$new(
+    Symbol$new("x"),
+    "[<-",
+    list(Symbol$new("i"), Symbol$new("y"))
+  )
 
   result = collect_reads(code)
 
