@@ -82,19 +82,23 @@ function(ast, fun, ...)
 ########################
 
 insertNode =
-function(into, atNode, value, before = TRUE, field = "body")
+function(into, atNode, value, before = TRUE, field = getASTFieldName(into))
 {
-
-  w = sapply(into$body, identical, atNode)
+  vals = get(field, into)    
+  w = sapply(vals, identical, atNode)
 
   if(!any(w))
      stop("atNode is not in the object")
   if(sum(w) > 1)
      stop("more than one matching node")
 
-  into$body = if(before) {
-                 tmp = split(into$body, cumsum(w))      
-                 c(tmp[[1]], value, tmp[[2]])
+  vals =     if(before) {
+                 if(which(w) == 1)
+                    c(value, vals)
+                 else {
+                    tmp = split(into$body, cumsum(w))
+                    c(tmp[[1]], value, tmp[[2]])
+                 }
               } else {
                  vals = into$body
                  if(w[1])
@@ -104,16 +108,23 @@ function(into, atNode, value, before = TRUE, field = "body")
                      c(vals[i], value, vals[-i])
                  }
               }
+   assign(field, vals, into)
 }
 
+getASTFieldName =
+function(into)
+{
+    switch(class(into)[1],
+           Call = "args",
+           Return = "args",
+           "body")
+}
 
 replaceNode =
     # Eventually we will use field to allow setting arbitrary fields
     # We'll use get(field, into) and look for set_ and get_ methods for that field.
 function(into, node, value, multi = is.list(value),
-         field = switch(class(into)[1],
-                        Call = "args",
-                        "body"),
+         field = getASTFieldName(into),
          error = TRUE)
 {
         # more general than body.    
