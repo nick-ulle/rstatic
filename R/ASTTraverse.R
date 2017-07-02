@@ -1,7 +1,7 @@
 astTraverse =
 function(ast, fun, ...)
 {
-  fun(ast)
+  fun(ast, ...)
   invisible(UseMethod("astTraverse"))
 }
 
@@ -116,8 +116,19 @@ function(into, node, value, multi = is.list(value),
                         "body"),
          error = TRUE)
 {
+        # more general than body.    
   vals = get(field, into)
-  w = sapply(vals, identical, node) #XXX more general than body.
+  if(!is.list(vals) && identical(node, vals)) {
+     if(multi) {
+       value = Brace$new(value)
+       assign(field, value, into)
+       return(NULL)
+     }
+     w = TRUE  
+  } else {
+    w = sapply(vals, identical, node)
+  }
+  
   if(!any(w)) {
       if(error)
           stop("node is not in the object")
@@ -128,8 +139,12 @@ function(into, node, value, multi = is.list(value),
       stop("more than one matching node")
 
   if(multi) {
-      tmp = split(vals, cumsum(w))
-      nvals = c(tmp[[1]],  value, tmp[[2]][-1])
+      if(length(w) == 1)
+          nvals = value
+      else {
+          tmp = split(vals, cumsum(w))
+          nvals = c(tmp[[1]],  value, tmp[[2]][-1])
+      }
       sapply(value, function(x) x$parent = into)
   } else {
     vals[[which(w)]] = value
@@ -142,19 +157,4 @@ function(into, node, value, multi = is.list(value),
 }
 
 
-
-if(FALSE) {
-f =
-function(n)
-{
-  total = 0L
-  for(i in 2L:n) # with and without { around body.
-      total = total + i
-  return(total)
-}
-ast = rstatic::to_ast(f)
-z = astTraverse(ast, function(x) print(class(x)))
-z = astTraverse(ast, rewriteFor)
-ast
-}
 
