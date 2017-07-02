@@ -148,8 +148,6 @@ export(findPhiAssignVarNames)
 
 export(astTraverse)
 export(replaceNode, insertNode)
-export(rewriteFor)
-
 
 
 S3method(astTraverse,Assign)

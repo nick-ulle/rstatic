@@ -142,31 +142,6 @@ function(into, node, value, multi = is.list(value),
 }
 
 
-rewriteFor =
-function(node, ...)
-{
-  if(is(node, "For"))   {
-      # Process the body first for nested loops.
-
-     # cond = substitute(i < n, list(i = as.name(i)
-     #XXX cover more situations of course e.g. n:2 and i >= 2,  1:length(x)
-    cond = Call$new("<=", list(node$ivar$copy(), node$iter$args[[2]]$copy()))
-       # might want to write Call(++, i) or Call(intIncr, i) so the compiler could recognize this.
-    inc = Assign$new(node$ivar$copy(), Call$new("+", list(node$ivar, Integer$new(1L))))
-    o = b = node$body$copy()
-
-    if(!is(b, "Brace"))
-        b = rstatic::Brace$new(list(b))
-
-    b$body = append(b$body, inc)
-    whileLoop = rstatic::While$new(cond, b)
-    init = rstatic::Assign$new(node$ivar$copy(), node$iter$args[[1]]$copy())
-
-    replaceNode(node$parent, node, list(init, whileLoop))
-   }
-  
-  TRUE
-}
 
 if(FALSE) {
 f =
