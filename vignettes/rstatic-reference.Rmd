@@ -9,9 +9,26 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-This vignette is a reference on the subclasses of `ASTNode`.
+This vignette is a reference on abstract syntax trees.
 
-### Literals
+## Introduction
+
+__rstatic__ uses __R6__ classes to represent individual components of R
+expressions. The parent class of all components is `ASTNode`, since each
+expression is an abstract syntax tree (AST) with the components as nodes.
+Abstract syntax trees are structurally similar to the parse trees built into R,
+but provide some simplifications to make them more amenable to analysis. 
+
+Note that in contrast to most R objects, __R6__ objects are references. This
+means that assigning an __R6__ object to a new variable will not create a copy,
+and changes to the new variable will affect the original object. Fields and
+methods on an __R6__ object are accessed with the `$` operator.
+
+The `ASTNode` class only has one field and one method. The `parent` field holds
+the node's in the abstract syntax tree or control flow graph. The `copy()`
+method creates a copy of the node and its children.
+
+## Literals
 
 Literal numbers, strings, logicals and nulls are represented by subclasses of
 `Literal`.
@@ -33,7 +50,7 @@ The `value` field stores the `Literal`'s value.
 tau$value
 ```
 
-### Symbols & Parameters
+## Symbols & Parameters
 
 Variable names or _symbols_ are represented by the `Symbol` class.
 
@@ -79,7 +96,7 @@ Parameter$new("bins", Integer$new(8))
 Note that the R representation of a lone parameter is a pairlist with one
 element, which is why the parameter is displayed as a pairlist.
 
-### Assignments
+## Assignments
 
 Assignments with `=` or `<-` are represented by the `Assign` class, which has
 fields `read` and `write`, and respective `set_` methods. The `write` field
@@ -105,7 +122,7 @@ The setter methods should be used to set `write` and `read`, rather than
 setting the fields directly. They ensure that children of the `Assign` node
 have the `parent` field set appropriately.
 
-### Function Calls
+## Function Calls
 
 Expressions with arguments are represented by the `Application` class. Calls
 and return statements are represented by `Call` and `Return`, which are
@@ -159,7 +176,7 @@ The `Internal` class, which represents a call to `.Internal()`, does not add
 any new members or functionality. It exists only to distinguish these calls
 from others.
 
-### Braces
+## Braces
 
 Parentheses and curly braces are represented by the `Brace` class. This class
 has fields `body` and `is_paren`, and method `set_body()`. The `is_paren` field
@@ -184,7 +201,7 @@ paren$body
 As usual, the `set_body()` method should be used to set the `body` field rather
 than setting the field directly.
 
-### Functions & Primitives
+## Functions & Primitives
 
 Callable objects are represented by the `Callable` class. The `Callable` class
 defines a `params` field and corresponding `set_params()` method. The `params`
@@ -223,7 +240,7 @@ class adds a `fn` field and `set_fn()` method to the members inherited from
 `Callable`. The `fn` field holds the name of the primitive, and is similar to
 the `fn` field on the `Call` class.
 
-### Control Structures
+## Control Structures
 
 Control structures are represented by the `Next`, `Break`, `If`, `For`, and
 `While` classes. `Next` and `Break` do not add any new functionality to

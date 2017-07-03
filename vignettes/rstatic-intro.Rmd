@@ -12,24 +12,41 @@ vignette: >
 This vignette introduces the __rstatic__ API for accessing information about an
 program.
 
-## Interacting With Code
+## Getting Started With Code Analysis
 
-__rstatic__ uses __R6__ classes to represent individual components of R
-expressions. The parent class of all components is `ASTNode`, since each
-expression is an abstract syntax tree (AST) with the components as nodes.
-Abstract syntax trees are structurally similar to the parse trees built into R,
-but provide some simplifications to make them more amenable to analysis. 
+The __rstatic__ package is all about extracting information from R code. We can
+use this information in various ways: to check for programming errors, to
+estimate hardware requirements, to gain a better understanding of how the code
+is organized (especially for unfamiliar code), to generate additional code, or
+to compile.
 
-Note that in contrast to most R objects, __R6__ objects are references. This
-means that assigning an __R6__ object to a new variable will not create a copy,
-and changes to the new variable will affect the original object. Fields and
-methods on an __R6__ object are accessed with the `$` operator.
+Code is typically written and stored as a string of text. Strings don't expose
+any information about structures within the code, so the first step in analysis
+is to _parse_ the code into an _intermediate representation_. Since the purpose
+of an intermediate representation is to make code easier to explore and
+manipulate, many different intermediate representations exist. Choosing the
+right intermediate representation for a given task can make the task much
+easier, so many code tools, including this package, support more than one
+intermediate representation.
 
-The `ASTNode` class only has one field and one method. The `parent` field holds
-the node's in the abstract syntax tree or control flow graph. The `copy()`
-method creates a copy of the node and its children.
+The __rstatic__ package can convert R code to two different intermediate
+representations: abstract syntax trees and control flow graphs. In an _abstract
+syntax tree_, each node in the tree corresponds to an expression. When an
+expression is composed of subexpressions, these appear as its children in the
+tree.
 
-### Example 1: Navigating the AST
+This is similar to a _parse tree_, the R interpreter's built-in representation
+for code. The main difference is that abstract syntax trees abstract away some
+of the syntactic details that get retained in a parse tree. Syntax is usually
+not as important for analysis as the meaning, or semantics, of the code. In an
+R parse tree, the class of each node is determined by the syntax of the
+expression the node corresponds to. For example, any expression with call
+syntax `f()` is represented by a node with class `call`. This includes the
+`return()` statement, even though the meaning of the return statement is quite
+different from an ordinary function call.
+
+
+## Example 1: Interacting With Code
 
 Let's start by examining the AST for an R implementation of the quadratic
 formula. The `to_ast()` function converts functions and quoted R expressions to
@@ -270,6 +287,7 @@ class is discussed in the "Static Single-Assignment Form" section.
 The `Terminator` class has only one method, `successors()`, which returns the
 indices of the basic blocks that control flows to from the terminator.
 
+<!--
 ### Loops
 
 
@@ -277,3 +295,35 @@ indices of the basic blocks that control flows to from the terminator.
 
 
 ## Basic Analysis Functions
+-->
+
+
+<!--
+
+The following example simulates a betting strategy where the player doubles
+their next bet every time they win and halves their next bet every time they
+lose. Suppose we wanted to 
+
+```{r, eval = FALSE}
+n = 100
+winnings = 64
+bet = 2
+
+for (i in 1:n) {
+  if (bet > winnings)
+    break
+
+  is_win = rbinom(1, 1, 0.5)
+  if (is_win == 1) {
+    winnings = winnings + bet
+    bet = 2 * bet
+  } else {
+    winnings = winnings - bet
+    bet = bet / 2
+  }
+}
+```
+
+The parse tree doesn't 
+-->
+
