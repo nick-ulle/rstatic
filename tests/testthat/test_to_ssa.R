@@ -59,6 +59,24 @@ test_that("SSA form for if-statement is correct", {
 })
 
 
+test_that("Phi nodes placed for assign in if in loop", {
+  ast = to_astq({
+    x = 0
+
+    for (i in 2:10) {
+      if (x > 1)
+        # RHS should come from a Phi
+        x = x + 1
+    }
+  })
+
+  cfg = to_cfg(ast)
+
+  # -----
+  expect_true(has_phi(cfg[["%3"]], "x"))
+})
+
+
 test_that("ifib", {
 #  ifib = function(n = 0L) {
 #    if (n == 0L)

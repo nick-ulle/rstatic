@@ -24,12 +24,16 @@ to_ssa = function(cfg, in_place = FALSE) {
   entry_idx = cfg$get_index(cfg$entry)
   dom_t = dom_tree(cfg, entry_idx)
   dom_f = dom_frontier(cfg, dom_t)
+  #browser()
 
   # Insert phi-functions.
   for (name in uses) {
     # Add phi-function to dominance frontier for each block with an assignment.
     worklist = assign_blocks[[name]]
-    for (b in worklist) {
+    while (length(worklist) > 0) {
+      b = worklist[[1]]
+      worklist = worklist[-1]
+
       for (d in dom_f[[b]]) {
         if (has_phi(cfg[[d]], name))
           next
