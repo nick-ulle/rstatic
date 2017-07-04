@@ -54,12 +54,23 @@ BasicBlock = R6::R6Class("BasicBlock",
   )
 )
 
-
+#' Check Presence of Phi Function in Block
+#'
+#' This function checks whether the given basic block contains a phi-function
+#' for the given basename. This function is used internally to avoid duplicating
+#' phi-functions during SSA construction, but may also be useful for determining
+#' whether the value of the variable arrives at the block from more than one
+#' execution path.
+#'
+#' @param block (BasicBlock) The block search for phi-functions.
+#' @param x (character) The basename to match against phi-functions in the
+#' block.
+#'
+#' @export
 has_phi = function(block, x) {
   # Check if there's a phi-function in block for name x.
-  match = vapply(block$phi, function(node) {
-    return (node$write$basename == x)
-  }, logical(1))
+  match = vapply(block$phi, function(node) { return (node$write$basename == x)
+}, logical(1))
 
   any(match)
 }
