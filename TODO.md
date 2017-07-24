@@ -1,6 +1,13 @@
 
 # TODO
 
+* insertReturn() produces slightly odd results when final expression is an assignment.  e.g. rstatic::to_cfg(function(x, y){ z = x + y })
+
+* The following fails. a = rstatic::to_cfg(function(x) { x[1, 2]  = function(x) {1} ; x})
+
+* [done] Avoid changing the parameter names in the SSA
+   Check with rstatic::to_cfg(function(x) {x = x + 1; x})
+
 * Refactor
   + [ ] Separate `$get_postorder()` from CFGraph class and add more traversal
   options

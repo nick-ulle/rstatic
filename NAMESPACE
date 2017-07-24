@@ -106,6 +106,7 @@ export(Complex)
 export(CondBrTerminator)
 export(ControlFlowGraph)
 export(FlowGraph)
+S3method("[", "FlowGraph")
 export(For)
 export(Function)
 export(If)
@@ -142,3 +143,25 @@ export(to_ssa)
 import(R6)
 import(igraph)
 importFrom(graphics,plot)
+
+
+export(findPhiAssignVarNames)
+
+export(astTraverse)
+export(replaceNode, insertNode)
+
+
+S3method(astTraverse,Assign)
+S3method(astTraverse,Brace)
+S3method(astTraverse,Call)
+S3method(astTraverse,For)
+S3method(astTraverse,Function)
+S3method(astTraverse,Literal)
+S3method(astTraverse,Return)
+S3method(astTraverse,Symbol)
+S3method(astTraverse,default)
+S3method(astTraverse,While)
+S3method(astTraverse,If)
+# To implement
+#S3method(astTraverse,Next)
+#S3method(astTraverse,Break)
