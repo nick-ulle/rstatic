@@ -4,7 +4,7 @@
 \alias{ssa_rename}
 \title{Rename CFG Variables with SSA Names}
 \usage{
-ssa_rename(block, cfg, dom_t, builder)
+ssa_rename(block, cfg, dom_t, builder, paramNames = character())
 }
 \arguments{
 \item{block}{(integer) Index of a basic block in the CFG.}
@@ -13,7 +13,9 @@ ssa_rename(block, cfg, dom_t, builder)
 
 \item{dom_t}{(integer) The dominator tree for the CFG.}
 
-\item{builder}{(SSABuilder) A stateful object used by the renaming
+\item{builder}{(SSABuilder) A stateful object used by the renaming}
+
+\item{paramNames}{(character) A vector identifying the names of the parameters.
 algorithm.}
 }
 \description{

@@ -1,3 +1,5 @@
+
+#' @export
 astTraverse =
 function(ast, fun, ...)
 {
@@ -5,6 +7,7 @@ function(ast, fun, ...)
   invisible(UseMethod("astTraverse"))
 }
 
+#' @export
 astTraverse.Function =
 function(ast, fun, ...)
 {
@@ -12,6 +15,7 @@ function(ast, fun, ...)
    invisible(astTraverse(ast$body, fun, ...))
 }
 
+#' @export
 astTraverse.Assign =
 function(ast, fun, ...)
 {
@@ -19,6 +23,7 @@ function(ast, fun, ...)
    astTraverse(ast$write, fun, ...)   
 }
 
+#' @export
 astTraverse.Call =
 function(ast, fun, ...)
 {
@@ -26,18 +31,24 @@ function(ast, fun, ...)
   astTraverse(ast$args, fun, ...)  
 }
 
+#' @export
 astTraverse.Brace =
 function(ast, fun, ...)
 {
    astTraverse(ast$body, fun, ...)
 }
 
-astTraverse.Symbol = astTraverse.Literal =
+#' @export
+astTraverse.Symbol =
 function(ast, fun, ...)
 {
     fun(ast)
 }
 
+#' @export
+astTraverse.Literal = astTraverse.Symbol
+
+#' @export
 astTraverse.For =
 function(ast, fun, ...)
 {
@@ -46,22 +57,26 @@ function(ast, fun, ...)
    astTraverse(ast$body, fun, ...)   
 }
 
+#' @export
 astTraverse.Return =
 function(ast, fun, ...)
 {
   astTraverse(ast$args, fun, ...)
 }
 
+#' @export
 astTraverse.list =
 function(ast, fun, ...)
   invisible(lapply(ast, astTraverse, fun, ...)    )
 
+#' @export
 astTraverse.default =
 function(ast, fun, ...)
 {
   warning("no method for astTraverse for ",  class(ast)[1])
 }
 
+#' @export
 astTraverse.While =
 function(ast, fun, ...)
 {
@@ -70,6 +85,7 @@ function(ast, fun, ...)
 }
 
 
+#' @export
 astTraverse.If =
 function(ast, fun, ...)
 {
@@ -81,6 +97,7 @@ function(ast, fun, ...)
 
 ########################
 
+#' @export
 insertNode =
 function(into, atNode, value, before = TRUE, field = getASTFieldName(into))
 {
@@ -120,6 +137,7 @@ function(into)
            "body")
 }
 
+#' @export
 replaceNode =
     # Eventually we will use field to allow setting arbitrary fields
     # We'll use get(field, into) and look for set_ and get_ methods for that field.

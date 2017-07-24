@@ -4,7 +4,7 @@
 \alias{to_cfg}
 \title{Build Control Flow Graph from ASTNodes}
 \usage{
-to_cfg(ast, in_place = FALSE, ssa = TRUE)
+to_cfg(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE, ...)
 }
 \arguments{
 \item{ast}{A quoted R expression or an abstract syntax tree.}
