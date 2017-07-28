@@ -1,8 +1,8 @@
 context("to_cfg")
 
 test_that("if-statement graph has correct structure", {
-  goal = igraph::make_empty_graph(n = 5)
-  goal = goal + igraph::edges(c(1, 2, 1, 3, 2, 4, 3, 4, 4, 5))
+  goal = igraph::make_empty_graph(n = 4)
+  goal = goal + igraph::edges(c(1, 2, 1, 3, 2, 4, 3, 4))
 
   ast = If$new(
     Logical$new(TRUE),

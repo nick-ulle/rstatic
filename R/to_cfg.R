@@ -236,7 +236,16 @@ build_cfg.Next = function(node, builder) {
 build_cfg.Return = function(node, builder) {
   # NOTE: We could keep the Return instead of creating a ._retval_ variable.
 
-  assign = Assign$new(Symbol$new("._return_"), node$args[[1]])
+  val = node$args[[1]]
+
+  # For returned assignments, return assigned variable. We could instead skip
+  # the assignment altogether and just return the right-hand side.
+  if (is(val, "Assign")) {
+    build_cfg(val, builder)
+    val = val$write$copy()
+  }
+
+  assign = Assign$new(Symbol$new("._return_"), val)
   build_cfg(assign, builder)
   builder$create_ret()
 
