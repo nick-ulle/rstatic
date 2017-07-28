@@ -18,7 +18,7 @@ test_that("nodes are added for uses", {
     foo(x)
   )
 
-  cfg = to_cfg(exp)
+  cfg = to_cfg(exp, insertReturn = FALSE)
   ssa = cfg$ssa
 
   # -----
@@ -52,7 +52,7 @@ test_that("nodes are added for uses that are not defs", {
     foo(x)
   })
 
-  cfg = to_cfg(exp)
+  cfg = to_cfg(exp, insertReturn = FALSE)
   ssa = cfg$ssa
 
   # -----
@@ -93,7 +93,7 @@ test_that("backedges are added for phi-functions", {
       x = 12
   )
 
-  cfg = to_cfg(exp)
+  cfg = to_cfg(exp, insertReturn = FALSE)
   ssa = cfg$ssa
 
   # -----
