@@ -51,6 +51,9 @@ to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE
   if (!in_place)
     ast = ast$copy()
 
+  if(insertReturn)
+     ast = insertReturn(ast)
+
   # Set up CFG for a function.
   cfg = ControlFlowGraph$new()
   if (inherits(ast, "Function")) {
@@ -76,10 +79,8 @@ to_cfg.ASTNode = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE
 
 #' @export
 to_cfg.default = function(ast, in_place = FALSE, ssa = TRUE, insertReturn = TRUE, ...) {
-  if(insertReturn)
-     ast = insertReturn(ast)    
   ast = to_ast(ast)
-  to_cfg(ast, in_place = TRUE, ssa = ssa)
+  to_cfg(ast, in_place = TRUE, ssa = ssa, insertReturn = insertReturn)
 }
 
 

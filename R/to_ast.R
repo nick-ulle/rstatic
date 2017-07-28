@@ -21,19 +21,16 @@ to_astq = function(expr) {
 #'
 #' @param expr (language) Quoted R code to be converted.
 #' @export
-to_ast = function(expr, insertReturn = TRUE, ...) {
+to_ast = function(expr) {
   UseMethod("to_ast")
 }
 
 
 #' @export
-to_ast.function = function(expr, insertReturn = TRUE, ...)
+to_ast.function = function(expr)
 {
   name = as.character(substitute(expr))
     
-  if(insertReturn)
-     expr = insertReturn(expr)
-  
   # FIXME: Save the parent environment of the function.
   fn = list(name, formals(args(expr)), body(expr))
 
@@ -75,7 +72,7 @@ to_ast_callable = function(expr, is_primitive = FALSE) {
 
 
 #' @export
-to_ast.if = function(expr, insertReturn = TRUE, ...) {
+to_ast.if = function(expr) {
   If$new(
     to_ast(expr[[2]]),
     to_ast(expr[[3]]), 
@@ -85,12 +82,12 @@ to_ast.if = function(expr, insertReturn = TRUE, ...) {
 }
 
 #' @export
-to_ast.for = function(expr, insertReturn = TRUE, ...) {
+to_ast.for = function(expr) {
   For$new(to_ast(expr[[2]]), to_ast(expr[[3]]), to_ast(expr[[4]]))
 }
 
 #' @export
-to_ast.while = function(expr, insertReturn = TRUE, ...) {
+to_ast.while = function(expr) {
   While$new(to_ast(expr[[2]]), to_ast(expr[[3]]))
 }
 
@@ -98,13 +95,13 @@ to_ast.while = function(expr, insertReturn = TRUE, ...) {
 #'
 #' @param expr (language) Quoted R code to be converted.
 #'
-to_ast_repeat = function(expr, insertReturn = TRUE, ...) {
+to_ast_repeat = function(expr) {
   While$new(Logical$new(TRUE), to_ast(expr[[2]]), is_repeat = TRUE)
 }
 
 
 #' @export
-`to_ast.=` = function(expr, insertReturn = TRUE, ...) {
+`to_ast.=` = function(expr) {
   read = expr[[3]]
   write = expr[[2]]
 
@@ -126,7 +123,7 @@ to_ast_repeat = function(expr, insertReturn = TRUE, ...) {
 
 
 #' @export
-to_ast.call = function(expr, insertReturn = TRUE, ...) {
+to_ast.call = function(expr) {
   func = expr[[1]]
   if (inherits(func, "name")) {
     name = as.character(func)
@@ -162,39 +159,39 @@ to_ast.call = function(expr, insertReturn = TRUE, ...) {
 
 
 #' @export
-to_ast.name = function(expr, insertReturn = TRUE, ...) {
+to_ast.name = function(expr) {
   Symbol$new(as.character(expr))
 }
 
 
 #' @export
-`to_ast.{` = function(expr, insertReturn = TRUE, ...) {
+`to_ast.{` = function(expr) {
   Brace$new(lapply(expr[-1], to_ast))
 }
 
 
 #' @export
-`to_ast.(` = function(expr, insertReturn = TRUE, ...) {
+`to_ast.(` = function(expr) {
   Brace$new(lapply(expr[-1], to_ast), is_paren = TRUE)
 }
 
 
 #' @export
-to_ast.NULL      = function(expr, insertReturn = TRUE, ...) Null$new()
+to_ast.NULL      = function(expr) Null$new()
 #' @export
-to_ast.logical   = function(expr, insertReturn = TRUE, ...) Logical$new(expr)
+to_ast.logical   = function(expr) Logical$new(expr)
 #' @export
-to_ast.integer   = function(expr, insertReturn = TRUE, ...) Integer$new(expr)
+to_ast.integer   = function(expr) Integer$new(expr)
 #' @export
-to_ast.numeric   = function(expr, insertReturn = TRUE, ...) Numeric$new(expr)
+to_ast.numeric   = function(expr) Numeric$new(expr)
 #' @export
-to_ast.complex   = function(expr, insertReturn = TRUE, ...) Complex$new(expr)
+to_ast.complex   = function(expr) Complex$new(expr)
 #' @export
-to_ast.character = function(expr, insertReturn = TRUE, ...) Character$new(expr)
+to_ast.character = function(expr) Character$new(expr)
 
 
 #' @export
-to_ast.default = function(expr, insertReturn = TRUE, ...) {
+to_ast.default = function(expr) {
   msg = sprintf("Cannot convert '%s' to an ASTNode.", class(expr)[1])
   stop(msg)
 }

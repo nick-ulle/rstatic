@@ -1,0 +1,69 @@
+---
+title: "Rewriting R Code"
+author: "Nick Ulle"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Rewriting R Code}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette describes transformations to R code that preserve the original
+semantics but make analysis easier by standardizing the syntax for certain
+tasks.
+
+## Inserting `return()` Statements
+
+<!--
+By default, R functions return the value of the last expression in their body.
+Since the number `42` is the last expression in the function
+
+```{r, eval = FALSE}
+meaning_of_life = function(x, y, z) {
+
+  # ...
+
+  42
+}
+```
+
+the function returns `42`.
+
+The default behavior can be overridden with a `return()` statement, which
+returns its argument and exits the enclosing function immediately. This is
+useful for exiting a function early if some condition is met. For instance, the
+function
+
+```{r, eval = FALSE}
+square_negatives = function(x) {
+  if (x < 0)
+    return (x^2)
+
+  x
+}
+```
+
+returns `x^2` if `x` is negative; otherwise the function returns `x`.
+
+Although it's syntactically valid to write a `return()` statement as the last
+expression in a function, this is discouraged in the R community because it's
+less concise than relying on the implicit behavior.
+-->
+
+Functions return the value of their last evaluated expression. An explicit
+`return()` is only required to exit a function early. Using `return()` at the
+end of a function is discouraged within the R community because it makes code
+less concise.
+
+Identifying return values is necessary for code generation and also for data
+flow analyses. We can rewrite code so that all return values have an explicit
+`return()`. Then it's easy to find return values by class.
+
+When the last expression in a function is a literal, symbol, or call, the
+expression can just be wrapped with a `return()`. Rewriting is not so
+straightforward when the last expression is an assignment or control flow.
+
+Assignments return the value being assigned, but 
+
+## Flattening Control Flow

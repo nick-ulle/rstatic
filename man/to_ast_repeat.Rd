@@ -4,7 +4,7 @@
 \alias{to_ast_repeat}
 \title{Convert a repeat to an ASTNode}
 \usage{
-to_ast_repeat(expr, insertReturn = TRUE, ...)
+to_ast_repeat(expr)
 }
 \arguments{
 \item{expr}{(language) Quoted R code to be converted.}
