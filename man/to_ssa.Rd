@@ -4,7 +4,7 @@
 \alias{to_ssa}
 \title{Convert CFGraph to Static Single-Assignment Form}
 \usage{
-to_ssa(cfg, in_place = FALSE, renameParams = FALSE)
+to_ssa(cfg, in_place = FALSE)
 }
 \arguments{
 \item{cfg}{(CFGraph) A control flow graph.}
