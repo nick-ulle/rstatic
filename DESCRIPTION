@@ -1,8 +1,12 @@
 Package: rstatic
 Title: Low-level Static Analysis Tools for R Code
-Version: 0.0.0.9013
-Authors@R: person(
-  "Nick", "Ulle", email = "nick.ulle@gmail.com", role = c("aut", "cre"))
+Version: 0.0.0.9020
+Authors@R: c(
+  person("Nick", "Ulle", role = c("aut", "cre"),
+    email = "nick.ulle@gmail.com"),
+  person("Duncan", "Temple Lang", role = c("aut"),
+    email = "duncan@r-project.org")
+  )
 Description: Tools and classes for manipulating abstract syntax trees.
 Depends:
     R (>= 3.2.0)
