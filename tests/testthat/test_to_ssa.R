@@ -1,23 +1,23 @@
-context("to_ssa")
+context("toSSA")
 
 
-test_that("CFG is copied when in_place = FALSE", {
+test_that("CFG is copied when inPlace = FALSE", {
   cfg = ControlFlowGraph$new()
   # Can't compute CFG if entry isn't linked to exit.
   cfg$add_edge(cfg$entry, cfg$exit)
 
-  result = to_ssa(cfg, in_place = FALSE)
+  result = toSSA(cfg, inPlace = FALSE)
 
   # -----
   expect_false(identical(cfg, result))
 })
 
 
-test_that("CFG is not copied when in_place = FALSE", {
+test_that("CFG is not copied when inPlace = FALSE", {
   cfg = ControlFlowGraph$new()
   cfg$add_edge(cfg$entry, cfg$exit)
 
-  result = to_ssa(cfg, in_place = TRUE)
+  result = toSSA(cfg, inPlace = TRUE)
 
   # -----
   expect_identical(cfg, result)
@@ -25,7 +25,7 @@ test_that("CFG is not copied when in_place = FALSE", {
 
 
 test_that("SSA form for if-statement is correct", {
-  ast = to_astq({
+  ast = toASTq({
     if (x > 3) {
       y = 1
     } else {
@@ -35,7 +35,7 @@ test_that("SSA form for if-statement is correct", {
     x = y
   })
 
-  result = to_cfg(ast)
+  result = toCFG(ast)
 
   # -----
   expect_equal(length(result), 5)
@@ -60,7 +60,7 @@ test_that("SSA form for if-statement is correct", {
 
 
 test_that("Phi nodes placed for assign in if in loop", {
-  ast = to_astq({
+  ast = toASTq({
     x = 0
 
     for (i in 2:10) {
@@ -70,7 +70,7 @@ test_that("Phi nodes placed for assign in if in loop", {
     }
   })
 
-  cfg = to_cfg(ast)
+  cfg = toCFG(ast)
 
   # -----
   expect_true(has_phi(cfg[["%3"]], "x"))
@@ -96,8 +96,8 @@ test_that("ifib", {
 #    return (new)
 #  }
 #
-#  ast = to_ast(ifib)
-#  cfg = to_cfg(ast)
+#  ast = toAST(ifib)
+#  cfg = toCFG(ast)
 #
 #  # ----
 #  browser()

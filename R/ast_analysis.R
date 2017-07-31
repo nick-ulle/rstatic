@@ -10,78 +10,78 @@
 #' @param node (ASTNode) An abstract syntax tree.
 #'
 #' @export
-collect_reads = function(node) {
+collectReads = function(node) {
   # FIXME: This doesn't count function names as reads.
-  UseMethod("collect_reads")
+  UseMethod("collectReads")
 }
 
 #' @export
-collect_reads.Assign = function(node) {
-  collect_reads(node$read)
+collectReads.Assign = function(node) {
+  collectReads(node$read)
 }
 
 #' @export
-collect_reads.Phi = function(node) {
-  names = lapply(node$read, collect_reads)
+collectReads.Phi = function(node) {
+  names = lapply(node$read, collectReads)
   return (unique(unlist(names)))
 }
 
 #' @export
-collect_reads.Application = function(node) {
-  names = lapply(node$args, collect_reads)
+collectReads.Application = function(node) {
+  names = lapply(node$args, collectReads)
   return (unique(unlist(names)))
 }
 
 #' @export
-collect_reads.Brace = function(node) {
-  names = lapply(node$body, collect_reads)
+collectReads.Brace = function(node) {
+  names = lapply(node$body, collectReads)
   return (unique(unlist(names)))
 }
 
 #' @export
-collect_reads.Symbol = function(node) {
+collectReads.Symbol = function(node) {
   return (node$name)
 }
 
 #' @export
-collect_reads.Parameter = function(node) {
-  collect_reads(node$default)
+collectReads.Parameter = function(node) {
+  collectReads(node$default)
 }
 
 #' @export
-collect_reads.Literal = function(node) {
+collectReads.Literal = function(node) {
   return (character(0))
 }
 
 #' @export
-collect_reads.RetTerminator = function(node) {
-  collect_reads(node$value)
+collectReads.RetTerminator = function(node) {
+  collectReads(node$value)
 }
 
 #' @export
-collect_reads.BrTerminator = function(node) {
+collectReads.BrTerminator = function(node) {
   return (character(0))
 }
 
 #' @export
-collect_reads.CondBrTerminator = function(node) {
-  collect_reads(node$condition)
+collectReads.CondBrTerminator = function(node) {
+  collectReads(node$condition)
 }
 
 #' @export
-collect_reads.IterTerminator = function(node) {
+collectReads.IterTerminator = function(node) {
   # FIXME: This shouldn't be a special case of CondBr. Loop code is generated
   # with the CFG, and that should include the loop's condition.
-  collect_reads(node$iter)
+  collectReads(node$iter)
 }
 
 #' @export
-collect_reads.NULL = function(node) {
+collectReads.NULL = function(node) {
   return (character(0))
 }
 
 #' @export
-collect_reads.default = function(node) {
+collectReads.default = function(node) {
   msg = sprintf(
     "Cannot collect reads for object of class '%s'.", class(node)[[1]]
   )

@@ -82,7 +82,7 @@ SSABuilder = R6::R6Class("SSABuilder",
         id = self$ssa$add_vertex(name)
         self$ssa[[id]] = at
 
-        reads = collect_reads(at)
+        reads = collectReads(at)
         defs = names(self$ssa)
         for (r in reads) {
           if (r %in% defs)

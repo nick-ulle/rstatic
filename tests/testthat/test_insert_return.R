@@ -1,7 +1,7 @@
 context("insertReturn")
 
 test_that("return inserted for Literal", {
-  ast = to_astq(3.14)
+  ast = toASTq(3.14)
 
   result = insertReturn(ast)
 
@@ -12,7 +12,7 @@ test_that("return inserted for Literal", {
 
 
 test_that("return inserted for Symbol", {
-  ast = to_astq(x)
+  ast = toASTq(x)
 
   result = insertReturn(ast)
 
@@ -23,7 +23,7 @@ test_that("return inserted for Symbol", {
 
 
 test_that("return inserted for Call", {
-  ast = to_astq(sum(x, 1, 3))
+  ast = toASTq(sum(x, 1, 3))
 
   result = insertReturn(ast)
 
@@ -34,7 +34,7 @@ test_that("return inserted for Call", {
 
 
 test_that("return inserted for Assign", {
-  ast = to_astq(x <- 3)
+  ast = toASTq(x <- 3)
 
   result = insertReturn(ast)
 
@@ -45,7 +45,7 @@ test_that("return inserted for Assign", {
 
 
 test_that("return inserted after While, without duplicate Brace", {
-  ast = to_astq({
+  ast = toASTq({
     while (x < 10) x = x + 1
   })
 
@@ -63,7 +63,7 @@ test_that("return inserted after While, without duplicate Brace", {
 
 
 test_that("return inserted after While, adding Brace", {
-  ast = to_astq(
+  ast = toASTq(
     while (x < 10) x = x + 1
   )
 
@@ -83,7 +83,7 @@ test_that("return inserted after While, adding Brace", {
 test_that("return inserted for Function", {
   f = function(x) 42L
 
-  ast = to_ast(f)
+  ast = toAST(f)
 
   result = insertReturn(ast)
 

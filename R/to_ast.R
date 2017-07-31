@@ -10,8 +10,8 @@
 #'
 #' @param expr Unquoted R code to be converted.
 #' @export
-to_astq = function(expr) {
-  to_ast(substitute(expr))
+toASTq = function(expr) {
+  toAST(substitute(expr))
 }
 
 
@@ -21,20 +21,20 @@ to_astq = function(expr) {
 #'
 #' @param expr (language) Quoted R code to be converted.
 #' @export
-to_ast = function(expr) {
-  UseMethod("to_ast")
+toAST = function(expr) {
+  UseMethod("toAST")
 }
 
 
 #' @export
-to_ast.function = function(expr)
+toAST.function = function(expr)
 {
   name = as.character(substitute(expr))
     
   # FIXME: Save the parent environment of the function.
   fn = list(name, formals(args(expr)), body(expr))
 
-  to_ast_callable(fn, is.primitive(expr))
+  toASTCallable(fn, is.primitive(expr))
 }
 
 
@@ -47,14 +47,14 @@ to_ast.function = function(expr)
 #' @param expr (language) Quoted R code to be converted.
 #' @param is_primitive (logical) Whether or not the expression is a primitive.
 #'
-to_ast_callable = function(expr, is_primitive = FALSE) {
+toASTCallable = function(expr, is_primitive = FALSE) {
   # TODO: If this is a function definition, the environment it will exist in
   # hasn't been created yet, so what should happen?
   params = Map(function(name, default) {
     if (inherits(default, "name") && default == "")
       default = NULL
     else
-      default = to_ast(default)
+      default = toAST(default)
 
     Parameter$new(name, default)
   }, names(expr[[2]]), expr[[2]])
@@ -65,65 +65,65 @@ to_ast_callable = function(expr, is_primitive = FALSE) {
 
   } else {
     # Construct function with params and body.
-    Function$new(params, to_ast(expr[[3]]))
+    Function$new(params, toAST(expr[[3]]))
   }
 }
 
 
 
 #' @export
-to_ast.if = function(expr) {
+toAST.if = function(expr) {
   If$new(
-    to_ast(expr[[2]]),
-    to_ast(expr[[3]]), 
-    if (length(expr) == 4) to_ast(expr[[4]])
+    toAST(expr[[2]]),
+    toAST(expr[[3]]), 
+    if (length(expr) == 4) toAST(expr[[4]])
     else NULL
   )
 }
 
 #' @export
-to_ast.for = function(expr) {
-  For$new(to_ast(expr[[2]]), to_ast(expr[[3]]), to_ast(expr[[4]]))
+toAST.for = function(expr) {
+  For$new(toAST(expr[[2]]), toAST(expr[[3]]), toAST(expr[[4]]))
 }
 
 #' @export
-to_ast.while = function(expr) {
-  While$new(to_ast(expr[[2]]), to_ast(expr[[3]]))
+toAST.while = function(expr) {
+  While$new(toAST(expr[[2]]), toAST(expr[[3]]))
 }
 
 #' Convert a repeat to an ASTNode
 #'
 #' @param expr (language) Quoted R code to be converted.
 #'
-to_ast_repeat = function(expr) {
-  While$new(Logical$new(TRUE), to_ast(expr[[2]]), is_repeat = TRUE)
+toASTRepeat = function(expr) {
+  While$new(Logical$new(TRUE), toAST(expr[[2]]), is_repeat = TRUE)
 }
 
 
 #' @export
-`to_ast.=` = function(expr) {
+`toAST.=` = function(expr) {
   read = expr[[3]]
   write = expr[[2]]
 
   if (inherits(write, "call")) {
     # FIXME: the read argument is for the "value" parameter.
-    args = append(lapply(write[-1], to_ast), to_ast(read))
+    args = append(lapply(write[-1], toAST), toAST(read))
     node = Replacement$new(write = args[[1]]$copy(), fn = write[[1]], args)
 
   } else {
     # FIXME: Eval read before write?
-    node = Assign$new(to_ast(write), to_ast(read))
+    node = Assign$new(toAST(write), toAST(read))
   }
 
   return (node)
 }
 
 #' @export
-`to_ast.<-` = `to_ast.=`
+`toAST.<-` = `toAST.=`
 
 
 #' @export
-to_ast.call = function(expr) {
+toAST.call = function(expr) {
   func = expr[[1]]
   if (inherits(func, "name")) {
     name = as.character(func)
@@ -131,9 +131,9 @@ to_ast.call = function(expr) {
     # Handle "calls" that don't use the standard call syntax. Most of these are
     # actually keywords.
     if (name == "function")
-      return (to_ast_callable(expr))
+      return (toASTCallable(expr))
     else if (name == "repeat")
-      return (to_ast_repeat(expr))
+      return (toASTRepeat(expr))
     else if (name == "break")
       return (Break$new())
     else if (name == "next")
@@ -150,48 +150,48 @@ to_ast.call = function(expr) {
 
   } else {
     # Handle calls to anonymous functions.
-    node = Call$new(to_ast(func))
+    node = Call$new(toAST(func))
   }
 
-  node$set_args( lapply(expr[-1], to_ast) )
+  node$set_args( lapply(expr[-1], toAST) )
   return (node)
 }
 
 
 #' @export
-to_ast.name = function(expr) {
+toAST.name = function(expr) {
   Symbol$new(as.character(expr))
 }
 
 
 #' @export
-`to_ast.{` = function(expr) {
-  Brace$new(lapply(expr[-1], to_ast))
+`toAST.{` = function(expr) {
+  Brace$new(lapply(expr[-1], toAST))
 }
 
 
 #' @export
-`to_ast.(` = function(expr) {
-  Brace$new(lapply(expr[-1], to_ast), is_paren = TRUE)
+`toAST.(` = function(expr) {
+  Brace$new(lapply(expr[-1], toAST), is_paren = TRUE)
 }
 
 
 #' @export
-to_ast.NULL      = function(expr) Null$new()
+toAST.NULL      = function(expr) Null$new()
 #' @export
-to_ast.logical   = function(expr) Logical$new(expr)
+toAST.logical   = function(expr) Logical$new(expr)
 #' @export
-to_ast.integer   = function(expr) Integer$new(expr)
+toAST.integer   = function(expr) Integer$new(expr)
 #' @export
-to_ast.numeric   = function(expr) Numeric$new(expr)
+toAST.numeric   = function(expr) Numeric$new(expr)
 #' @export
-to_ast.complex   = function(expr) Complex$new(expr)
+toAST.complex   = function(expr) Complex$new(expr)
 #' @export
-to_ast.character = function(expr) Character$new(expr)
+toAST.character = function(expr) Character$new(expr)
 
 
 #' @export
-to_ast.default = function(expr) {
+toAST.default = function(expr) {
   msg = sprintf("Cannot convert '%s' to an ASTNode.", class(expr)[1])
   stop(msg)
 }

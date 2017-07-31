@@ -20,11 +20,11 @@ is_constant = function(x) {
 #' 13(2), 181-210.
 #'
 #' @export
-scc_propagate = function(cfg) {
+propagateConstants = function(cfg) {
   helper = SCCHelper$new(cfg)
 
   # The entry block is always executed.
-  scc_visit_block(cfg$entry, helper)
+  constVisitBlock(cfg$entry, helper)
 
   # First pass: traverse the CFG in approximate execution order.
   while (length(helper$flow_list) > 0) {
@@ -37,7 +37,7 @@ scc_propagate = function(cfg) {
       dest = tail_of(cfg$graph, edge)
 
       # FIXME: First visit to block != first visit via this edge.
-      scc_visit_block(dest, helper)
+      constVisitBlock(dest, helper)
     }
   }
 
@@ -55,7 +55,7 @@ scc_propagate = function(cfg) {
     b = node$parent$name
     in_edges = igraph::E(helper$cfg$graph)[to(b)]
     if ( any(helper$executable[in_edges]) ) {
-      scc_visit_exp(node, helper)
+      constVisitNode(node, helper)
     }
   } # end while
 
@@ -64,7 +64,7 @@ scc_propagate = function(cfg) {
 
 
 # FIXME: Rename b?
-scc_visit_block = function(b, helper) {
+constVisitBlock = function(b, helper) {
   block = helper$cfg[[b]]
   # Compute the value of an expression.
   #
@@ -74,11 +74,11 @@ scc_visit_block = function(b, helper) {
   # NOTE: This is the only place SSA edges are added to worklist.
 
   for (phi in block$phi) {
-    scc_visit_exp(phi, helper)
+    constVisitNode(phi, helper)
   }
 
   for (node in block$body) {
-    scc_visit_exp(node, helper)
+    constVisitNode(node, helper)
   }
 
   # Add outgoing edges (to next executed blocks) to flow worklist.
@@ -88,7 +88,7 @@ scc_visit_block = function(b, helper) {
     helper$flow_list = union(helper$flow_list, edge)
 
   } else if (inherits(trm, "CondBrTerminator")) {
-    val = scc_const_eval(trm$condition, helper)
+    val = evalConst(trm$condition, helper)
     if (!is_constant(val)) {
       edge = igraph::E(helper$cfg$graph)[from(b)]
     } else if (val) {
@@ -110,17 +110,17 @@ scc_visit_block = function(b, helper) {
 }
 
 
-scc_visit_exp = function(node, helper) {
-  UseMethod("scc_visit_exp")
+constVisitNode = function(node, helper) {
+  UseMethod("constVisitNode")
 }
 
 
 #' @export
-scc_visit_exp.Assign = function(node, helper) {
+constVisitNode.Assign = function(node, helper) {
   name = node$write$name
 
   # Set constant in table.
-  helper$values[[name]] = scc_const_eval(node$read, helper)
+  helper$values[[name]] = evalConst(node$read, helper)
 
   # Add SSA edges. This is redundant for expressions that appear later within
   # the same block, but checking for that case may be more expensive than
@@ -133,7 +133,7 @@ scc_visit_exp.Assign = function(node, helper) {
 }
 
 #' @export
-scc_visit_exp.Phi = function(node, helper) {
+constVisitNode.Phi = function(node, helper) {
   # Compute meet of values of all operands to this phi-function.
   # Need to look backwards (to defs) in the SSA graph. We can find the phi in
   # the SSA graph by the SSA name it defines.
@@ -159,31 +159,31 @@ scc_visit_exp.Phi = function(node, helper) {
 }
 
 #' @export
-scc_visit_exp.Replacement = function(node, helper) {
+constVisitNode.Replacement = function(node, helper) {
   # FIXME: For now, don't update anything, since we completely ignore vectors
   # during constant analysis. Eventually this could update array SSA names.
   invisible (NULL)
 }
 
 #' @export
-scc_visit_exp.default = function(node, helper) {
+constVisitNode.default = function(node, helper) {
   browser()
 }
 
 
 # Evaluate a constant expression or return a sentinel value.
-scc_const_eval = function(node, helper) {
-  UseMethod("scc_const_eval")
+evalConst = function(node, helper) {
+  UseMethod("evalConst")
 }
 
 #' @export
-scc_const_eval.Call = function(node, helper) {
+evalConst.Call = function(node, helper) {
   if (node$fn$name %in% c(">", "<", ">=", "<=", "==", "length", ":",
       "-", "+", "*", "/")
   ) {
     # TODO: Avoid unnecessary evaluation by collecting reads first and checking
     # that there are known constant values for all symbols.
-    args = lapply(node$args, scc_const_eval, helper)
+    args = lapply(node$args, evalConst, helper)
     if ( all(vapply(args, is_constant, logical(1))) ) {
       val = do.call(node$fn$name, args)
       return (val)
@@ -194,7 +194,7 @@ scc_const_eval.Call = function(node, helper) {
 }
 
 #' @export
-scc_const_eval.Symbol = function(node, helper) {
+evalConst.Symbol = function(node, helper) {
   idx = match(node$name, names(helper$values))
   if (is.na(idx))
     return (NONCONST)
@@ -203,14 +203,14 @@ scc_const_eval.Symbol = function(node, helper) {
 }
  
 #' @export
-scc_const_eval.Brace = function(node, helper) {
-  val = lapply(node$body, scc_const_eval, helper)
+evalConst.Brace = function(node, helper) {
+  val = lapply(node$body, evalConst, helper)
 
   return (val[[length(node$body)]])
 }
 
 #' @export
-scc_const_eval.Literal = function(node, helper) {
+evalConst.Literal = function(node, helper) {
   return (node$value)
 }
 

@@ -9,70 +9,70 @@
 #' 
 #' @param node (ASTNode) The tree to be converted.
 #' @export
-to_r = function(node) {
-  UseMethod("to_r")
+toR = function(node) {
+  UseMethod("toR")
 }
 
 
 #' @export
-to_r.Next = function(node) {
+toR.Next = function(node) {
   call("next")
 }
 
 
 #' @export
-to_r.Break = function(node) {
+toR.Break = function(node) {
   call("break")
 }
 
 
 #' @export
-to_r.If = function(node) {
+toR.If = function(node) {
   if (is.null(node$false))
-    call("if", to_r(node$condition), to_r(node$true))
+    call("if", toR(node$condition), toR(node$true))
   else
-    call("if", to_r(node$condition), to_r(node$true), to_r(node$false))
+    call("if", toR(node$condition), toR(node$true), toR(node$false))
 }
 
 
 #' @export
-to_r.For = function(node) {
-  call("for", to_r(node$ivar), to_r(node$iter), to_r(node$body))
+toR.For = function(node) {
+  call("for", toR(node$ivar), toR(node$iter), toR(node$body))
 }
 
 
 #' @export
-to_r.While = function(node) {
+toR.While = function(node) {
   if (node$is_repeat)
-    call("repeat", to_r(node$body))
+    call("repeat", toR(node$body))
   else
-    call("while", to_r(node$condition), to_r(node$body))
+    call("while", toR(node$condition), toR(node$body))
 }
 
 
 #' @export
-to_r.Assign = function(node) {
-  call("=", to_r(node$write), to_r(node$read))
+toR.Assign = function(node) {
+  call("=", toR(node$write), toR(node$read))
 }
 
 
 #' @export
-to_r.Call = function(node) {
-  fn = to_r(node$fn)
-  args = lapply(node$args, to_r)
+toR.Call = function(node) {
+  fn = toR(node$fn)
+  args = lapply(node$args, toR)
   as.call(append(fn, args))
 }
 
 #' @export
-to_r.Phi = function(node) {
-  reads = lapply(node$read, to_r)
+toR.Phi = function(node) {
+  reads = lapply(node$read, toR)
   phi = as.call(append(as.name("Phi"), reads))
-  call("=", to_r(node$write), phi)
+  call("=", toR(node$write), phi)
 }
 
 #' @export
-to_r.Replacement = function(node) {
-  lhs = to_r(node$read)
+toR.Replacement = function(node) {
+  lhs = toR(node$read)
 
   # Delete the <- in the function name.
   fn = as.character(lhs[[1]])
@@ -80,7 +80,7 @@ to_r.Replacement = function(node) {
   lhs[[1]] = as.symbol(fn)
 
   # Set the write variable.
-  lhs[[2]] = to_r(node$write)
+  lhs[[2]] = toR(node$write)
 
   len = length(lhs)
 
@@ -88,18 +88,18 @@ to_r.Replacement = function(node) {
 }
 
 #' @export
-to_r.Return = function(node) {
+toR.Return = function(node) {
   if (node$is_invisible)
     name = as.symbol("invisible")
   else
     name = as.symbol("return")
 
-  args = lapply(node$args, to_r)
+  args = lapply(node$args, toR)
   as.call(append(name, args))
 }
 
 #' @export
-to_r.Symbol = function(node) {
+toR.Symbol = function(node) {
   # Handle empty arguments.
   if (node$basename == "")
     return (quote(expr = ))
@@ -109,12 +109,12 @@ to_r.Symbol = function(node) {
 
 
 #' @export
-to_r.Parameter = function(node) {
+toR.Parameter = function(node) {
   param =
     if (is.null(node$default))
       pairlist(quote(expr = ))
     else
-      pairlist(to_r(node$default))
+      pairlist(toR(node$default))
 
   names(param) = node$name
   return (param)
@@ -122,25 +122,25 @@ to_r.Parameter = function(node) {
 
 
 #' @export
-to_r.Function = function(node) {
+toR.Function = function(node) {
   # TODO: Is there a better way to do this?
   params = list()
   for (param in node$params)
-    params = append(params, to_r(param))
+    params = append(params, toR(param))
 
-  call("function", as.pairlist(params), to_r(node$body))
+  call("function", as.pairlist(params), toR(node$body))
 }
 
 
 #' @export
-to_r.Primitive = function(node) {
+toR.Primitive = function(node) {
   .Primitive(node$fn$name)
 }
 
 
 #' @export
-to_r.Brace = function(node) {
-  body = lapply(node$body, to_r)
+toR.Brace = function(node) {
+  body = lapply(node$body, toR)
   if (node$is_paren)
     name = "("
   else
@@ -150,13 +150,13 @@ to_r.Brace = function(node) {
 }
 
 #' @export
-to_r.Literal = function(node) {
+toR.Literal = function(node) {
   node$value
 }
 
 
 #' @export
-to_r.default = function(node) {
+toR.default = function(node) {
   # FIXME:
   msg = sprintf("Cannot convert '%s' to R code.", class(node)[1])
   stop(msg)

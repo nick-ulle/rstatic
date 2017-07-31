@@ -5,7 +5,7 @@ test_that("nodes are added for defs", {
     x <- 1
   )
 
-  cfg = to_cfg(exp)
+  cfg = toCFG(exp)
   ssa = cfg$ssa
 
   # -----
@@ -18,7 +18,7 @@ test_that("nodes are added for uses", {
     foo(x)
   )
 
-  cfg = to_cfg(exp, insertReturn = FALSE)
+  cfg = toCFG(exp, insertReturn = FALSE)
   ssa = cfg$ssa
 
   # -----
@@ -35,7 +35,7 @@ test_that("edges are added for defs that are also uses", {
     # return (x)
   })
 
-  cfg = to_cfg(exp)
+  cfg = toCFG(exp)
   ssa = cfg$ssa
 
   # -----
@@ -52,7 +52,7 @@ test_that("nodes are added for uses that are not defs", {
     foo(x)
   })
 
-  cfg = to_cfg(exp, insertReturn = FALSE)
+  cfg = toCFG(exp, insertReturn = FALSE)
   ssa = cfg$ssa
 
   # -----
@@ -72,7 +72,7 @@ test_that("nodes and edges are added for phi-functions", {
     y = x
   })
 
-  cfg = to_cfg(exp)
+  cfg = toCFG(exp)
   ssa = cfg$ssa
 
   # -----
@@ -93,7 +93,7 @@ test_that("backedges are added for phi-functions", {
       x = 12
   )
 
-  cfg = to_cfg(exp, insertReturn = FALSE)
+  cfg = toCFG(exp, insertReturn = FALSE)
   ssa = cfg$ssa
 
   # -----
@@ -107,7 +107,7 @@ test_that("nodes and edges are added for parameters", {
     y = x
   }
 
-  cfg = to_cfg(fn)
+  cfg = toCFG(fn)
   ssa = cfg$ssa
 
   # -----
@@ -122,7 +122,7 @@ test_that("globals", {
   exp = quote(y <- x)
 
   # FIXME:
-  #cfg = to_cfg(fn)
+  #cfg = toCFG(fn)
   #ssa = cfg$ssa
 
   # -----

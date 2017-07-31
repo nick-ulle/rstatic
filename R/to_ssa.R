@@ -5,26 +5,26 @@
 #' single-assignment form.
 #'
 #' @param cfg (CFGraph) A control flow graph.
-#' @param in_place (logical) Don't copy CFG before conversion?
+#' @param inPlace (logical) Don't copy CFG before conversion?
 #' @param renameParams (logical) if TRUE, the parameter names are mapped to SSA form, e.g., x becomes x_1. Otherwise, the parameter names remain unaltered in the CFG.
 #' 
 #' @return The control flow graph as a CFGraph object, with the code in each
 #' block converted to SSA form.
 #'
 #' @export
-to_ssa = function(cfg, in_place = FALSE) {
+toSSA = function(cfg, inPlace = FALSE) {
   # TODO: make this function's implementation more idiomatic.
 
-  if (!in_place)
+  if (!inPlace)
     cfg = cfg$copy()
 
-  cb = collect_crossblock_uses(cfg)
+  cb = collectCrossblockUses(cfg)
   uses = cb[[1]]
   assign_blocks = cb[[2]]
 
   entry_idx = cfg$get_index(cfg$entry)
-  dom_t = dom_tree(cfg, entry_idx)
-  dom_f = dom_frontier(cfg, dom_t)
+  dom_t = domTree(cfg, entry_idx)
+  dom_f = domFrontier(cfg, dom_t)
 
   # Insert phi-functions.
   for (name in uses) {
@@ -48,8 +48,8 @@ to_ssa = function(cfg, in_place = FALSE) {
   # Rename variables.
   builder = SSABuilder$new()
 
-  ssa_rename_ast(cfg$params, builder)
-  ssa_rename(entry_idx, cfg, dom_t, builder)
+  ssaRenameAST(cfg$params, builder)
+  ssaRename(entry_idx, cfg, dom_t, builder)
 
   cfg$ssa = builder$ssa
 
@@ -62,25 +62,25 @@ to_ssa = function(cfg, in_place = FALSE) {
 #' This function renames variables in the basic blocks of a CFG with their SSA
 #' names.
 #'
-#' Generally, this function should only be called from \code{to_ssa()}.
+#' Generally, this function should only be called from \code{toSSA()}.
 #'
 #' @param block (integer) Index of a basic block in the CFG.
 #' @param cfg (CFGraph) A control-flow graph.
 #' @param dom_t (integer) The dominator tree for the CFG.
 #' @param builder (SSABuilder) A stateful object used by the renaming
 #'
-ssa_rename = function(block, cfg, dom_t, builder) {
+ssaRename = function(block, cfg, dom_t, builder) {
   # Rewrite LHS of phi-functions in this block.
-  ssa_rename_ast(cfg[[block]]$phi, builder)
+  ssaRenameAST(cfg[[block]]$phi, builder)
 
-  ssa_rename_ast(cfg[[block]]$body, builder)
+  ssaRenameAST(cfg[[block]]$body, builder)
 
   # Rewrite terminator in this block.
   term = cfg[[block]]$terminator
   if (inherits(term, "CondBrTerminator")) {
-    ssa_rename_ast(term$condition, builder)
+    ssaRenameAST(term$condition, builder)
   } else if (inherits(term, "RetTerminator")) {
-    ssa_rename_ast(term$value, builder)
+    ssaRenameAST(term$value, builder)
   }
 
   # Rewrite RHS of phi-functions in successors.
@@ -113,7 +113,7 @@ ssa_rename = function(block, cfg, dom_t, builder) {
   builder$save_local_defs()
 
   children = setdiff(which(dom_t == block), block)
-  lapply(children, ssa_rename, cfg, dom_t, builder)
+  lapply(children, ssaRename, cfg, dom_t, builder)
 
   # End lifetimes of variables defined in this block.
   builder$clear_local_defs()
@@ -124,21 +124,21 @@ ssa_rename = function(block, cfg, dom_t, builder) {
 #'
 #' This function renames variables in an AST with their SSA names.
 #'
-#' Generally, this function should only be called from \code{ssa_rename()}.
+#' Generally, this function should only be called from \code{ssaRename()}.
 #'
 #' @param node (ASTNode) An abstract syntax tree.
 #' @param builder (SSABuilder) A stateful object used by the renaming
 #' algorithm.
 #'
-ssa_rename_ast = function(node, builder) {
+ssaRenameAST = function(node, builder) {
   # FIXME: This doesn't change function names.
-  UseMethod("ssa_rename_ast")
+  UseMethod("ssaRenameAST")
 }
 
 #' @export
-ssa_rename_ast.Assign = function(node, builder) {
+ssaRenameAST.Assign = function(node, builder) {
   builder$register_uses = FALSE
-  ssa_rename_ast(node$read, builder)
+  ssaRenameAST(node$read, builder)
   builder$register_uses = TRUE
 
   node$write$ssa_number = builder$new_def(node$write$basename)
@@ -148,7 +148,7 @@ ssa_rename_ast.Assign = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Phi = function(node, builder) {
+ssaRenameAST.Phi = function(node, builder) {
   node$write$ssa_number = builder$new_def(node$write$basename)
   builder$register_def(node$write$name, node)
 
@@ -156,9 +156,9 @@ ssa_rename_ast.Phi = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Parameter = function(node, builder) {
+ssaRenameAST.Parameter = function(node, builder) {
   if (!is.null(node$default))
-    ssa_rename_ast(node$default, builder)
+    ssaRenameAST(node$default, builder)
 
   node$ssa_number = builder$new_def(node$basename)
   # FIXME: Parameter processing order might not put all defs before uses.
@@ -168,22 +168,22 @@ ssa_rename_ast.Parameter = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Call = function(node, builder) {
-  lapply(node$args, ssa_rename_ast, builder)
+ssaRenameAST.Call = function(node, builder) {
+  lapply(node$args, ssaRenameAST, builder)
   return (node)
 }
 
 # NOTE:
-# ssa_rename_ast.Replacement() is now handled by ssa_rename_ast.Assign()
+# ssaRenameAST.Replacement() is now handled by ssaRenameAST.Assign()
 
 #' @export
-ssa_rename_ast.Brace = function(node, builder) {
-  lapply(node$body, ssa_rename_ast, builder)
+ssaRenameAST.Brace = function(node, builder) {
+  lapply(node$body, ssaRenameAST, builder)
   return (node)
 }
 
 #' @export
-ssa_rename_ast.Symbol = function(node, builder) {
+ssaRenameAST.Symbol = function(node, builder) {
   node$ssa_number = builder$get_live_def(node$basename)
 
   if (builder$register_uses) {
@@ -196,11 +196,11 @@ ssa_rename_ast.Symbol = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Literal = function(node, builder)
+ssaRenameAST.Literal = function(node, builder)
   return (node)
 
 #' @export
-ssa_rename_ast.list = function(node, builder) {
-  lapply(node, ssa_rename_ast, builder)
+ssaRenameAST.list = function(node, builder) {
+  lapply(node, ssaRenameAST, builder)
   return (node)
 }

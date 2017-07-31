@@ -1,10 +1,10 @@
-context("collect_reads")
+context("collectReads")
 
 
 test_that("collecting reads on literals returns empty vector", {
   code = Integer$new(5)
 
-  result = collect_reads(code)
+  result = collectReads(code)
 
   # -----
   expect_equal(length(result), 0)
@@ -15,7 +15,7 @@ test_that("collecting reads on literals returns empty vector", {
 test_that("collecting reads on x returns x", {
   code = Symbol$new("x")
 
-  result = collect_reads(code)
+  result = collectReads(code)
 
   # -----
   expect_equal(result, "x")
@@ -25,7 +25,7 @@ test_that("collecting reads on x returns x", {
 test_that("collecting reads on mean(x) returns x", {
   code = Call$new("mean", list(Symbol$new("x")))
   
-  result = collect_reads(code)
+  result = collectReads(code)
 
   # -----
   expect_equal(result, "x")
@@ -38,7 +38,7 @@ test_that("collecting reads on sum(x, 5, y, 7, x) returns x, y", {
       Symbol$new("x")
   ))
 
-  result = collect_reads(code)
+  result = collectReads(code)
 
   # -----
   expect_true("x" %in% result)
@@ -50,7 +50,7 @@ test_that("collecting reads on sum(x, 5, y, 7, x) returns x, y", {
 test_that("collecting reads on x = y returns y", {
   code = Assign$new(Symbol$new("x"), Symbol$new("y"))
 
-  result = collect_reads(code)
+  result = collectReads(code)
 
   # -----
   expect_equal(result, "y")
@@ -60,7 +60,7 @@ test_that("collecting reads on x = y returns y", {
 test_that("collecting reads on return(x) returns x", {
   code = Return$new(Symbol$new("x"))
 
-  result = collect_reads(code)
+  result = collectReads(code)
 
   # -----
   expect_equal(result, "x")
@@ -74,7 +74,7 @@ test_that("collecting reads on x[i] = y returns i, y", {
     list(Symbol$new("i"), Symbol$new("y"))
   )
 
-  result = collect_reads(code)
+  result = collectReads(code)
 
   # -----
   expect_true("i" %in% result)
@@ -86,7 +86,7 @@ test_that("collecting reads on x[i] = y returns i, y", {
 test_that("collecting reads on {x} returns x", {
   code = Brace$new(list(Symbol$new("x")))
 
-  result = collect_reads(code)
+  result = collectReads(code)
 
   # -----
   expect_equal(result, "x")
