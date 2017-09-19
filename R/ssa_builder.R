@@ -2,7 +2,7 @@
 SSABuilder = R6::R6Class("SSABuilder",
   "public" = list(
     register_uses = TRUE,
-    name_gen = NULL,
+    name_counter = NULL,
     name_stack = list(),
     local_stack = NULL,
     local = character(0),
@@ -10,7 +10,7 @@ SSABuilder = R6::R6Class("SSABuilder",
 
     initialize = function() {
       self$ssa = FlowGraph$new()
-      self$name_gen = NameGenerator$new()
+      self$name_counter = Counter$new()
       self$local_stack = Stack$new(type = "list")
     },
 
@@ -56,7 +56,7 @@ SSABuilder = R6::R6Class("SSABuilder",
       }
 
       # Push a new number onto the stack.
-      n = self$name_gen$get(basename)
+      n = self$name_counter$increment(basename)
       self$name_stack[[basename]]$push(n)
 
       return (n)
@@ -100,27 +100,3 @@ SSABuilder = R6::R6Class("SSABuilder",
     }
   )
 )
-
-
-#' Generate Unique Variable Names
-#'
-NameGenerator = R6::R6Class("NameGenerator",
-  "private" = list(
-    counter = integer(0)
-  ),
-
-  "public" = list(
-    get = function(basename) {
-      if (basename %in% names(private$counter)) {
-        counter = private$counter[[basename]] + 1L
-      } else {
-        counter = 1L
-      }
-      
-      private$counter[[basename]] = counter
-
-      return (counter)
-    }
-  )
-)
-
