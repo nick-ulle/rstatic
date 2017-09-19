@@ -34,9 +34,9 @@ Literal numbers, strings, logicals and nulls are represented by subclasses of
 `Literal`.
 
 In the example below, the literal `6.28` is converted to a code object. The
-`to_astq()` function is like `to_ast()`, but automatically quotes its argument.
+`toASTq()` function is like `toAST()`, but automatically quotes its argument.
 ```{r}
-tau = to_astq(6.28)
+tau = toASTq(6.28)
 
 tau
 ```
@@ -106,7 +106,7 @@ right-hand side.
 As an example, consider the code below, which assigns the complex number `3+2i`
 to the variable `z`.
 ```{r}
-assign = to_astq(z <- 3+2i)
+assign = toASTq(z <- 3+2i)
 ```
 
 Here, the `write` field holds a symbol and the `read` field holds a complex
@@ -186,7 +186,7 @@ object represents curly braces.
 As an example, the code shown below converts a parenthetical expression to a
 `Brace`.
 ```{r}
-paren = to_astq( (2 + 2) )
+paren = toASTq( (2 + 2) )
 
 paren
 ```
@@ -220,7 +220,7 @@ to_celsius = function(x) {
   (x - 32) * 5 / 9
 }
 
-to_celsius = to_ast(to_celsius)
+to_celsius = toAST(to_celsius)
 
 to_celsius
 ```
@@ -253,7 +253,7 @@ that don't have an "else" branch.
 
 For instance, the code below shows the AST for an if-statement.
 ```{r}
-ast = to_astq(
+ast = toASTq(
   if (x > 0) {
     x = x + sqrt(x)
   })
