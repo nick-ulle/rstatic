@@ -1,6 +1,6 @@
 Package: rstatic
 Title: Low-level Static Analysis Tools for R Code
-Version: 0.0.0.9021
+Version: 0.0.0.9022
 Authors@R: c(
   person("Nick", "Ulle", role = c("aut", "cre"),
     email = "nick.ulle@gmail.com"),

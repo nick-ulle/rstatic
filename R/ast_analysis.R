@@ -81,6 +81,11 @@ collectReads.NULL = function(node) {
 }
 
 #' @export
+collectReads.Function = function(node) {
+  return (character(0))
+}
+
+#' @export
 collectReads.default = function(node) {
   msg = sprintf(
     "Cannot collect reads for object of class '%s'.", class(node)[[1]]

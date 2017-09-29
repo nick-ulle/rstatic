@@ -144,7 +144,7 @@ ssaRenameAST.Assign = function(node, builder) {
   node$write$ssa_number = builder$new_def(node$write$basename)
   builder$register_def(node$write$name, node)
 
-  return (node)
+  node
 }
 
 #' @export
@@ -152,7 +152,7 @@ ssaRenameAST.Phi = function(node, builder) {
   node$write$ssa_number = builder$new_def(node$write$basename)
   builder$register_def(node$write$name, node)
 
-  return (node)
+  node
 }
 
 #' @export
@@ -164,13 +164,23 @@ ssaRenameAST.Parameter = function(node, builder) {
   # FIXME: Parameter processing order might not put all defs before uses.
   builder$register_def(node$name, node)
 
-  return (node)
+  node
 }
 
 #' @export
 ssaRenameAST.Call = function(node, builder) {
   lapply(node$args, ssaRenameAST, builder)
-  return (node)
+
+  ssaRenameAST(node$fn, builder)
+
+  node
+}
+
+#' @export
+ssaRenameAST.Function = function(node, builder) {
+  # FIXME: Need to record the environment the function is created in for
+  # closures.
+  node
 }
 
 # NOTE:
@@ -179,7 +189,8 @@ ssaRenameAST.Call = function(node, builder) {
 #' @export
 ssaRenameAST.Brace = function(node, builder) {
   lapply(node$body, ssaRenameAST, builder)
-  return (node)
+
+  node
 }
 
 #' @export
@@ -192,15 +203,15 @@ ssaRenameAST.Symbol = function(node, builder) {
     builder$register_use(node$name, node$parent)
   }
 
-  return (node)
+  node
 }
 
 #' @export
 ssaRenameAST.Literal = function(node, builder)
-  return (node)
+  node
 
 #' @export
 ssaRenameAST.list = function(node, builder) {
   lapply(node, ssaRenameAST, builder)
-  return (node)
+  node
 }
