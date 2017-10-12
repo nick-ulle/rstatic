@@ -46,20 +46,22 @@ ASTNode = R6::R6Class("ASTNode",
 #' @export
 Brace = R6::R6Class("Brace", inherit = ASTNode,
   "public" = list(
-    body = NULL,
+    .body = NULL,
     is_paren = FALSE,
 
     initialize = function(body = list(), is_paren = FALSE, parent = NULL) {
       super$initialize(parent)
-      self$set_body(body)
+      self$body = body
       self$is_paren = is_paren
-    },
+    }
+  ),
 
-    set_body = function(value) {
-      for (v in value)
-        v$parent = self
+  "active" = list(
+    body = function(value) {
+      if (missing(value))
+        return (self$.body)
 
-      self$body = value
+      self$.body = .reparentAST(value, self)
     }
   )
 )
@@ -78,32 +80,39 @@ Break = R6::R6Class("Break", inherit = ASTNode)
 #' @export
 If = R6::R6Class("If", inherit = ASTNode,
   "public" = list(
-    condition = NULL,
-    true = NULL,
-    false = NULL,
+    .condition = NULL,
+    .true = NULL,
+    .false = NULL,
 
     initialize = function(condition, true, false = NULL, parent = NULL) {
       super$initialize(parent)
 
-      self$set_condition(condition)
-      self$set_true(true)
-      self$set_false(false)
+      self$condition = condition
+      self$true = true
+      self$false = false
+    }
+  ),
+
+  "active" = list(
+    condition = function(value) {
+      if (missing(value))
+        return (self$.condition)
+
+      self$.condition = .reparentAST(value, self)
     },
 
-    set_condition = function(value) {
-      value$parent = self
-      self$condition = value
+    true = function(value) {
+      if (missing(value))
+        return (self$.true)
+
+      self$.true = .reparentAST(value, self)
     },
 
-    set_true = function(value) {
-      value$parent = self
-      self$true = value
-    },
+    false = function(value) {
+      if (missing(value))
+        return (self$.false)
 
-    set_false = function(value) {
-      if (!is.null(value))
-        value$parent = self
-      self$false = value
+      self$.false = .reparentAST(value, self)
     }
   )
 )
@@ -111,31 +120,39 @@ If = R6::R6Class("If", inherit = ASTNode,
 #' @export
 For = R6::R6Class("For", inherit = ASTNode,
   "public" = list(
-    ivar = NULL,
-    iter = NULL,
-    body = NULL,
+    .ivar = NULL,
+    .iter = NULL,
+    .body = NULL,
 
     initialize = function(ivar, iter, body, parent = NULL) {
       super$initialize(parent)
 
-      self$set_ivar(ivar)
-      self$set_iter(iter)
-      self$set_body(body)
+      self$ivar = ivar
+      self$iter = iter
+      self$body = body
+    }
+  ),
+
+  "active" = list(
+    ivar = function(value) {
+      if (missing(value))
+        return (self$.ivar)
+
+      self$.ivar = .reparentAST(value, self)
     },
 
-    set_ivar = function(value) {
-      value$parent = self
-      self$ivar = value
+    iter = function(value) {
+      if (missing(value))
+        return (self$.iter)
+
+      self$.iter = .reparentAST(value, self)
     },
 
-    set_iter = function(value) {
-      value$parent = self
-      self$iter = value
-    },
+    body = function(value) {
+      if (missing(value))
+        return (self$.body)
 
-    set_body = function(value) {
-      value$parent = self
-      self$body = value
+      self$.body = .reparentAST(value, self)
     }
   )
 )
@@ -143,26 +160,32 @@ For = R6::R6Class("For", inherit = ASTNode,
 #' @export
 While = R6::R6Class("While", inherit = ASTNode,
   "public" = list(
-    condition = NULL,
-    body = NULL,
+    .condition = NULL,
+    .body = NULL,
     is_repeat = FALSE,
 
     initialize = function(condition, body, is_repeat = FALSE, parent = NULL) {
       super$initialize(parent)
 
-      self$set_condition(condition)
-      self$set_body(body)
+      self$condition = condition
+      self$body = body
       self$is_repeat = is_repeat
+    }
+  ),
+
+  "active" = list(
+    condition = function(value) {
+      if (missing(value))
+        return (self$.condition)
+
+      self$.condition = .reparentAST(value, self)
     },
 
-    set_condition = function(value) {
-      value$parent = self
-      self$condition = value
-    },
+    body = function(value) {
+      if (missing(value))
+        return (self$.body)
 
-    set_body = function(value) {
-      value$parent = self
-      self$body = value
+      self$.body = .reparentAST(value, self)
     }
   )
 )
@@ -174,18 +197,21 @@ While = R6::R6Class("While", inherit = ASTNode,
 #' export
 Application = R6::R6Class("Application", inherit = ASTNode,
   "public" = list(
-    args = NULL,
+    .args = NULL,
 
     initialize = function(args = list(), parent = NULL) {
       super$initialize(parent)
 
-      self$set_args(args)
-    },
+      self$args = args
+    }
+  ),
 
-    set_args = function(value) {
-      for (v in value)
-        v$parent = self
-      self$args = value
+  "active" = list(
+    args = function(value) {
+      if (missing(value))
+        return (self$.args)
+
+      self$.args = .reparentAST(value, self)
     }
   )
 )
@@ -208,24 +234,27 @@ Return = R6::R6Class("Return", inherit = Application,
 #' @export
 Call = R6::R6Class("Call", inherit = Application,
   "public" = list(
-    fn = NULL,
+    .fn = NULL,
 
     initialize = function(fn, args = list(), parent = NULL) {
       super$initialize(args, parent)
 
-      self$set_fn(fn)
-    },
+      self$fn = fn
+    }
+  ),
 
-    set_fn = function(value) {
+  "active" = list(
+    fn = function(value) {
+      if (missing(value))
+        return (self$.fn)
+
       # NOTE: fn could be a Symbol, Function, Primitive, or Call.
       if (!inherits(value, "ASTNode"))
         value = Symbol$new(value)
 
-      value$parent = self
-      self$fn = value
+      self$.fn = .reparentAST(value, self)
     }
-  ),
-
+  )
 )
 
 #' @export
@@ -245,18 +274,21 @@ Internal = R6::R6Class("Internal", inherit = Call,
 #' @export
 Callable = R6::R6Class("Callable", inherit = ASTNode,
   "public" = list(
-    params = NULL,
+    .params = NULL,
 
     initialize = function(params, parent = NULL) {
       super$initialize(parent)
 
-      self$set_params(params)
-    },
+      self$params = params
+    }
+  ),
 
-    set_params = function(value) {
-      for (v in value)
-        v$parent = self
-      self$params = value
+  "active" = list(
+    params = function(value) {
+      if (missing(value))
+        return (self$.params)
+
+      self$.params = .reparentAST(value, self)
     }
   )
 )
@@ -264,20 +296,23 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
 #' @export
 Function = R6::R6Class("Function", inherit = Callable,
   "public" = list(
-    # FIXME: Need to override $copy() here
-    body = NULL,
+    .body = NULL,
     cfg = NULL,
     ssa = NULL,
 
     initialize = function(params, body, parent = NULL) {
       super$initialize(params, parent)
 
-      self$set_body(body)
-    },
+      self$body = body
+    }
+  ),
 
-    set_body = function(value) {
-      value$parent = self
-      self$body = value
+  "active" = list(
+    body = function(value) {
+      if (missing(value))
+        return (self$.body)
+
+      self$.body = .reparentAST(value, self)
     }
   )
 )
@@ -285,20 +320,24 @@ Function = R6::R6Class("Function", inherit = Callable,
 #' @export
 Primitive = R6::R6Class("Primitive", inherit = Callable,
   "public" = list(
-    fn = NULL,
+    .fn = NULL,
 
     initialize = function(params, fn, parent = NULL) {
       super$initialize(params, parent)
 
-      self$set_fn(fn)
-    },
+      self$fn = fn
+    }
+  ),
 
-    set_fn = function(value) {
+  "active" = list(
+    fn = function(value) {
+      if (missing(value))
+        return (self$.fn)
+
       if (!inherits(value, "Symbol"))
         value = Symbol$new(value)
 
-      value$parent = self
-      self$fn = value
+      self$.fn = .reparentAST(value, self)
     }
   )
 )
@@ -311,24 +350,30 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
 #' @export
 Assign = R6::R6Class("Assign", inherit = ASTNode,
   "public" = list(
-    write = NULL,
-    read = NULL,
+    .write = NULL,
+    .read = NULL,
 
     initialize = function(write, read, parent = NULL) {
       super$initialize(parent)
 
-      self$set_write(write)
-      self$set_read(read)
+      self$write = write
+      self$read = read
+    }
+  ),
+
+  "active" = list(
+    write = function(value) {
+      if (missing(value))
+        return (self$.write)
+
+      self$.write = .reparentAST(value, self)
     },
 
-    set_write = function(value) {
-      value$parent = self
-      self$write = value
-    },
+    read = function(value) {
+      if (missing(value))
+        return (self$.read)
 
-    set_read = function(value) {
-      value$parent = self
-      self$read = value
+      self$.read = .reparentAST(value, self)
     }
   )
 )
@@ -360,14 +405,14 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
   # FIXME: Phi and Assign should probably have a common superclass for
   # variable-changing instructions. The Replacement class is also related.
   "public" = list(
-    write = NULL,
+    .write = NULL,
     blocks = integer(0),
     read = list(),
 
     initialize = function(write, parent = NULL) {
       super$initialize(parent)
 
-      self$set_write(write)
+      self$write = write
     },
 
     set_read = function(block, value) {
@@ -383,14 +428,18 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
     get_read = function(block) {
       idx = match(block, self$blocks)
       self$read[[idx]]
-    },
+    }
+  ),
 
-    set_write = function(value) {
+  "active" = list(
+    write = function(value) {
+      if (missing(value))
+        return (self$.write)
+
       if (!inherits(value, "Symbol"))
         value = Symbol$new(value)
 
-      value$parent = self
-      self$write = value
+      self$.write = .reparentAST(value, self)
     }
   )
 )
@@ -422,7 +471,7 @@ Symbol = R6::R6Class("Symbol", inherit = ASTNode,
       if (is.na(ssa_number))
         return (self$basename)
 
-      return (sprintf("%s_%i", self$basename, ssa_number))
+      sprintf("%s_%i", self$basename, ssa_number)
     }
   )
 )
@@ -430,20 +479,23 @@ Symbol = R6::R6Class("Symbol", inherit = ASTNode,
 #' @export
 Parameter = R6::R6Class("Parameter", inherit = Symbol,
   "public" = list(
-    default = NULL,
+    .default = NULL,
 
     initialize = function(name, default = NULL, ssa = NA_integer_,
       parent = NULL)
     {
       super$initialize(name, ssa, parent)
 
-      self$set_default(default)
-    },
+      self$default = default
+    }
+  ),
 
-    set_default = function(value) {
-      if (!is.null(value))
-        value$parent = self
-      self$default = value
+  "active" = list(
+    default = function(value) {
+      if (missing(value))
+        return (self$.default)
+
+      self$.default = .reparentAST(value, self)
     }
   )
 )

@@ -153,7 +153,7 @@ toAST.call = function(expr) {
     node = Call$new(toAST(func))
   }
 
-  node$set_args( lapply(expr[-1], toAST) )
+  node$args = lapply(expr[-1], toAST)
   return (node)
 }
 

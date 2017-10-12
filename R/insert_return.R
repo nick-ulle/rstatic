@@ -39,15 +39,15 @@ insertReturn = function(node) {
 
 #' @export
 insertReturn.Function = function(node) {
-  node$set_body( insertReturn(node$body) )
+  node$body = insertReturn(node$body)
 
   node
 }
 
 #' @export
 insertReturn.If = function(node) {
-  node$set_true( insertReturn(node$true) )
-  node$set_false( insertReturn(node$false) )
+  node$true = insertReturn(node$true)
+  node$false = insertReturn(node$false)
 
   node
 }
