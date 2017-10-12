@@ -89,21 +89,14 @@ statement, represented by `Assign` and `Return` objects, respectively.
 braces$body
 ```
 
-Inspecting the first `Assign`, we see that it has members `read`, `set_read`,
-`set_write`, and `write`, in addition to the inherited `ASTNode` members. The
-`write` field holds the variable being assigned (that is, the left side of the
-assignment).
+Inspecting the first `Assign`, we see that it has members `read` and `write` in
+addition to the inherited `ASTNode` members. The `write` field holds the
+variable being assigned (that is, the left side of the assignment).
 ```{r}
 lhs = braces$body[[1]]$write
 
 lhs
 ```
-
-The `set_write` method assigns a value to the `write` field. Unlike assigning
-`write` directly, `set_write` makes sure the `parent` field on the object
-assigned to `write` is updated correctly. The `set_read` method is analogous
-for the `read` field. In general, `set_` methods the preferred way to assign
-values to fields when they are present.
 
 Drilling down further, `lhs` holds a `Symbol`, which has fields `basename`,
 `ssa_number`, and `name` in addition to the inherited members. The `basename`
@@ -220,8 +213,9 @@ We can convert the `markov2` function to a control flow graph with the
 `toCFG()` method. When given a function as input, `toCFG()` will
 automatically convert it to an AST and then convert the AST to a CFG.
 ```{r}
-cfg = toCFG(markov2)
+markov2 = toCFG(markov2)
 
+cfg = markov2$cfg
 class(cfg)
 ```
 

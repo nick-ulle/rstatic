@@ -99,9 +99,8 @@ element, which is why the parameter is displayed as a pairlist.
 ## Assignments
 
 Assignments with `=` or `<-` are represented by the `Assign` class, which has
-fields `read` and `write`, and respective `set_` methods. The `write` field
-holds the left-hand side of the assignment, and the `read` field holds the
-right-hand side.
+fields `read` and `write`. The `write` field holds the left-hand side of the
+assignment, and the `read` field holds the right-hand side.
 
 As an example, consider the code below, which assigns the complex number `3+2i`
 to the variable `z`.
@@ -133,30 +132,22 @@ For instance, the snippet below creates a call to `sum()` with no arguments.
 call_sum = Call$new("sum")
 ```
 
-All `Application`s have an `args` field and `set_args()` method. The `args`
-field holds the list of arguments. For `call_sum`, this is an empty list.
+All `Application`s have an `args` field that holds the list of arguments. For
+`call_sum`, this is an empty list.
 ```{r}
 call_sum$args
 ```
-
-It's not a good idea to set `args` on an `Application` directly, because each
-node in the argument list needs to have its `parent` field set to the
-`Application`. The `set_args()` function takes care of setting `parent` fields,
-so it's the preferred method for setting `args`.
-
 We can set the sum in the example to have two arguments, the integers `4` and
 `6`.
 ```{r}
-args = list(Integer$new(4), Integer$new(6))
-call_sum$set_args(args)
+call_sum$args = list(Integer$new(4), Integer$new(6))
 
 call_sum
 ```
 
 In addition to the members inherited from `Application`, `Call`s also have a
-`fn` field and `set_fn()` method. The `fn` field holds the function being
-called, either as a `Symbol` or as a `Function` (for calls to anonymous
-functions).
+`fn` field that holds the function being called, either as a `Symbol` or as a
+`Function` (for calls to anonymous functions).
 
 In the sum example, the `fn` field is a symbol named `sum`.
 ```{r}
@@ -167,10 +158,9 @@ Specialized calls such as replacement functions and `.Internal()` are
 represented by subclasses of `Call`. This makes it easy to use S3 dispatch to
 treat them like any other `Call` or to handle them as special cases.
 
-The `Replacement` class represents a call to a replacement functions. This
-class does not add any new members, but changes the `set_fn()` method to make
-sure the function name `fn` ends with `"<-"`, which is required for all
-replacement functions.
+The `Replacement` class represents a call to a replacement function. This class
+does not add any new members, but requires that the function name `fn`
+ends with `"<-"`.
 
 The `Internal` class, which represents a call to `.Internal()`, does not add
 any new members or functionality. It exists only to distinguish these calls
@@ -179,9 +169,9 @@ from others.
 ## Braces
 
 Parentheses and curly braces are represented by the `Brace` class. This class
-has fields `body` and `is_paren`, and method `set_body()`. The `is_paren` field
-is `TRUE` if the `Brace` object represents parentheses and `FALSE` if the
-object represents curly braces.
+has fields `body` and `is_paren`. The `is_paren` field is `TRUE` if the `Brace`
+object represents parentheses and `FALSE` if the object represents curly
+braces.
 
 As an example, the code shown below converts a parenthetical expression to a
 `Brace`.
@@ -198,21 +188,17 @@ length for curly braces.
 paren$body
 ```
 
-As usual, the `set_body()` method should be used to set the `body` field rather
-than setting the field directly.
-
 ## Functions & Primitives
 
 Callable objects are represented by the `Callable` class. The `Callable` class
-defines a `params` field and corresponding `set_params()` method. The `params`
-field holds a list of parameters (and default arguments) for the callable
-object.
+defines a `params` field that holds a list of parameters (and default
+arguments) for the callable object.
 
 `Function` and `Primitive`, both subclasses of `Callable`, represent functions
-and primitives, respectively. The `Function` class adds a `body` field and
-`set_body()` method to the members inherited from `Callable`. The `body` field
-holds the single expression inside the function; for functions that contain
-more than one expresion, `body` holds a `Brace` object.
+and primitives, respectively. The `Function` class adds a `body` field to the
+members inherited from `Callable`. The `body` field holds the single expression
+inside the function; for functions that contain more than one expresion, `body`
+holds a `Brace` object.
 
 For example, the code below converts a function to a `Function` object.
 ```{r}
@@ -236,9 +222,9 @@ to_celsius$body
 ```
 
 Since primitives have names but do not contain any R code, the `Primitive`
-class adds a `fn` field and `set_fn()` method to the members inherited from
-`Callable`. The `fn` field holds the name of the primitive, and is similar to
-the `fn` field on the `Call` class.
+class adds a `fn` field to the members inherited from `Callable`. The `fn`
+field holds the name of the primitive, and is similar to the `fn` field on the
+`Call` class.
 
 ## Control Structures
 
@@ -246,10 +232,9 @@ Control structures are represented by the `Next`, `Break`, `If`, `For`, and
 `While` classes. `Next` and `Break` do not add any new functionality to
 `ASTNode`, and are merely meant for method method dispatch.
 
-The `If` class has fields `condition`, `true`, and `false`, with corresponding
-`set_` methods. These fields hold to the if-statement's condition, "if" branch,
-and "else" branch, respectively. The `false` field is `NULL` for if-statements
-that don't have an "else" branch.
+The `If` class has fields `condition`, `true`, and `false`. These fields hold
+to the if-statement's condition, "if" branch, and "else" branch, respectively.
+The `false` field is `NULL` for if-statements that don't have an "else" branch.
 
 For instance, the code below shows the AST for an if-statement.
 ```{r}
@@ -273,15 +258,14 @@ The body of the if-statement is held in the `true` field. The `false` field is
 ast$true
 ```
 
-The `For` class has fields `ivar`, `iter`, and `body`, along with respective
-`set_` methods. The `ivar` field holds the iteration variable, the `iter` field
-holds the object being iterated over, and the `body` field holds the list of
-expressions that make up the body of the loop.
+The `For` class has fields `ivar`, `iter`, and `body`. The `ivar` field holds
+the iteration variable, the `iter` field holds the object being iterated over,
+and the `body` field holds the list of expressions that make up the body of the
+loop.
 
-The `While` class has fields `condition`, `body`, and `is_repeat`. There are
-also set methods `set_condition()` and `set_body()`. Similar to the `If` class,
-the `condition` field holds the condition for the loop. The `body` field holds
-the list of expressions that make up the body of the loop. The `is_repeat`
-field is `TRUE` if the loop is a `repeat` loop and `FALSE` if the loop is a
-`while` loop. When `is_repeat` is `TRUE`, the `condition` field is ignored (and
-defaults to `NULL`).
+The `While` class has fields `condition`, `body`, and `is_repeat`. Similar to
+the `If` class, the `condition` field holds the condition for the loop. The
+`body` field holds the list of expressions that make up the body of the loop.
+The `is_repeat` field is `TRUE` if the loop is a `repeat` loop and `FALSE` if
+the loop is a `while` loop. When `is_repeat` is `TRUE`, the `condition` field
+is ignored (and defaults to `NULL`).
