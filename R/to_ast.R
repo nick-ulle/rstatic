@@ -142,7 +142,6 @@ toAST.call = function(expr) {
     # The standard call syntax applies, so construct an appropriate node.
     node = switch(name,
       "return"      = Return$new()
-      , "invisible" = Return$new(is_invisible = TRUE)
       # TODO: .C .Fortran .Call .External
       , ".Internal" = Internal$new()
       , Call$new(name)

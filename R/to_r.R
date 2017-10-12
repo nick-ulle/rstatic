@@ -89,10 +89,7 @@ toR.Replacement = function(node) {
 
 #' @export
 toR.Return = function(node) {
-  if (node$is_invisible)
-    name = as.symbol("invisible")
-  else
-    name = as.symbol("return")
+  name = as.symbol("return")
 
   args = lapply(node$args, toR)
   as.call(append(name, args))
