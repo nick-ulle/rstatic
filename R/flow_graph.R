@@ -103,10 +103,8 @@ plot.FlowGraph = function(x, ...) {
 #' @export
 ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
   "public" = list(
-    params = list(),
     entry = NULL,
     exit = NULL,
-    ssa = NULL,
 
     initialize = function() {
       super$initialize()
@@ -120,14 +118,6 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
       self$blocks[[self$exit]] = exit_block
 
       return (self)
-    },
-
-    # FIXME: Make sure copying works correctly.
-    set_params = function(value) {
-      for (v in value)
-        v$parent = self
-
-      self$params = value
     }
   )
 )

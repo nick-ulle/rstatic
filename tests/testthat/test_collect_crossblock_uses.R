@@ -9,7 +9,8 @@ test_that("assignment RHSs detected as a crossblock uses", {
       x = 4
     y = x
   })
-  cfg = toCFG(code, ssa = FALSE)
+  node = toCFG(code, ssa = FALSE)
+  cfg = node$cfg
 
   result = collectCrossblockUses(cfg)
   uses = result[[1]]
@@ -28,7 +29,8 @@ test_that("replacement RHSs detected as crossblock uses", {
       x = 4
     y[1] = x
   })
-  cfg = toCFG(code, ssa = FALSE)
+  node = toCFG(code, ssa = FALSE)
+  cfg = node$cfg
 
   result = collectCrossblockUses(cfg)
   uses = result[[1]]
@@ -48,7 +50,8 @@ test_that("arguments detected as crossblock uses", {
       x = 4
     mean(x)
   })
-  cfg = toCFG(code, ssa = FALSE)
+  node = toCFG(code, ssa = FALSE)
+  cfg = node$cfg
 
   result = collectCrossblockUses(cfg)
   uses = result[[1]]

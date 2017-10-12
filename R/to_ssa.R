@@ -4,19 +4,22 @@
 #' This function converts code in a control flow graph (CFG) to static
 #' single-assignment form.
 #'
-#' @param cfg (CFGraph) A control flow graph.
+#' @param node (Function) A function with CFG attached.
 #' @param inPlace (logical) Don't copy CFG before conversion?
-#' @param renameParams (logical) if TRUE, the parameter names are mapped to SSA form, e.g., x becomes x_1. Otherwise, the parameter names remain unaltered in the CFG.
 #' 
-#' @return The control flow graph as a CFGraph object, with the code in each
-#' block converted to SSA form.
+#' @return The function with its control flow graph converted to static
+#' single-assignment form.
 #'
 #' @export
-toSSA = function(cfg, inPlace = FALSE) {
+toSSA = function(node, inPlace = FALSE) {
   # TODO: make this function's implementation more idiomatic.
+  if (!inherits(node, "Function") || is.null(node$cfg))
+    stop("node must be a Function in CFG form. Use toCFG() to convert.")
 
   if (!inPlace)
-    cfg = cfg$copy()
+    node = node$copy()
+
+  cfg = node$cfg
 
   cb = collectCrossblockUses(cfg)
   uses = cb[[1]]
@@ -48,12 +51,11 @@ toSSA = function(cfg, inPlace = FALSE) {
   # Rename variables.
   builder = SSABuilder$new()
 
-  ssaRenameAST(cfg$params, builder)
+  ssaRenameAST(node$params, builder)
   ssaRename(entry_idx, cfg, dom_t, builder)
 
-  cfg$ssa = builder$ssa
-
-  return (cfg)
+  node$ssa = builder$ssa
+  node
 }
 
 

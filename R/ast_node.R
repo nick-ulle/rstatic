@@ -318,8 +318,10 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
 #' @export
 Function = R6::R6Class("Function", inherit = Callable,
   "public" = list(
-    # FIXME: Need to override $copy() here?
+    # FIXME: Need to override $copy() here
     body = NULL,
+    cfg = NULL,
+    ssa = NULL,
 
     initialize = function(params, body, parent = NULL) {
       super$initialize(params, parent)

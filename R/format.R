@@ -23,9 +23,16 @@ format.ASTNode = function(x, indent = 0, ...) {
 #' @export
 print.ASTNode = .print
 
+#' @export
+format.Function = function(x, indent = 0, ...) {
+  if (is.null(x$cfg))
+    return(NextMethod())
+
+  format(x$cfg, tag = .format_tag(x))
+}
 
 #' @export
-format.FlowGraph = function(x, ...) {
+format.FlowGraph = function(x, tag = .format_tag(x), ...) {
   # Format:
   #
   #   <CFGraph> 5 blocks
@@ -36,7 +43,6 @@ format.FlowGraph = function(x, ...) {
   #   %v2 <BasicBlock>
   #   # if (z > 3) %3 else %4
 
-  tag = .format_tag(x)
   msg = if (length(x) == 1) "%i block" else "%i blocks"
   v_count = sprintf(msg, length(x))
 

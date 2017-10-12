@@ -41,29 +41,25 @@ toCFGq = function(expr, ...) {
 #'
 #' @export
 
-toCFG = function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE, ...) {
+toCFG = function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
   UseMethod("toCFG")
 }
 
 #' @export
-toCFG.ASTNode = function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE, ...)
-{
+toCFG.Function =
+function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
+  # FIXME: Use a different parameter name?
   if (!inPlace)
-    ast = ast$copy()
+    node = ast$copy()
+  else
+    node = ast
 
   if(insertReturn)
-     ast = insertReturn(ast)
+    node = insertReturn(node)
 
-  # Set up CFG for a function.
   cfg = ControlFlowGraph$new()
-  if (inherits(ast, "Function")) {
-    cfg$set_params(ast$params)
-    ast = ast$body
-  }
-
   builder = CFGBuilder$new(cfg)
-
-  buildCFG(ast, builder)
+  buildCFG(node$body, builder)
 
   # Always flow to the exit block.
   if (is.na(builder$insert_block))
@@ -71,14 +67,30 @@ toCFG.ASTNode = function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE, 
   else if (builder$insert_block != cfg$exit)
     builder$create_br(cfg$exit)
 
-  if (ssa)
-    cfg = toSSA(cfg, inPlace = TRUE)
+  node$body = NULL
+  node$cfg = cfg
 
-  return (cfg)
+  if (ssa)
+    toSSA(node, inPlace = TRUE)
+
+  node
 }
 
 #' @export
-toCFG.default = function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE, ...) {
+toCFG.ASTNode =
+function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
+  if (!inPlace)
+    ast = ast$copy()
+
+  # This node isn't a Function, so wrap it up in one.
+  ast = Function$new(params = list(), body = ast)
+
+  toCFG.Function(ast, inPlace = TRUE, ssa = ssa, insertReturn = insertReturn)
+}
+
+#' @export
+toCFG.default =
+function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
   ast = toAST(ast)
   toCFG(ast, inPlace = TRUE, ssa = ssa, insertReturn = insertReturn)
 }

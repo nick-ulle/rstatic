@@ -11,7 +11,7 @@ test_that("if-statement graph has correct structure", {
   )
 
   result = toCFG(ast, ssa = FALSE)
-  g = result$graph
+  g = result$cfg$graph
 
   # -----
   expect_true(igraph::isomorphic(g, goal))
@@ -29,7 +29,7 @@ test_that("if-statement with dual returns has correct structure", {
   )
 
   result = toCFG(ast, ssa = FALSE)
-  g = result$graph
+  g = result$cfg$graph
 
   # -----
   expect_true(igraph::isomorphic(g, goal))
@@ -43,7 +43,7 @@ test_that("while-loop graph has correct structure", {
   ast = While$new(Logical$new(TRUE), Integer$new(42L))
 
   result = toCFG(ast, ssa = FALSE)
-  g = result$graph
+  g = result$cfg$graph
 
   # -----
   expect_true(igraph::isomorphic(g, goal))
@@ -60,7 +60,7 @@ test_that("for-loop graph has correct structure", {
   )
 
   result = toCFG(ast, ssa = FALSE)
-  g = result$graph
+  g = result$cfg$graph
 
   # -----
   expect_true(igraph::isomorphic(g, goal))
@@ -71,7 +71,8 @@ test_that("for-loop graph has correct structure", {
 test_that("AST is copied when inPlace = FALSE", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = toCFG(ast, inPlace = FALSE, ssa = FALSE)
+  node = toCFG(ast, inPlace = FALSE, ssa = FALSE)
+  cfg = node$cfg
 
   # -----
   node = cfg[[1]]$body[[1]]
@@ -84,7 +85,8 @@ test_that("AST is copied when inPlace = FALSE", {
 test_that("AST is not copied when inPlace = TRUE", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = toCFG(ast, inPlace = TRUE, ssa = FALSE)
+  node = toCFG(ast, inPlace = TRUE, ssa = FALSE)
+  cfg = node$cfg
 
   # -----
   node = cfg[[1]]$body[[1]]
@@ -97,7 +99,8 @@ test_that("AST is not copied when inPlace = TRUE", {
 test_that("nodes are reparented to containing BasicBlock", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  cfg = toCFG(ast, ssa = FALSE)
+  node = toCFG(ast, ssa = FALSE)
+  cfg = node$cfg
 
   # -----
   expect_identical(cfg[[1]], cfg[[1]]$body[[1]]$parent)
