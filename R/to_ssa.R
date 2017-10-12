@@ -180,8 +180,8 @@ ssaRenameAST.Call = function(node, builder) {
 
 #' @export
 ssaRenameAST.Function = function(node, builder) {
-  # FIXME: Need to record the environment the function is created in for
-  # closures.
+  toSSA(node, inPlace = TRUE)
+
   node
 }
 

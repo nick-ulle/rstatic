@@ -253,6 +253,7 @@ buildCFG.Return = function(node, builder) {
   # For returned assignments, return assigned variable. We could instead skip
   # the assignment altogether and just return the right-hand side.
   if (is(val, "Assign")) {
+    val$parent = node$parent
     buildCFG(val, builder)
     val = val$write$copy()
   }
@@ -275,6 +276,7 @@ buildCFG.Brace = function(node, builder) {
 
 #' @export
 buildCFG.Call = function(node, builder) {
+  nodeApply(node, findFunctions)
   builder$append(node)
   invisible (NULL)
 }
@@ -285,8 +287,21 @@ buildCFG.Assign = buildCFG.Call
 buildCFG.Symbol = buildCFG.Call
 #' @export
 buildCFG.Literal = buildCFG.Call
-# Bare function definitions do not change control flow.
+
+# Function definitions don't change control flow, but still need to compute
+# their CFGs.
 #' @export
 buildCFG.Function = buildCFG.Call
 
 
+findFunctions = function(node) {
+  UseMethod("findFunctions")
+}
+
+#' @export
+findFunctions.Function = function(node) {
+  toCFG.Function(node, inPlace = TRUE, ssa = FALSE)
+}
+
+#' @export
+findFunctions.default = function(node) NULL

@@ -120,12 +120,14 @@ toR.Parameter = function(node) {
 
 #' @export
 toR.Function = function(node) {
-  # TODO: Is there a better way to do this?
-  params = list()
+  params = pairlist()
   for (param in node$params)
     params = append(params, toR(param))
 
-  call("function", as.pairlist(params), toR(node$body))
+  if (is.null(node$body))
+    call("function", as.pairlist(params), as.symbol(".."))
+  else
+    call("function", as.pairlist(params), toR(node$body))
 }
 
 
