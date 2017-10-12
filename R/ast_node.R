@@ -1,18 +1,16 @@
-
 # Classes that represent AST nodes.
 
 #' @export
 ASTNode = R6::R6Class("ASTNode",
   "private" = list(
     deep_clone = function(name, value) {
-      # Don't clone parent nodes; each class' $copy() method is responsible for
-      # reparenting cloned children.
-      switch(name,
-        "parent" = NULL
-        , if (inherits(value, "ASTNode")) value$copy()
-        else if (inherits(value, "R6")) value$clone(deep = TRUE)
-        else value
-      )
+      # Cloning a parent node could result in an infinite cloning loop.
+      # Instead, each object's $copy() method is responsible for setting
+      # $parent on immediate children after the object has been cloned.
+      if (name == "parent")
+        NULL
+      else
+        .copyAST(value)
     }
   ),
 
@@ -23,17 +21,19 @@ ASTNode = R6::R6Class("ASTNode",
       self$parent = parent
     },
 
-    copy = function() {
+    copy = function(...) {
       cloned = self$clone(deep = TRUE)
 
-      # Reparent any ASTNode objects that aren't in the "parent" field.
-      for (name in names(cloned)) {
-        field = cloned[[name]]
-        if (is(field, "ASTNode") && name != "parent")
-          field$parent = cloned
+      # Reparent ASTNode objects that aren't in the "parent" field.
+      names = setdiff(names(cloned), c("parent", ".__enclos_env__"))
+      for (name in names) {
+        if ( bindingIsActive(name, cloned) || is.function(cloned[[name]]) )
+          next
+
+        cloned[[name]] = .reparentAST(cloned[[name]], cloned)
       }
 
-      return (cloned)
+      cloned
     }
   )
 )
@@ -45,15 +45,6 @@ ASTNode = R6::R6Class("ASTNode",
 
 #' @export
 Brace = R6::R6Class("Brace", inherit = ASTNode,
-  "private" = list(
-    deep_clone = function(name, value) {
-      switch(name,
-        "body" = lapply(value, function(v) v$copy())
-        , super$deep_clone(name, value)
-      )
-    }
-  ),
-
   "public" = list(
     body = NULL,
     is_paren = FALSE,
@@ -62,15 +53,6 @@ Brace = R6::R6Class("Brace", inherit = ASTNode,
       super$initialize(parent)
       self$set_body(body)
       self$is_paren = is_paren
-    },
-
-    copy = function() {
-      cloned = super$copy()
-
-      for (x in cloned$body)
-        x$parent = cloned
-
-      return (cloned)
     },
 
     set_body = function(value) {
@@ -191,15 +173,6 @@ While = R6::R6Class("While", inherit = ASTNode,
 
 #' export
 Application = R6::R6Class("Application", inherit = ASTNode,
-  "private" = list(
-    deep_clone = function(name, value) {
-      switch(name,
-        "args" = lapply(value, function(v) v$copy())
-        , super$deep_clone(name, value)
-      )
-    }
-  ),
-
   "public" = list(
     args = NULL,
 
@@ -207,15 +180,6 @@ Application = R6::R6Class("Application", inherit = ASTNode,
       super$initialize(parent)
 
       self$set_args(args)
-    },
-
-    copy = function() {
-      cloned = super$copy()
-
-      for (x in cloned$args)
-        x$parent = cloned
-
-      return (cloned)
     },
 
     set_args = function(value) {
@@ -280,15 +244,6 @@ Internal = R6::R6Class("Internal", inherit = Call,
 
 #' @export
 Callable = R6::R6Class("Callable", inherit = ASTNode,
-  "private" = list(
-    deep_clone = function(name, value) {
-      switch(name,
-        "params" = lapply(value, function(v) v$copy())
-        , super$deep_clone(name, value)
-      )
-    }
-  ),
-
   "public" = list(
     params = NULL,
 
@@ -296,15 +251,6 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
       super$initialize(parent)
 
       self$set_params(params)
-    },
-
-    copy = function() {
-      cloned = super$copy()
-
-      for (x in cloned$params)
-        x$parent = cloned
-
-      return (cloned)
     },
 
     set_params = function(value) {
@@ -542,3 +488,34 @@ Complex = R6::R6Class("Complex", inherit = Literal)
 
 #' @export
 Character = R6::R6Class("Character", inherit = Literal)
+
+
+# Cloning Methods
+# --------------------
+.copyAST         = function(value) UseMethod(".copyAST")
+#' @export
+.copyAST.ASTNode = function(value) value$copy()
+#' @export
+.copyAST.list    = function(value) lapply(value, .copyAST)
+#' @export
+.copyAST.R6      = function(value) value$clone(deep = TRUE)
+#' @export
+.copyAST.default = function(value) value
+
+.reparentAST = function(value, parent)
+  UseMethod(".reparentAST")
+
+#' @export
+.reparentAST.ASTNode = function(value, parent) {
+  value$parent = parent
+  value
+}
+
+#' @export
+.reparentAST.list = function(value, parent) {
+  lapply(value, .reparentAST, parent)
+}
+
+#' @export
+.reparentAST.default = function(value, parent)
+  value

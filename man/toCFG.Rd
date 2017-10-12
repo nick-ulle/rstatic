@@ -4,7 +4,7 @@
 \alias{toCFG}
 \title{Build Control Flow Graph from ASTNodes}
 \usage{
-toCFG(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE, ...)
+toCFG(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE)
 }
 \arguments{
 \item{ast}{A quoted R expression or an abstract syntax tree.}

@@ -4,18 +4,16 @@
 \alias{toSSA}
 \title{Convert CFGraph to Static Single-Assignment Form}
 \usage{
-toSSA(cfg, inPlace = FALSE)
+toSSA(node, inPlace = FALSE)
 }
 \arguments{
-\item{cfg}{(CFGraph) A control flow graph.}
+\item{node}{(Function) A function with CFG attached.}
 
 \item{inPlace}{(logical) Don't copy CFG before conversion?}
-
-\item{renameParams}{(logical) if TRUE, the parameter names are mapped to SSA form, e.g., x becomes x_1. Otherwise, the parameter names remain unaltered in the CFG.}
 }
 \value{
-The control flow graph as a CFGraph object, with the code in each
-block converted to SSA form.
+The function with its control flow graph converted to static
+single-assignment form.
 }
 \description{
 This function converts code in a control flow graph (CFG) to static
