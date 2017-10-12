@@ -1,26 +1,37 @@
-
 # rstatic
 
-__rstatic__ is an R package for low-level static analysis of R code.
+__rstatic__ is a package that makes it easier to analyze R code. These are the
+guiding principles:
 
-__rstatic__ represents R programs as control flow graphs (CFGs) and provides
-extensible functions for analyzing them. CFGs are especially convenient for
-implementing
+*   Reference semantics make code easier to transform. Want to make major
+    code transformations without losing track of an important expression?
+    References have you covered. __rstatic__'s code objects have reference
+    semantics by way of __[R6][]__.
 
-1.  translation to languages with fewer hardware abstractions (for example,
-    assembly languages), and
+*   Method dispatch on code objects makes recursive descent algorithms easier
+    to understand. This is more effective if code is organized into meaningful,
+    extensible classes. __rstatic__'s class hierarchy is arranged according to
+    the semantics of R.
 
-2.  analyses and optimizations from computer science literature.
+*   Access to the parent of a node in an abstract syntax tree is useful for
+    some analyses. __rstatic__ transparently keeps track of each node's
+    parents.
 
-This is because CFGs make potential paths of execution explicit and can model
-any kind of control flow. By default, the package uses CFGs in static
-single-assignment (SSA) form. SSA form provides complementary information about
-data flow in a program by giving each variable (re)definition a unique name.
+*   Access to code elements by name is clearer than by index. We'd rather write
+    `my_call$args[[2]]` to access a call's second argument than `my_call[[3]]`.
+    __rstatic__ uses a consistent set of names for code elements.
 
-The __codetools__, __CodeDepends__, and __lintr__ packages extract similar
-information from R programs, but they focus on presenting the information to
-programmers, transforming R code, and generating new R code.
+*   Abstract syntax trees are not ideal for analyses that need control- and
+    data-flow information. __rstatic__ can convert code to a control flow graph
+    in static single assignment (SSA) form. SSA form exposes data flows by
+    giving each variable definition a unique name.
 
+The __codetools__ and __[CodeDepends][]__ packages use R's built-in language
+objects to extract similar information from code. They may be more appropriate
+for quick, ad-hoc analyses.
+
+[R6]: https://github.com/r-lib/R6
+[CodeDepends]: https://github.com/duncantl/CodeDepends
 
 ## Installation
 
@@ -49,7 +60,7 @@ vignette("rstatic-intro")
 
 See the [to-do list](TODO.md).
 
-
+<!--
 ## Discussion
 
 GNU R has built-in support for treating code as data, referred to variously as
@@ -86,3 +97,4 @@ analysis:
 On the other hand, a _control flow graph_ represents programs as a graph. Edges
 are branches in the program, while nodes (or _basic blocks_) contain code that
 executes without branching.
+-->
