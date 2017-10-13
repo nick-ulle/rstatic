@@ -7,6 +7,7 @@ SSABuilder = R6::R6Class("SSABuilder",
     local_stack = NULL,
     local = character(0),
     ssa = NULL,
+    global_uses = character(0),
 
     initialize = function() {
       self$ssa = FlowGraph$new()
@@ -66,9 +67,11 @@ SSABuilder = R6::R6Class("SSABuilder",
       id = self$ssa$add_vertex()
       self$ssa[[id]] = at
 
-      # FIXME: What about globals?
       if (name %in% names(self$ssa))
         self$ssa$add_edge(name, id)
+      else
+        # Keep track of uses of global variables.
+        self$global_uses = union(self$global_uses, name)
 
       invisible (NULL)
     },
@@ -87,9 +90,8 @@ SSABuilder = R6::R6Class("SSABuilder",
         for (r in reads) {
           if (r %in% defs)
             self$ssa$add_edge(r, name)
-          else {
-            warning(sprintf("not adding global name '%s' to SSA graph.", r))
-          }
+          else
+            self$global_uses = union(self$global_uses, r)
         }
 
       } else {

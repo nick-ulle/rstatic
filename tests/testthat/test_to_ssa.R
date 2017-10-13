@@ -80,6 +80,21 @@ test_that("Phi nodes placed for assign in if in loop", {
   expect_true(has_phi(cfg[["%3"]], "x"))
 })
 
+test_that("uses of global variables are recorded", {
+  result = toCFGq(
+    function(x, y) {
+      y = z + 1
+      x = 3
+      x + y + a
+    }
+  )
+
+  # -----
+  expect_length(result$global_uses, 2)
+  expect_true("z" %in% result$global_uses)
+  expect_true("a" %in% result$global_uses)
+})
+
 
 test_that("ifib", {
 #  ifib = function(n = 0L) {

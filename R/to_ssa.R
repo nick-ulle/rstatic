@@ -55,6 +55,8 @@ toSSA = function(node, inPlace = FALSE) {
   ssaRename(entry_idx, cfg, dom_t, builder)
 
   node$ssa = builder$ssa
+  node$global_uses = builder$global_uses
+
   node
 }
 

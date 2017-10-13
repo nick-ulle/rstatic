@@ -16,19 +16,12 @@
   * [x] explicit `return()` at end of function
   * [ ] *non-breaking:* dead code after `return()`, `next`, `break`
 
-* Control Flow
+* Code Analysis
   * [ ] Collect reads correctly for replacement functions, function
     definitions, and any other missing cases. These need unit tests!
-  * [x] if-statements
-  * [x] while-loops
-  * [x] for-loops
-  * [x] `break` and `next`: keep list of broken nodes
-  * [x] `return()`
-  * [x] Static single-assignment
-  * [x] Treat function names as variables for SSA
-  * [x] Generate unique names for the for-loop helper variable `._iter_`.
-    Nested for-loops will not advance correctly as long as the name is not
-    unique.
+  * [ ] Collect global uses by called functions. Currently `toSSA()` only
+    detects global uses in the function being converted to SSA form (and not in
+    the functions that function calls).
 
 * Syntax Objects (ASTNode subclasses)
   * [x] `(`

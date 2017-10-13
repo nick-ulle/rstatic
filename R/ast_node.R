@@ -296,6 +296,7 @@ Function = R6::R6Class("Function", inherit = Callable,
     .body = NULL,
     cfg = NULL,
     ssa = NULL,
+    global_uses = character(0),
 
     initialize = function(params, body, parent = NULL) {
       super$initialize(params, parent)
