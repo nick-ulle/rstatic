@@ -135,7 +135,6 @@ ssaRename = function(block, cfg, dom_t, builder) {
 #' algorithm.
 #'
 ssaRenameAST = function(node, builder) {
-  # FIXME: This doesn't change function names.
   UseMethod("ssaRenameAST")
 }
 

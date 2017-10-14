@@ -7,7 +7,7 @@ test_that("collecting reads on literals returns empty vector", {
   result = collectReads(code)
 
   # -----
-  expect_equal(length(result), 0)
+  expect_length(result, 0)
   expect_is(result, "character")
 })
 
@@ -28,7 +28,9 @@ test_that("collecting reads on mean(x) returns x", {
   result = collectReads(code)
 
   # -----
-  expect_equal(result, "x")
+  expect_length(result, 2)
+  expect_true("mean" %in% result)
+  expect_true("x" %in% result)
 })
 
 
@@ -41,9 +43,10 @@ test_that("collecting reads on sum(x, 5, y, 7, x) returns x, y", {
   result = collectReads(code)
 
   # -----
+  expect_length(result, 3)
+  expect_true("sum" %in% result)
   expect_true("x" %in% result)
   expect_true("y" %in% result)
-  expect_equal(length(result), 2)
 })
 
 
@@ -77,9 +80,10 @@ test_that("collecting reads on x[i] = y returns i, y", {
   result = collectReads(code)
 
   # -----
+  expect_length(result, 3)
+  expect_true("[<-" %in% result)
   expect_true("i" %in% result)
   expect_true("y" %in% result)
-  expect_equal(length(result), 2)
 })
 
 

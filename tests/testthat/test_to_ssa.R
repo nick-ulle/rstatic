@@ -90,7 +90,8 @@ test_that("uses of global variables are recorded", {
   )
 
   # -----
-  expect_length(result$global_uses, 2)
+  expect_length(result$global_uses, 3)
+  expect_true("+" %in% result$global_uses)
   expect_true("z" %in% result$global_uses)
   expect_true("a" %in% result$global_uses)
 })

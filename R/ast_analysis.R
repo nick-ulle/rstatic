@@ -11,7 +11,6 @@
 #'
 #' @export
 collectReads = function(node) {
-  # FIXME: This doesn't count function names as reads.
   UseMethod("collectReads")
 }
 
@@ -22,25 +21,33 @@ collectReads.Assign = function(node) {
 
 #' @export
 collectReads.Phi = function(node) {
-  names = lapply(node$read, collectReads)
-  return (unique(unlist(names)))
+  names = unlist(lapply(node$read, collectReads))
+
+  unique(names)
 }
 
 #' @export
 collectReads.Application = function(node) {
-  names = lapply(node$args, collectReads)
-  return (unique(unlist(names)))
+  names = unlist(lapply(node$args, collectReads))
+
+  unique(names)
+}
+
+#' @export
+collectReads.Call = function(node) {
+  union(collectReads(node$fn), NextMethod())
 }
 
 #' @export
 collectReads.Brace = function(node) {
-  names = lapply(node$body, collectReads)
-  return (unique(unlist(names)))
+  names = unlist(lapply(node$body, collectReads))
+
+  unique(names)
 }
 
 #' @export
 collectReads.Symbol = function(node) {
-  return (node$name)
+  node$name
 }
 
 #' @export
@@ -50,7 +57,7 @@ collectReads.Parameter = function(node) {
 
 #' @export
 collectReads.Literal = function(node) {
-  return (character(0))
+  character(0)
 }
 
 #' @export
@@ -60,7 +67,7 @@ collectReads.RetTerminator = function(node) {
 
 #' @export
 collectReads.BrTerminator = function(node) {
-  return (character(0))
+  character(0)
 }
 
 #' @export
@@ -77,12 +84,12 @@ collectReads.IterTerminator = function(node) {
 
 #' @export
 collectReads.NULL = function(node) {
-  return (character(0))
+  character(0)
 }
 
 #' @export
 collectReads.Function = function(node) {
-  return (character(0))
+  character(0)
 }
 
 #' @export
