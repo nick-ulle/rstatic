@@ -105,3 +105,20 @@ test_that("nodes are reparented to containing BasicBlock", {
   # -----
   expect_identical(cfg[[1]], cfg[[1]]$body[[1]]$parent)
 })
+
+
+test_that("nested functions have CFG generated", {
+  ast = toASTq(
+    function() {
+      x = 1
+
+      f = function(x) {
+        x = 21
+        x
+      }
+
+      f
+    })
+
+  toCFG(ast)
+})
