@@ -264,6 +264,11 @@ Internal = R6::R6Class("Internal", inherit = Call,
 )
 
 
+#' @export
+Namespace = R6::R6Class("Namespace", inherit = Call)
+
+#' @export
+Subset = R6::R6Class("Subset", inherit = Call)
 
 # Functions
 # --------------------

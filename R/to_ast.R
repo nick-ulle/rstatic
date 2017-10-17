@@ -128,6 +128,9 @@ toAST.call = function(expr) {
   if (inherits(func, "name")) {
     name = as.character(func)
 
+    # FIXME: match.call() would be helpful here but at this point there is no
+    # scoping information available.
+
     # Handle "calls" that don't use the standard call syntax. Most of these are
     # actually keywords.
     if (name == "function")
@@ -144,6 +147,14 @@ toAST.call = function(expr) {
       "return"      = Return$new()
       # TODO: .C .Fortran .Call .External
       , ".Internal" = Internal$new()
+
+      # NOTE: These can all be redefined by users.
+      , "::" = Namespace$new(name)
+      , ":::" = Namespace$new(name)
+      , "[" = Subset$new(name)
+      , "[[" = Subset$new(name)
+      , "$" = Subset$new(name)
+
       , Call$new(name)
     )
 
