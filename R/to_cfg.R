@@ -276,7 +276,7 @@ buildCFG.Brace = function(node, builder) {
 
 #' @export
 buildCFG.Call = function(node, builder) {
-  nodeApply(node, findFunctions)
+  nodeApply(node, functionsToCFG, inPlace = TRUE)
   builder$append(node)
   invisible (NULL)
 }
@@ -294,14 +294,15 @@ buildCFG.Literal = buildCFG.Call
 buildCFG.Function = buildCFG.Call
 
 
-findFunctions = function(node) {
-  UseMethod("findFunctions")
+functionsToCFG = function(node, ...) {
+  UseMethod("functionsToCFG")
 }
 
 #' @export
-findFunctions.Function = function(node) {
+functionsToCFG.Function = function(node, ...) {
   toCFG.Function(node, inPlace = TRUE, ssa = FALSE)
+  node
 }
 
 #' @export
-findFunctions.default = function(node) NULL
+functionsToCFG.default = function(node, ...) node

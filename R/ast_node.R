@@ -457,14 +457,23 @@ Symbol = R6::R6Class("Symbol", inherit = ASTNode,
   "public" = list(
     basename = NULL,
     ssa_number = NULL,
+    namespace = NULL,
+    namespace_fn = NULL,
 
-    initialize = function(basename, ssa_number = NA_integer_, parent = NULL) {
+    initialize = function(
+      basename, ssa_number = NA_integer_,
+      namespace = NA_character_, namespace_fn = NULL,
+      parent = NULL
+    ) {
       if ( !(is.character(basename) || is.symbol(basename)) )
         stop("Symbol basename must be a character or a name.", call. = FALSE)
 
       super$initialize(parent)
       self$basename = as.character(basename)
       self$ssa_number = ssa_number
+
+      self$namespace = namespace
+      self$namespace_fn = namespace_fn
     }
   ),
 

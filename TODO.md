@@ -10,7 +10,7 @@
   * [ ] pull out if-statements nested in other expressions
   * [ ] pull out loops nested in other expressions
   * [ ] determine evaluation order of default arguments
-  * [ ] collapse namespaces onto symbols
+  * [x] collapse namespaces onto symbols
   * [x] `repeat` is `while (TRUE)`
   * [x] replacement functions: parse trees represent `length(x) <- 6` as
   `"<-"(length(x), 6)` but the meaning is `"length<-"(x, 6)`. That is, this is

@@ -101,7 +101,10 @@ toR.Symbol = function(node) {
   if (node$basename == "")
     return (quote(expr = ))
 
-  as.name(node$name)
+  if (is.na(node$namespace))
+    as.name(node$name)
+  else
+    call(node$namespace_fn$name, as.name(node$namespace), as.name(node$name))
 }
 
 

@@ -1,89 +1,116 @@
-nodeApply = function(node, fn) {
-  UseMethod("nodeApply")
+#' Apply Function to AST
+#'
+#' This function applies a function to all elements of an AST. The result is
+#' then stored back into the same position in the AST.
+#'
+#' The typical use-case is to apply simple transformations to the AST without
+#' having to write a method to traverse every class. The tradeoff is that this
+#' function is always slower to run than a hand-written method.
+#'
+#' If you want to collect and return data about nodes without modifying them,
+#' then see \code{nodeCollect()}.
+#'
+#' @param node (ASTNode) The AST.
+#' @param fn (function) The function to apply to each node. The first argument
+#' to the function should be the node itself.
+#' @param ... Additional arguments to \code{fn}.
+#' @param inPlace (logical) Whether the AST should be copied before
+#' transformation.
+#'
+#' @export
+nodeApply = function(node, fn, ..., inPlace = FALSE) {
+  if (!inPlace)
+    node = node$copy()
+
+  nodeApplyUnsafe(node, fn, ...)
+}
+
+nodeApplyUnsafe = function(node, fn, ...) {
+  UseMethod("nodeApplyUnsafe")
 }
 
 #' @export
-nodeApply.Brace = function(node, fn) {
-  lapply(node$body, nodeApply, fn)
+nodeApplyUnsafe.Brace = function(node, fn, ...) {
+  node$body = lapply(node$body, nodeApplyUnsafe, fn, ...)
 
   fn(node)
 }
 
 #' @export
-nodeApply.Next = function(node, fn) fn(node)
+nodeApplyUnsafe.Next = function(node, fn, ...) fn(node, ...)
 #' @export
-nodeApply.Break = function(node, fn) fn(node)
+nodeApplyUnsafe.Break = function(node, fn, ...) fn(node, ...)
 
 #' @export
-nodeApply.If = function(node, fn) {
-  nodeApply(node$condition, fn)
-  nodeApply(node$true, fn)
-  nodeApply(node$false, fn)
+nodeApplyUnsafe.If = function(node, fn, ...) {
+  node$condition = nodeApplyUnsafe(node$condition, fn, ...)
+  node$true      = nodeApplyUnsafe(node$true, fn, ...)
+  node$false     = nodeApplyUnsafe(node$false, fn, ...)
 
-  fn(node)
+  fn(node, ...)
 }
 
 #' @export
-nodeApply.For = function(node, fn) {
-  nodeApply(node$iter, fn)
-  nodeApply(node$ivar, fn)
-  nodeApply(node$body, fn)
+nodeApplyUnsafe.For = function(node, fn, ...) {
+  node$iter = nodeApplyUnsafe(node$iter, fn, ...)
+  node$ivar = nodeApplyUnsafe(node$ivar, fn, ...)
+  node$body = nodeApplyUnsafe(node$body, fn, ...)
 
-  fn(node)
+  fn(node, ...)
 }
 
 #' @export
-nodeApply.While = function(node, fn) {
-  nodeApply(node$condition, fn)
-  nodeApply(node$body, fn)
+nodeApplyUnsafe.While = function(node, fn, ...) {
+  node$condition = nodeApplyUnsafe(node$condition, fn, ...)
+  node$body      = nodeApplyUnsafe(node$body, fn, ...)
 
-  fn(node)
+  fn(node, ...)
 }
 
 #' @export
-nodeApply.Application = function(node, fn) {
-  lapply(node$args, nodeApply, fn)
+nodeApplyUnsafe.Application = function(node, fn, ...) {
+  node$args = lapply(node$args, nodeApplyUnsafe, fn, ...)
   
   fn(node)
 }
 
 #' @export
-nodeApply.Call = function(node, fn) {
-  nodeApply(node$fn, fn)
+nodeApplyUnsafe.Call = function(node, fn, ...) {
+  node$fn = nodeApplyUnsafe(node$fn, fn, ...)
 
   NextMethod()
 }
 
 #' @export
-nodeApply.Callable = function(node, fn) {
-  nodeApply(node$body, fn)
+nodeApplyUnsafe.Callable = function(node, fn, ...) {
+  node$body = nodeApplyUnsafe(node$body, fn, ...)
 
-  fn(node)
+  fn(node, ...)
 }
 
 #' @export
-nodeApply.Primitive = function(node, fn) {
-  nodeApply(node$fn, fn)
+nodeApplyUnsafe.Primitive = function(node, fn, ...) {
+  node$fn = nodeApplyUnsafe(node$fn, fn, ...)
 
   NextMethod()
 }
 
 #' @export
-nodeApply.Assign = function(node, fn) {
-  nodeApply(node$read, fn)
-  nodeApply(node$write, fn)
+nodeApplyUnsafe.Assign = function(node, fn, ...) {
+  node$read  = nodeApplyUnsafe(node$read, fn, ...)
+  node$write = nodeApplyUnsafe(node$write, fn, ...)
 
-  fn(node)
+  fn(node, ...)
 }
 
 #' @export
-nodeApply.Symbol = function(node, fn) fn(node)
+nodeApplyUnsafe.Symbol = function(node, fn, ...) fn(node, ...)
 #' @export
-nodeApply.Parameter = function(node, fn) {
-  nodeApply(node$default, fn)
+nodeApplyUnsafe.Parameter = function(node, fn, ...) {
+  node$default = nodeApplyUnsafe(node$default, fn, ...)
 
   NextMethod()
 }
 
 #' @export
-nodeApply.Literal = function(node, fn) fn(node)
+nodeApplyUnsafe.Literal = function(node, fn, ...) fn(node, ...)
