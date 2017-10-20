@@ -120,5 +120,8 @@ test_that("nested functions have CFG generated", {
       f
     })
 
-  toCFG(ast)
+  result = toCFG(ast)
+
+  # -----
+  expect_is(result$cfg[[1]]$body[[2]]$read$cfg, "ControlFlowGraph")
 })
