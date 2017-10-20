@@ -192,6 +192,9 @@ to_ast.complex   = function(expr, insertReturn = TRUE, ...) Complex$new(expr)
 #' @export
 to_ast.character = function(expr, insertReturn = TRUE, ...) Character$new(expr)
 
+#' @export
+to_ast.expression = function(expr, insertReturn = TRUE, ...) Brace$new(lapply(expr, to_ast, insertReturn = insertReturn, ...), is_paren = FALSE)
+
 
 #' @export
 to_ast.default = function(expr, insertReturn = TRUE, ...) {
