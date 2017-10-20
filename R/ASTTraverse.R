@@ -1,8 +1,9 @@
 astTraverse =
 function(ast, fun, ...)
 {
-  fun(ast, ...)
-  invisible(UseMethod("astTraverse"))
+    status = fun(ast, ...)
+    if(!is.logical(status) || status)
+        invisible(UseMethod("astTraverse"))
 }
 
 astTraverse.Function =
@@ -22,8 +23,9 @@ function(ast, fun, ...)
 astTraverse.Call =
 function(ast, fun, ...)
 {
-  astTraverse(ast$fn, fun, ...)
-  astTraverse(ast$args, fun, ...)  
+    status = astTraverse(ast$fn, fun, ...)
+    if(!is.logical(status) || status)
+       astTraverse(ast$args, fun, ...)  
 }
 
 astTraverse.Brace =
