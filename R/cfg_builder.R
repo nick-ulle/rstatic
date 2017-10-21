@@ -1,6 +1,6 @@
 #' CFG Builder
 #'
-#' This class is used by \code{toCFG()} to build a control flow graph.
+#' This class is used by \code{to_cfg()} to build a control flow graph.
 #'
 #' @export
 CFGBuilder = R6::R6Class("CFGBuilder",

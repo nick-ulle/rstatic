@@ -1,25 +1,25 @@
 context("toSSA")
 
 
-test_that("CFG is copied when inPlace = FALSE", {
+test_that("CFG is copied when in_place = FALSE", {
   # FIXME:
   #cfg = ControlFlowGraph$new()
   ## Can't compute CFG if entry isn't linked to exit.
   #cfg$add_edge(cfg$entry, cfg$exit)
 
-  #result = toSSA(cfg, inPlace = FALSE)
+  #result = toSSA(cfg, in_place = FALSE)
 
   ## -----
   #expect_false(identical(cfg, result))
 })
 
 
-test_that("CFG is not copied when inPlace = FALSE", {
+test_that("CFG is not copied when in_place = FALSE", {
   # FIXME:
   #cfg = ControlFlowGraph$new()
   #cfg$add_edge(cfg$entry, cfg$exit)
 
-  #result = toSSA(cfg, inPlace = TRUE)
+  #result = toSSA(cfg, in_place = TRUE)
 
   ## -----
   #expect_identical(cfg, result)
@@ -27,7 +27,7 @@ test_that("CFG is not copied when inPlace = FALSE", {
 
 
 test_that("SSA form for if-statement is correct", {
-  ast = toASTq({
+  ast = quote_ast({
     if (x > 3) {
       y = 1
     } else {
@@ -37,7 +37,7 @@ test_that("SSA form for if-statement is correct", {
     x = y
   })
 
-  node = toCFG(ast)
+  node = to_cfg(ast)
   cfg = node$cfg
 
   # -----
@@ -63,7 +63,7 @@ test_that("SSA form for if-statement is correct", {
 
 
 test_that("Phi nodes placed for assign in if in loop", {
-  ast = toASTq({
+  ast = quote_ast({
     x = 0
 
     for (i in 2:10) {
@@ -73,7 +73,7 @@ test_that("Phi nodes placed for assign in if in loop", {
     }
   })
 
-  node = toCFG(ast)
+  node = to_cfg(ast)
   cfg = node$cfg
 
   # -----
@@ -81,7 +81,7 @@ test_that("Phi nodes placed for assign in if in loop", {
 })
 
 test_that("uses of global variables are recorded", {
-  result = toCFGq(
+  result = quote_cfg(
     function(x, y) {
       y = z + 1
       x = 3
@@ -116,8 +116,8 @@ test_that("ifib", {
 #    return (new)
 #  }
 #
-#  ast = toAST(ifib)
-#  cfg = toCFG(ast)
+#  ast = to_ast(ifib)
+#  cfg = to_cfg(ast)
 #
 #  # ----
 #  browser()

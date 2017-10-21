@@ -8,12 +8,12 @@
 #' expression.
 #'
 #' @param expr An unquoted R expression.
-#' @param ... Additional arguments to \code{toCFG()}.
+#' @param ... Additional arguments to \code{to_cfg()}.
 #'
 #' @export
-toCFGq = function(expr, ...) {
-  ast = toAST(substitute(expr))
-  toCFG(ast, ...)
+quote_cfg = function(expr, ...) {
+  ast = to_ast(substitute(expr))
+  to_cfg(ast, ...)
 }
 
 
@@ -33,7 +33,7 @@ toCFGq = function(expr, ...) {
 #' for-loop makes a cycle.
 #'
 #' @param ast A quoted R expression or an abstract syntax tree.
-#' @param inPlace (logical) Don't copy AST before generating CFG?
+#' @param in_place (logical) Don't copy AST before generating CFG?
 #' @param ssa (logical) Return CFG in SSA form?
 #'
 #' @return The control flow graph as a CFGraph object. The \code{[[} operator
@@ -41,25 +41,25 @@ toCFGq = function(expr, ...) {
 #'
 #' @export
 
-toCFG = function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
-  UseMethod("toCFG")
+to_cfg = function(ast, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+  UseMethod("to_cfg")
 }
 
 #' @export
-toCFG.Function =
-function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
+to_cfg.Function =
+function(ast, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   # FIXME: Use a different parameter name?
-  if (!inPlace)
+  if (!in_place)
     node = ast$copy()
   else
     node = ast
 
-  if(insertReturn)
-    node = insertReturn(node)
+  if(insert_return)
+    node = insert_return(node)
 
   cfg = ControlFlowGraph$new()
   builder = CFGBuilder$new(cfg)
-  buildCFG(node$body, builder)
+  build_cfg(node$body, builder)
 
   # Always flow to the exit block.
   if (is.na(builder$insert_block))
@@ -71,28 +71,28 @@ function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
   node$cfg = cfg
 
   if (ssa)
-    toSSA(node, inPlace = TRUE)
+    to_ssa(node, in_place = TRUE)
 
   node
 }
 
 #' @export
-toCFG.ASTNode =
-function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
-  if (!inPlace)
+to_cfg.ASTNode =
+function(ast, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+  if (!in_place)
     ast = ast$copy()
 
   # This node isn't a Function, so wrap it up in one.
   ast = Function$new(params = list(), body = ast)
 
-  toCFG.Function(ast, inPlace = TRUE, ssa = ssa, insertReturn = insertReturn)
+  to_cfg.Function(ast, in_place = TRUE, ssa = ssa, insert_return = insert_return)
 }
 
 #' @export
-toCFG.default =
-function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
-  ast = toAST(ast)
-  toCFG(ast, inPlace = TRUE, ssa = ssa, insertReturn = insertReturn)
+to_cfg.default =
+function(ast, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+  ast = to_ast(ast)
+  to_cfg(ast, in_place = TRUE, ssa = ssa, insert_return = insert_return)
 }
 
 
@@ -101,21 +101,21 @@ function(ast, inPlace = FALSE, ssa = TRUE, insertReturn = TRUE) {
 #' This helper function does a depth-first traversal of an AST in order to
 #' build basic blocks for a CFG.
 #'
-#' Generally, this function should only be called from \code{toCFG()}.
+#' Generally, this function should only be called from \code{to_cfg()}.
 #'
 #' @param node (ASTNode) An ASTNode to build the graph from.
 #' @param builder (CFGBuilder) The graph builder.
 #'
-buildCFG = function(node, builder) {
+build_cfg = function(node, builder) {
   # Don't do anything if no insert block is set.
   if (is.na(builder$insert_block))
     invisible (NULL)
   
-  UseMethod("buildCFG")
+  UseMethod("build_cfg")
 }
 
 #' @export
-buildCFG.If = function(node, builder) {
+build_cfg.If = function(node, builder) {
   entry_t = builder$new_block()
   entry_f = builder$new_block()
   builder$create_cond_br(entry_t, entry_f, node$condition)
@@ -123,7 +123,7 @@ buildCFG.If = function(node, builder) {
   # FIXME: 
   exit = builder$new_block()
 
-  buildCFG(node$true, builder)
+  build_cfg(node$true, builder)
   # Flow to the exit if control didn't flow elsewhere.
   true_flows_to_exit = !is.na(builder$insert_block)
   if (true_flows_to_exit)
@@ -131,7 +131,7 @@ buildCFG.If = function(node, builder) {
 
   builder$insert_block = entry_f
   if (!is.null(node$false))
-    buildCFG(node$false, builder)
+    build_cfg(node$false, builder)
 
   if (!is.na(builder$insert_block)) # false flows to exit
     builder$create_br(exit)
@@ -148,7 +148,7 @@ buildCFG.If = function(node, builder) {
 
 
 #' @export
-buildCFG.While = function(node, builder) {
+build_cfg.While = function(node, builder) {
   entry = builder$new_block()
   builder$create_br(entry)
 
@@ -159,7 +159,7 @@ buildCFG.While = function(node, builder) {
   # Push a new context so break/next flow to the correct place.
   builder$loop_push(entry, exit)
 
-  buildCFG(node$body, builder)
+  build_cfg(node$body, builder)
   if (!is.na(builder$insert_block))
     builder$create_br(entry)
 
@@ -171,7 +171,7 @@ buildCFG.While = function(node, builder) {
 
 
 #' @export
-buildCFG.For = function(node, builder) {
+build_cfg.For = function(node, builder) {
   # Loop Setup (before entry)
   # =========================
   # Initialize the iterator.
@@ -219,7 +219,7 @@ buildCFG.For = function(node, builder) {
   # Push a new context so break/next flow to the correct place.
   builder$loop_push(entry, exit)
 
-  buildCFG(node$body, builder)
+  build_cfg(node$body, builder)
   if (!is.na(builder$insert_block))
     builder$create_br(entry)
 
@@ -231,21 +231,21 @@ buildCFG.For = function(node, builder) {
 
 
 #' @export
-buildCFG.Break = function(node, builder) {
+build_cfg.Break = function(node, builder) {
   builder$create_break()
   invisible (NULL)
 }
 
 
 #' @export
-buildCFG.Next = function(node, builder) {
+build_cfg.Next = function(node, builder) {
   builder$create_next()
   invisible (NULL)
 }
 
 
 #' @export
-buildCFG.Return = function(node, builder) {
+build_cfg.Return = function(node, builder) {
   # NOTE: We could keep the Return instead of creating a ._retval_ variable.
 
   val = node$args[[1]]
@@ -254,12 +254,12 @@ buildCFG.Return = function(node, builder) {
   # the assignment altogether and just return the right-hand side.
   if (is(val, "Assign")) {
     val$parent = node$parent
-    buildCFG(val, builder)
+    build_cfg(val, builder)
     val = val$write$copy()
   }
 
   assign = Assign$new(Symbol$new("._return_"), val)
-  buildCFG(assign, builder)
+  build_cfg(assign, builder)
   builder$create_ret()
 
   invisible (NULL)
@@ -267,42 +267,42 @@ buildCFG.Return = function(node, builder) {
 
 
 #' @export
-buildCFG.Brace = function(node, builder) {
+build_cfg.Brace = function(node, builder) {
   # Handle all subexpressions; they'll automatically be added to the graph.
-  lapply(node$body, buildCFG, builder)
+  lapply(node$body, build_cfg, builder)
   invisible (NULL)
 }
 
 
 #' @export
-buildCFG.Call = function(node, builder) {
-  nodeApply(node, functionsToCFG, inPlace = TRUE)
+build_cfg.Call = function(node, builder) {
+  node_apply(node, functions_to_cfg, in_place = TRUE)
   builder$append(node)
   invisible (NULL)
 }
 
 #' @export
-buildCFG.Assign = buildCFG.Call
+build_cfg.Assign = build_cfg.Call
 #' @export
-buildCFG.Symbol = buildCFG.Call
+build_cfg.Symbol = build_cfg.Call
 #' @export
-buildCFG.Literal = buildCFG.Call
+build_cfg.Literal = build_cfg.Call
 
 # Function definitions don't change control flow, but still need to compute
 # their CFGs.
 #' @export
-buildCFG.Function = buildCFG.Call
+build_cfg.Function = build_cfg.Call
 
 
-functionsToCFG = function(node, ...) {
-  UseMethod("functionsToCFG")
+functions_to_cfg = function(node, ...) {
+  UseMethod("functions_to_cfg")
 }
 
 #' @export
-functionsToCFG.Function = function(node, ...) {
-  toCFG.Function(node, inPlace = TRUE, ssa = FALSE)
+functions_to_cfg.Function = function(node, ...) {
+  to_cfg.Function(node, in_place = TRUE, ssa = FALSE)
   node
 }
 
 #' @export
-functionsToCFG.default = function(node, ...) node
+functions_to_cfg.default = function(node, ...) node

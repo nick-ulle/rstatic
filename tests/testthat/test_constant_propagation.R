@@ -2,12 +2,12 @@ context("constant propagation")
 
 
 test_that("constants are propagated in linear code", {
-  cfg = toCFGq({
+  cfg = quote_cfg({
     x <- 1
     y <- x
   })
 
-  const = propagateConstants(cfg)
+  const = propagate_constants(cfg)
 
   # -----
   expect_identical(const[["x_1"]], 1)
@@ -16,7 +16,7 @@ test_that("constants are propagated in linear code", {
 
 
 test_that("constants are propagated through phi functions", {
-  cfg = toCFGq({
+  cfg = quote_cfg({
     if (TRUE) {
       x <- 1
     } else {
@@ -25,7 +25,7 @@ test_that("constants are propagated through phi functions", {
     y <- x
   })
 
-  const = propagateConstants(cfg)
+  const = propagate_constants(cfg)
 
   # -----
   expect_identical(const[["x_1"]], 1)
@@ -34,7 +34,7 @@ test_that("constants are propagated through phi functions", {
 
 
 test_that("unknowns are not propagated", {
-  cfg = toCFGq({
+  cfg = quote_cfg({
     x = rnorm(1)
     if (x > 0) {
       x <- 1
@@ -44,7 +44,7 @@ test_that("unknowns are not propagated", {
     y <- x
   })
 
-  const = propagateConstants(cfg)
+  const = propagate_constants(cfg)
 
   # -----
   expect_identical(const[["x_1"]], NONCONST)
@@ -56,14 +56,14 @@ test_that("unknowns are not propagated", {
 
 
 test_that("loop variables are nonconstant", {
-  cfg = toCFGq({
+  cfg = quote_cfg({
     x = 42L
     for (i in 1:10) {
       x = i
     }
   })
 
-  const = propagateConstants(cfg)
+  const = propagate_constants(cfg)
 
   # -----
   expect_identical(const[["._counter_i_2"]], NONCONST)
@@ -74,13 +74,13 @@ test_that("loop variables are nonconstant", {
 
 
 test_that("constants propagate through arithmetic", {
-  cfg = toCFGq({
+  cfg = quote_cfg({
     x = 1
     y = x + 3
     z = (y * 7) / 4
   })
 
-  const = propagateConstants(cfg)
+  const = propagate_constants(cfg)
 
   ## -----
   expect_equal(const[["x_1"]], 1L)

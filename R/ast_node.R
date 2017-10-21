@@ -10,7 +10,7 @@ ASTNode = R6::R6Class("ASTNode",
       if (name == "parent")
         NULL
       else
-        .copyAST(value)
+        .copy_ast(value)
     }
   ),
 
@@ -30,7 +30,7 @@ ASTNode = R6::R6Class("ASTNode",
         if ( bindingIsActive(name, cloned) || is.function(cloned[[name]]) )
           next
 
-        cloned[[name]] = .reparentAST(cloned[[name]], cloned)
+        cloned[[name]] = .reparent_ast(cloned[[name]], cloned)
       }
 
       cloned
@@ -61,7 +61,7 @@ Brace = R6::R6Class("Brace", inherit = ASTNode,
       if (missing(value))
         return (self$.body)
 
-      self$.body = .reparentAST(value, self)
+      self$.body = .reparent_ast(value, self)
     }
   )
 )
@@ -98,21 +98,21 @@ If = R6::R6Class("If", inherit = ASTNode,
       if (missing(value))
         return (self$.condition)
 
-      self$.condition = .reparentAST(value, self)
+      self$.condition = .reparent_ast(value, self)
     },
 
     true = function(value) {
       if (missing(value))
         return (self$.true)
 
-      self$.true = .reparentAST(value, self)
+      self$.true = .reparent_ast(value, self)
     },
 
     false = function(value) {
       if (missing(value))
         return (self$.false)
 
-      self$.false = .reparentAST(value, self)
+      self$.false = .reparent_ast(value, self)
     }
   )
 )
@@ -138,21 +138,21 @@ For = R6::R6Class("For", inherit = ASTNode,
       if (missing(value))
         return (self$.ivar)
 
-      self$.ivar = .reparentAST(value, self)
+      self$.ivar = .reparent_ast(value, self)
     },
 
     iter = function(value) {
       if (missing(value))
         return (self$.iter)
 
-      self$.iter = .reparentAST(value, self)
+      self$.iter = .reparent_ast(value, self)
     },
 
     body = function(value) {
       if (missing(value))
         return (self$.body)
 
-      self$.body = .reparentAST(value, self)
+      self$.body = .reparent_ast(value, self)
     }
   )
 )
@@ -178,14 +178,14 @@ While = R6::R6Class("While", inherit = ASTNode,
       if (missing(value))
         return (self$.condition)
 
-      self$.condition = .reparentAST(value, self)
+      self$.condition = .reparent_ast(value, self)
     },
 
     body = function(value) {
       if (missing(value))
         return (self$.body)
 
-      self$.body = .reparentAST(value, self)
+      self$.body = .reparent_ast(value, self)
     }
   )
 )
@@ -211,7 +211,7 @@ Application = R6::R6Class("Application", inherit = ASTNode,
       if (missing(value))
         return (self$.args)
 
-      self$.args = .reparentAST(value, self)
+      self$.args = .reparent_ast(value, self)
     }
   )
 )
@@ -249,7 +249,7 @@ Call = R6::R6Class("Call", inherit = Application,
       if (!inherits(value, "ASTNode"))
         value = Symbol$new(value)
 
-      self$.fn = .reparentAST(value, self)
+      self$.fn = .reparent_ast(value, self)
     }
   )
 )
@@ -290,7 +290,7 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
       if (missing(value))
         return (self$.params)
 
-      self$.params = .reparentAST(value, self)
+      self$.params = .reparent_ast(value, self)
     }
   )
 )
@@ -315,7 +315,7 @@ Function = R6::R6Class("Function", inherit = Callable,
       if (missing(value))
         return (self$.body)
 
-      self$.body = .reparentAST(value, self)
+      self$.body = .reparent_ast(value, self)
     }
   )
 )
@@ -340,7 +340,7 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
       if (!inherits(value, "Symbol"))
         value = Symbol$new(value)
 
-      self$.fn = .reparentAST(value, self)
+      self$.fn = .reparent_ast(value, self)
     }
   )
 )
@@ -369,14 +369,14 @@ Assign = R6::R6Class("Assign", inherit = ASTNode,
       if (missing(value))
         return (self$.write)
 
-      self$.write = .reparentAST(value, self)
+      self$.write = .reparent_ast(value, self)
     },
 
     read = function(value) {
       if (missing(value))
         return (self$.read)
 
-      self$.read = .reparentAST(value, self)
+      self$.read = .reparent_ast(value, self)
     }
   )
 )
@@ -442,7 +442,7 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
       if (!inherits(value, "Symbol"))
         value = Symbol$new(value)
 
-      self$.write = .reparentAST(value, self)
+      self$.write = .reparent_ast(value, self)
     }
   )
 )
@@ -507,7 +507,7 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
       if (missing(value))
         return (self$.default)
 
-      self$.default = .reparentAST(value, self)
+      self$.default = .reparent_ast(value, self)
     }
   )
 )
@@ -556,30 +556,30 @@ Character = R6::R6Class("Character", inherit = Literal)
 
 # Cloning Methods
 # --------------------
-.copyAST         = function(value) UseMethod(".copyAST")
+.copy_ast         = function(value) UseMethod(".copy_ast")
 #' @export
-.copyAST.ASTNode = function(value) value$copy()
+.copy_ast.ASTNode = function(value) value$copy()
 #' @export
-.copyAST.list    = function(value) lapply(value, .copyAST)
+.copy_ast.list    = function(value) lapply(value, .copy_ast)
 #' @export
-.copyAST.R6      = function(value) value$clone(deep = TRUE)
+.copy_ast.R6      = function(value) value$clone(deep = TRUE)
 #' @export
-.copyAST.default = function(value) value
+.copy_ast.default = function(value) value
 
-.reparentAST = function(value, parent)
-  UseMethod(".reparentAST")
+.reparent_ast = function(value, parent)
+  UseMethod(".reparent_ast")
 
 #' @export
-.reparentAST.ASTNode = function(value, parent) {
+.reparent_ast.ASTNode = function(value, parent) {
   value$parent = parent
   value
 }
 
 #' @export
-.reparentAST.list = function(value, parent) {
-  lapply(value, .reparentAST, parent)
+.reparent_ast.list = function(value, parent) {
+  lapply(value, .reparent_ast, parent)
 }
 
 #' @export
-.reparentAST.default = function(value, parent)
+.reparent_ast.default = function(value, parent)
   value

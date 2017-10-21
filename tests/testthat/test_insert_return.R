@@ -1,9 +1,9 @@
-context("insertReturn")
+context("insert_return")
 
 test_that("return inserted for Literal", {
-  ast = toASTq(3.14)
+  ast = quote_ast(3.14)
 
-  result = insertReturn(ast)
+  result = insert_return(ast)
 
   # -----
   expect_is(result, "Return")
@@ -12,9 +12,9 @@ test_that("return inserted for Literal", {
 
 
 test_that("return inserted for Symbol", {
-  ast = toASTq(x)
+  ast = quote_ast(x)
 
-  result = insertReturn(ast)
+  result = insert_return(ast)
 
   # -----
   expect_is(result, "Return")
@@ -23,9 +23,9 @@ test_that("return inserted for Symbol", {
 
 
 test_that("return inserted for Call", {
-  ast = toASTq(sum(x, 1, 3))
+  ast = quote_ast(sum(x, 1, 3))
 
-  result = insertReturn(ast)
+  result = insert_return(ast)
 
   # -----
   expect_is(result, "Return")
@@ -34,9 +34,9 @@ test_that("return inserted for Call", {
 
 
 test_that("return inserted for Assign", {
-  ast = toASTq(x <- 3)
+  ast = quote_ast(x <- 3)
 
-  result = insertReturn(ast)
+  result = insert_return(ast)
 
   # -----
   expect_is(result, "Return")
@@ -45,11 +45,11 @@ test_that("return inserted for Assign", {
 
 
 test_that("return inserted after While, without duplicate Brace", {
-  ast = toASTq({
+  ast = quote_ast({
     while (x < 10) x = x + 1
   })
 
-  result = insertReturn(ast)
+  result = insert_return(ast)
 
   # -----
   expect_is(result, "Brace")
@@ -63,11 +63,11 @@ test_that("return inserted after While, without duplicate Brace", {
 
 
 test_that("return inserted after While, adding Brace", {
-  ast = toASTq(
+  ast = quote_ast(
     while (x < 10) x = x + 1
   )
 
-  result = insertReturn(ast)
+  result = insert_return(ast)
 
   # -----
   expect_is(result, "Brace")
@@ -83,9 +83,9 @@ test_that("return inserted after While, adding Brace", {
 test_that("return inserted for Function", {
   f = function(x) 42L
 
-  ast = toAST(f)
+  ast = to_ast(f)
 
-  result = insertReturn(ast)
+  result = insert_return(ast)
 
   # -----
   expect_is(result, "Function")

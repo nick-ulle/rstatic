@@ -1,10 +1,10 @@
 
-context("collapseNamespaces")
+context("collapse_namespaces")
 
-test_that("namespaces are collapsed (inPlace = FALSE)", {
-  node = toASTq( rstatic::foo )
+test_that("namespaces are collapsed (in_place = FALSE)", {
+  node = quote_ast( rstatic::foo )
 
-  result = collapseNamespaces(node)
+  result = collapse_namespaces(node)
 
   # -----
   expect_is(result, "Symbol")
@@ -16,10 +16,10 @@ test_that("namespaces are collapsed (inPlace = FALSE)", {
 })
 
 
-test_that("namespaces are collapsed (inPlace = TRUE)", {
-  node = toASTq( x <- rstatic::foo )
+test_that("namespaces are collapsed (in_place = TRUE)", {
+  node = quote_ast( x <- rstatic::foo )
 
-  result = collapseNamespaces(node, inPlace = TRUE)
+  result = collapse_namespaces(node, in_place = TRUE)
 
   # -----
   expect_true(identical(node$read, result$read))

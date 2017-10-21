@@ -10,90 +10,90 @@
 #' @param node (ASTNode) An abstract syntax tree.
 #'
 #' @export
-collectReads = function(node) {
-  UseMethod("collectReads")
+collect_reads = function(node) {
+  UseMethod("collect_reads")
 }
 
 #' @export
-collectReads.Assign = function(node) {
-  collectReads(node$read)
+collect_reads.Assign = function(node) {
+  collect_reads(node$read)
 }
 
 #' @export
-collectReads.Phi = function(node) {
-  names = unlist(lapply(node$read, collectReads))
+collect_reads.Phi = function(node) {
+  names = unlist(lapply(node$read, collect_reads))
 
   unique(names)
 }
 
 #' @export
-collectReads.Application = function(node) {
-  names = unlist(lapply(node$args, collectReads))
+collect_reads.Application = function(node) {
+  names = unlist(lapply(node$args, collect_reads))
 
   unique(names)
 }
 
 #' @export
-collectReads.Call = function(node) {
-  union(collectReads(node$fn), NextMethod())
+collect_reads.Call = function(node) {
+  union(collect_reads(node$fn), NextMethod())
 }
 
 #' @export
-collectReads.Brace = function(node) {
-  names = unlist(lapply(node$body, collectReads))
+collect_reads.Brace = function(node) {
+  names = unlist(lapply(node$body, collect_reads))
 
   unique(names)
 }
 
 #' @export
-collectReads.Symbol = function(node) {
+collect_reads.Symbol = function(node) {
   node$name
 }
 
 #' @export
-collectReads.Parameter = function(node) {
-  collectReads(node$default)
+collect_reads.Parameter = function(node) {
+  collect_reads(node$default)
 }
 
 #' @export
-collectReads.Literal = function(node) {
+collect_reads.Literal = function(node) {
   character(0)
 }
 
 #' @export
-collectReads.RetTerminator = function(node) {
-  collectReads(node$value)
+collect_reads.RetTerminator = function(node) {
+  collect_reads(node$value)
 }
 
 #' @export
-collectReads.BrTerminator = function(node) {
+collect_reads.BrTerminator = function(node) {
   character(0)
 }
 
 #' @export
-collectReads.CondBrTerminator = function(node) {
-  collectReads(node$condition)
+collect_reads.CondBrTerminator = function(node) {
+  collect_reads(node$condition)
 }
 
 #' @export
-collectReads.IterTerminator = function(node) {
+collect_reads.IterTerminator = function(node) {
   # FIXME: This shouldn't be a special case of CondBr. Loop code is generated
   # with the CFG, and that should include the loop's condition.
-  collectReads(node$iter)
+  collect_reads(node$iter)
 }
 
 #' @export
-collectReads.NULL = function(node) {
+collect_reads.NULL = function(node) {
   character(0)
 }
 
 #' @export
-collectReads.Function = function(node) {
+collect_reads.Function = function(node) {
   character(0)
 }
 
 #' @export
-collectReads.default = function(node) {
+collect_reads.default = function(node) {
   msg = sprintf(
     "Cannot collect reads for object of class '%s'.", class(node)[[1]]
   )

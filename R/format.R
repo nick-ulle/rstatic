@@ -16,7 +16,7 @@ format.ASTNode = function(x, indent = 0, ...) {
   members = members[order(is_method, members)]
   members = paste("$", members, sep = "", collapse = " ")
 
-  code = deparse_string(toR(x))
+  code = deparse_string(to_r(x))
   sprintf("<%s> %s\n%s", class(x)[1], members, code)
 }
 
@@ -70,7 +70,7 @@ format.BasicBlock = function(x, show_body = TRUE, ...) {
   display = paste0("# ", format(x$terminator, show_tag = FALSE))
 
   if (show_body) {
-    to_str = function(line) deparse_string(toR(line))
+    to_str = function(line) deparse_string(to_r(line))
 
     phi = vapply(x$phi, to_str, character(1))
     body = vapply(x$body, to_str, character(1))
@@ -89,7 +89,7 @@ print.BasicBlock = .print
 
 #' @export
 format.RetTerminator = function(x, show_tag = TRUE, ...) {
-  value = deparse_string(toR(x$value))
+  value = deparse_string(to_r(x$value))
   term = sprintf("ret %s", value)
 
   if (show_tag)
@@ -114,7 +114,7 @@ format.BrTerminator = function(x, show_tag = TRUE, ...) {
 
 #' @export
 format.CondBrTerminator = function(x, show_tag = TRUE, ...) {
-  condition = deparse_string(toR(x$condition))
+  condition = deparse_string(to_r(x$condition))
   term = sprintf("br (%s) %s, %s", condition, x$true, x$false)
 
   if (show_tag)
@@ -127,8 +127,8 @@ format.CondBrTerminator = function(x, show_tag = TRUE, ...) {
 
 #format.IterTerminator = function(x, show_tag = TRUE, ...) {
 #
-#  ivar = deparse_string(toR(x$ivar))
-#  iter = deparse_string(toR(x$iter))
+#  ivar = deparse_string(to_r(x$ivar))
+#  iter = deparse_string(to_r(x$iter))
 #  term = sprintf("iter (%s in %s) %s, %s", ivar, iter, x$true, x$false)
 #
 #  if (show_tag)

@@ -6,32 +6,32 @@
 #' \code{:::}.
 #'
 #' @param node (ASTNode) The AST.
-#' @param inPlace (logical) Whether the AST should be copied before
+#' @param in_place (logical) Whether the AST should be copied before
 #' transformation.
 #'
 #' @export
-collapseNamespaces = function(node, inPlace = FALSE) {
-  if (inPlace && inherits(node, "Namespace"))
-    warning("inPlace = TRUE and root node is a Namespace.\n",
+collapse_namespaces = function(node, in_place = FALSE) {
+  if (in_place && inherits(node, "Namespace"))
+    warning("in_place = TRUE and root node is a Namespace.\n",
       "  Use node$args[[1]] to get the new root node.")
 
-  nodeApply(node, collapseNodeNamespaces, inPlace = inPlace)
+  node_apply(node, collapse_node_namespaces, in_place = in_place)
 }
 
 #' Collapse A Namespace Node
 #'
 #' This function will collapse a Namespace node onto the Symbol in its second
-#' argument. Typically this will be used with \code{nodeApply()} or through the
-#' frontend \code{collapseNamespaces()}.
+#' argument. Typically this will be used with \code{node_apply()} or through the
+#' frontend \code{collapse_namespaces()}.
 #'
 #' @param node (ASTNode) The ASTNode to collapse.
 #' @export
-collapseNodeNamespaces = function(node, ...) {
-  UseMethod("collapseNodeNamespaces")
+collapse_node_namespaces = function(node, ...) {
+  UseMethod("collapse_node_namespaces")
 }
 
 #' export
-collapseNodeNamespaces.Namespace = function(node, ...) {
+collapse_node_namespaces.Namespace = function(node, ...) {
   name = node$args[[2]]
 
   name$namespace = node$args[[1]]$name
@@ -44,4 +44,4 @@ collapseNodeNamespaces.Namespace = function(node, ...) {
 }
 
 #' export
-collapseNodeNamespaces.default = function(node, ...) node
+collapse_node_namespaces.default = function(node, ...) node

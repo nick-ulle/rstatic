@@ -1,7 +1,7 @@
-context("toAST")
+context("to_ast")
 
 test_that("call args have correct parent", {
-  result = toAST( call("is.na", 42L) )
+  result = to_ast( call("is.na", 42L) )
 
   # -----
   expect_is(result, "Call")
@@ -11,7 +11,7 @@ test_that("call args have correct parent", {
 
 
 test_that("primitives are converted to Primitives", {
-  result = toAST(sum)
+  result = to_ast(sum)
 
   # -----
   expect_is(result, "Primitive")
@@ -30,7 +30,7 @@ test_that("primitives are converted to Primitives", {
 
 
 test_that("functions are converted to Functions", {
-  result = toAST(ifelse)
+  result = to_ast(ifelse)
 
   # -----
   expect_is(result, "Function")
@@ -52,7 +52,7 @@ test_that("functions are converted to Functions", {
 
 
 test_that("functions with no params are converted to Functions", {
-  result = toAST(function() 42L)
+  result = to_ast(function() 42L)
 
   # -----
   expect_is(result, "Function")
@@ -63,7 +63,7 @@ test_that("functions with no params are converted to Functions", {
 test_that("function definitions are converted to Functions", {
   code = quote(function(a, b = 3) 42L)
 
-  result = toAST(code)
+  result = to_ast(code)
 
   # -----
   expect_is(result, "Function")

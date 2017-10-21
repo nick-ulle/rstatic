@@ -21,7 +21,7 @@ RetTerminator = R6::R6Class("RetTerminator", inherit = Terminator,
       if (missing(value))
         return (self$.value)
 
-      self$.value = .reparentAST(value, self)
+      self$.value = .reparent_ast(value, self)
     }
   )
 )
@@ -61,7 +61,7 @@ CondBrTerminator = R6::R6Class("CondBrTerminator", inherit = Terminator,
       if (missing(value))
         return (self$.condition)
 
-      self$.condition = .reparentAST(value, self)
+      self$.condition = .reparent_ast(value, self)
     }
   )
 )
@@ -84,14 +84,14 @@ IterTerminator = R6::R6Class("IterTerminator", inherit = CondBrTerminator,
       if (missing(value))
         return (self$.ivar)
 
-      self$.ivar = .reparentAST(value, self)
+      self$.ivar = .reparent_ast(value, self)
     },
 
     iter = function(value) {
       if (missing(value))
         return (self$.iter)
 
-      self$.iter = .reparentAST(value, self)
+      self$.iter = .reparent_ast(value, self)
     }
   )
 )

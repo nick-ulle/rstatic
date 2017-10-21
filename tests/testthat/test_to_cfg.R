@@ -1,4 +1,4 @@
-context("toCFG")
+context("to_cfg")
 
 test_that("if-statement graph has correct structure", {
   goal = igraph::make_empty_graph(n = 4)
@@ -10,7 +10,7 @@ test_that("if-statement graph has correct structure", {
     Assign$new(Symbol$new("x"), Integer$new(4L))
   )
 
-  result = toCFG(ast, ssa = FALSE)
+  result = to_cfg(ast, ssa = FALSE)
   g = result$cfg$graph
 
   # -----
@@ -28,7 +28,7 @@ test_that("if-statement with dual returns has correct structure", {
     Return$new(Integer$new(-1))
   )
 
-  result = toCFG(ast, ssa = FALSE)
+  result = to_cfg(ast, ssa = FALSE)
   g = result$cfg$graph
 
   # -----
@@ -42,7 +42,7 @@ test_that("while-loop graph has correct structure", {
 
   ast = While$new(Logical$new(TRUE), Integer$new(42L))
 
-  result = toCFG(ast, ssa = FALSE)
+  result = to_cfg(ast, ssa = FALSE)
   g = result$cfg$graph
 
   # -----
@@ -59,7 +59,7 @@ test_that("for-loop graph has correct structure", {
     Integer$new(42L)
   )
 
-  result = toCFG(ast, ssa = FALSE)
+  result = to_cfg(ast, ssa = FALSE)
   g = result$cfg$graph
 
   # -----
@@ -68,10 +68,10 @@ test_that("for-loop graph has correct structure", {
 })
 
 
-test_that("AST is copied when inPlace = FALSE", {
+test_that("AST is copied when in_place = FALSE", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  node = toCFG(ast, inPlace = FALSE, ssa = FALSE)
+  node = to_cfg(ast, in_place = FALSE, ssa = FALSE)
   cfg = node$cfg
 
   # -----
@@ -82,10 +82,10 @@ test_that("AST is copied when inPlace = FALSE", {
 })
 
 
-test_that("AST is not copied when inPlace = TRUE", {
+test_that("AST is not copied when in_place = TRUE", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  node = toCFG(ast, inPlace = TRUE, ssa = FALSE)
+  node = to_cfg(ast, in_place = TRUE, ssa = FALSE)
   cfg = node$cfg
 
   # -----
@@ -99,7 +99,7 @@ test_that("AST is not copied when inPlace = TRUE", {
 test_that("nodes are reparented to containing BasicBlock", {
   ast = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  node = toCFG(ast, ssa = FALSE)
+  node = to_cfg(ast, ssa = FALSE)
   cfg = node$cfg
 
   # -----
@@ -108,7 +108,7 @@ test_that("nodes are reparented to containing BasicBlock", {
 
 
 test_that("nested functions have CFG generated", {
-  ast = toASTq(
+  ast = quote_ast(
     function() {
       x = 1
 
@@ -120,7 +120,7 @@ test_that("nested functions have CFG generated", {
       f
     })
 
-  result = toCFG(ast)
+  result = to_cfg(ast)
 
   # -----
   expect_is(result$cfg[[1]]$body[[2]]$read$cfg, "ControlFlowGraph")

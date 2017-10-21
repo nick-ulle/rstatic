@@ -2,27 +2,27 @@
 # Checks to see if we need to enclose the final expression
 # within a call to return()
 #
-# insertReturn(quote(return(x + 1))  )
-# insertReturn(quote(x + 1))
-# insertReturn(quote({ x = 2; x + 1} ))
-# insertReturn(quote({ x = 2; return(x + 1)} ))
-# insertReturn(quote(while(TRUE) {  return(x + 1) }  ))
-# insertReturn(quote(while(TRUE) {  x + 1 }  ))
-# insertReturn(quote(if(x < 10) 20 else 40  ))
-# insertReturn(quote(if(x < 10) { x= 3; sqrt(x) } else 40  ))
-# insertReturn(quote(if(x < 10) { x= 3; sqrt(x) } else { x = 100; sqrt(x)}  ))
+# insert_return(quote(return(x + 1))  )
+# insert_return(quote(x + 1))
+# insert_return(quote({ x = 2; x + 1} ))
+# insert_return(quote({ x = 2; return(x + 1)} ))
+# insert_return(quote(while(TRUE) {  return(x + 1) }  ))
+# insert_return(quote(while(TRUE) {  x + 1 }  ))
+# insert_return(quote(if(x < 10) 20 else 40  ))
+# insert_return(quote(if(x < 10) { x= 3; sqrt(x) } else 40  ))
+# insert_return(quote(if(x < 10) { x= 3; sqrt(x) } else { x = 100; sqrt(x)}  ))
 #
 
 #' @export
-insertReturn = function(node) {
-  UseMethod("insertReturn")
+insert_return = function(node) {
+  UseMethod("insert_return")
 }
 
 #' @export
-`insertReturn.Brace` = function(node) {
+`insert_return.Brace` = function(node) {
   # Insert Return for last statement if not already.
   len = length(node$body)
-  ret = insertReturn(node$body[[len]])
+  ret = insert_return(node$body[[len]])
 
   if (is.list(ret)) {
     node$body = append(node$body[-len], ret)
@@ -38,22 +38,22 @@ insertReturn = function(node) {
 }
 
 #' @export
-insertReturn.Function = function(node) {
-  node$body = insertReturn(node$body)
+insert_return.Function = function(node) {
+  node$body = insert_return(node$body)
 
   node
 }
 
 #' @export
-insertReturn.If = function(node) {
-  node$true = insertReturn(node$true)
-  node$false = insertReturn(node$false)
+insert_return.If = function(node) {
+  node$true = insert_return(node$true)
+  node$false = insert_return(node$false)
 
   node
 }
 
 #' @export
-insertReturn.While = function(node) {
+insert_return.While = function(node) {
   # Need to insert a return(NULL) on following line
   ans = list(
     node,
@@ -67,29 +67,29 @@ insertReturn.While = function(node) {
 }
 
 #' @export
-insertReturn.For = insertReturn.While
+insert_return.For = insert_return.While
 
 #' @export
-insertReturn.Literal = function(node) {
+insert_return.Literal = function(node) {
   Return$new(node)
 }
 
 #' @export
-insertReturn.Symbol = insertReturn.Literal
+insert_return.Symbol = insert_return.Literal
 
 #' @export
-insertReturn.Call = insertReturn.Literal
+insert_return.Call = insert_return.Literal
 
 #' @export
-insertReturn.Assign = insertReturn.Literal
+insert_return.Assign = insert_return.Literal
 
 #' @export
-insertReturn.NULL = function(node) {
+insert_return.NULL = function(node) {
   Return$new(Null$new())
 }
 
 #' @export
-insertReturn.Return = function(node) {
+insert_return.Return = function(node) {
   node
 }
 

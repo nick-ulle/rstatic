@@ -20,11 +20,11 @@ is_constant = function(x) {
 #' 13(2), 181-210.
 #'
 #' @export
-propagateConstants = function(cfg) {
+propagate_constants = function(cfg) {
   helper = SCCHelper$new(cfg)
 
   # The entry block is always executed.
-  constVisitBlock(cfg$entry, helper)
+  const_visit_block(cfg$entry, helper)
 
   # First pass: traverse the CFG in approximate execution order.
   while (length(helper$flow_list) > 0) {
@@ -37,7 +37,7 @@ propagateConstants = function(cfg) {
       dest = tail_of(cfg$graph, edge)
 
       # FIXME: First visit to block != first visit via this edge.
-      constVisitBlock(dest, helper)
+      const_visit_block(dest, helper)
     }
   }
 
@@ -55,7 +55,7 @@ propagateConstants = function(cfg) {
     b = node$parent$name
     in_edges = igraph::E(helper$cfg$graph)[to(b)]
     if ( any(helper$executable[in_edges]) ) {
-      constVisitNode(node, helper)
+      const_visit_node(node, helper)
     }
   } # end while
 
@@ -64,7 +64,7 @@ propagateConstants = function(cfg) {
 
 
 # FIXME: Rename b?
-constVisitBlock = function(b, helper) {
+const_visit_block = function(b, helper) {
   block = helper$cfg[[b]]
   # Compute the value of an expression.
   #
@@ -74,11 +74,11 @@ constVisitBlock = function(b, helper) {
   # NOTE: This is the only place SSA edges are added to worklist.
 
   for (phi in block$phi) {
-    constVisitNode(phi, helper)
+    const_visit_node(phi, helper)
   }
 
   for (node in block$body) {
-    constVisitNode(node, helper)
+    const_visit_node(node, helper)
   }
 
   # Add outgoing edges (to next executed blocks) to flow worklist.
@@ -110,13 +110,13 @@ constVisitBlock = function(b, helper) {
 }
 
 
-constVisitNode = function(node, helper) {
-  UseMethod("constVisitNode")
+const_visit_node = function(node, helper) {
+  UseMethod("const_visit_node")
 }
 
 
 #' @export
-constVisitNode.Assign = function(node, helper) {
+const_visit_node.Assign = function(node, helper) {
   name = node$write$name
 
   # Set constant in table.
@@ -133,7 +133,7 @@ constVisitNode.Assign = function(node, helper) {
 }
 
 #' @export
-constVisitNode.Phi = function(node, helper) {
+const_visit_node.Phi = function(node, helper) {
   # Compute meet of values of all operands to this phi-function.
   # Need to look backwards (to defs) in the SSA graph. We can find the phi in
   # the SSA graph by the SSA name it defines.
@@ -159,14 +159,14 @@ constVisitNode.Phi = function(node, helper) {
 }
 
 #' @export
-constVisitNode.Replacement = function(node, helper) {
+const_visit_node.Replacement = function(node, helper) {
   # FIXME: For now, don't update anything, since we completely ignore vectors
   # during constant analysis. Eventually this could update array SSA names.
   invisible (NULL)
 }
 
 #' @export
-constVisitNode.default = function(node, helper) {
+const_visit_node.default = function(node, helper) {
   browser()
 }
 

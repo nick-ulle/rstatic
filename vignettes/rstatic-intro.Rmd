@@ -49,7 +49,7 @@ different from an ordinary function call.
 ## Example 1: Interacting With Code
 
 Let's start by examining the AST for an R implementation of the quadratic
-formula. The `toAST()` function converts functions and quoted R expressions to
+formula. The `to_ast()` function converts functions and quoted R expressions to
 abstract syntax trees.
 ```{r}
 quad = function(a, b, c) {
@@ -61,7 +61,7 @@ quad = function(a, b, c) {
 
 library(rstatic)
 
-ast = toAST(quad)
+ast = to_ast(quad)
 
 ast
 ```
@@ -210,10 +210,10 @@ markov2 = function(n, p, init = 0) {
 ```
 
 We can convert the `markov2` function to a control flow graph with the
-`toCFG()` method. When given a function as input, `toCFG()` will
+`to_cfg()` method. When given a function as input, `to_cfg()` will
 automatically convert it to an AST and then convert the AST to a CFG.
 ```{r}
-markov2 = toCFG(markov2)
+markov2 = to_cfg(markov2)
 
 cfg = markov2$cfg
 class(cfg)
@@ -221,7 +221,7 @@ class(cfg)
 
 As you might expect, the `ControlFlowGraph` class represents a control flow
 graph. In __rstatic__, each control flow graph corresponds to one function;
-`toCFG()` automatically wraps code in a function definition as needed.
+`to_cfg()` automatically wraps code in a function definition as needed.
 `ControlFlowGraph` is an __R6__ class, so the `cfg` variable is a reference, as
 discussed in the previous section.
 

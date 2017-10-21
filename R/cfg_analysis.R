@@ -31,7 +31,7 @@ postorder = function(g, from = g$entry) {
 #' @param cfg (CFGraph) A control flow graph.
 #'
 #' @export
-collectCrossblockUses = function(cfg) {
+collect_crossblock_uses = function(cfg) {
   crossers = character(0)
   # Blocks where global symbols are assigned
   assign_blocks = list()
@@ -42,7 +42,7 @@ collectCrossblockUses = function(cfg) {
 
     for (node in block$body) {
       # Get all reads that aren't preceeded by a write.
-      reads = collectReads(node)
+      reads = collect_reads(node)
       reads = setdiff(reads, preceeding_writes)
       crossers = union(crossers, reads)
 
@@ -53,7 +53,7 @@ collectCrossblockUses = function(cfg) {
     }
 
     # Collect reads in block terminator.
-    reads = collectReads(block$terminator)
+    reads = collect_reads(block$terminator)
     reads = setdiff(reads, preceeding_writes)
     crossers = union(crossers, reads)
 
