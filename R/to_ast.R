@@ -27,6 +27,12 @@ to_ast = function(expr) {
 
 
 #' @export
+to_ast.expression = function(expr) {
+  Brace$new(lapply(expr, to_ast))
+}
+
+
+#' @export
 to_ast.function = function(expr)
 {
   name = as.character(substitute(expr))
