@@ -13,6 +13,11 @@ to_r = function(node) {
   UseMethod("to_r")
 }
 
+# FIXME: Convert back correctly.
+to_r.list = function(node) {
+  as.expression(lapply(node, to_r))
+}
+
 
 #' @export
 to_r.Next = function(node) {
