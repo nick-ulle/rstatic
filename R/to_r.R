@@ -13,9 +13,13 @@ to_r = function(node) {
   UseMethod("to_r")
 }
 
-# FIXME: Convert back correctly.
+#' @export
 to_r.list = function(node) {
-  as.expression(lapply(node, to_r))
+  body = unlist(lapply(node, function(x) {
+      lapply(x$body, to_r)
+  }), recursive = FALSE)
+
+  as.call(append(as.name("{"), body))
 }
 
 
