@@ -14,16 +14,17 @@
 # FIXME: Now body code always needs to be inside a Brace/Block.
 
 #' @export
-to_cfg2 = function(node, in_place = FALSE) {
+to_cfg2 = function(node, in_place = FALSE, linearize = TRUE) {
   UseMethod("to_cfg2")
 }
 
 #' @export
-to_cfg2.Function = function(node, in_place = FALSE) {
+to_cfg2.Function = function(node, in_place = FALSE, linearize = TRUE) {
   if (!in_place)
     node = node$copy()
 
-  node = linearize_blocks(node)
+  if (linearize)
+    node = linearize_blocks(node)
 
   cfg = ControlFlowGraph2$new()
   helper = list(
@@ -33,27 +34,25 @@ to_cfg2.Function = function(node, in_place = FALSE) {
 
   node$cfg = cfg
 
-  # FIXME: Do something to generate CFGs for sub-Functions.
-
   node
 }
 
 #' @export
-to_cfg2.ASTNode = function(node, in_place = FALSE) {
+to_cfg2.ASTNode = function(node, in_place = FALSE, linearize = TRUE) {
   if (!in_place)
     node = node$copy()
 
   # This node isn't a Function, so wrap it up in one.
   node = Function$new(params = list(), body = node)
 
-  to_cfg2.Function(node, in_place = TRUE)
+  to_cfg2.Function(node, in_place = TRUE, linearize = linearize)
 }
 
 #' @export
 to_cfg2.default =
-function(node, in_place = FALSE) {
+function(node, in_place = FALSE, linearize = TRUE) {
   node = to_ast(node)
-  to_cfg2(node, in_place = TRUE)
+  to_cfg2(node, in_place = TRUE, linearize = linearize)
 }
 
 
@@ -92,6 +91,8 @@ build_cfg2.list = function(node, helper, cfg) {
 
 
 build_cfg2.Brace = function(node, helper, cfg) {
+  lapply(node$body, recurse_to_cfg)
+
   # Since blocks are linear, only the final expression affects control flow.
   len = length(node$body)
   if (len > 0)
@@ -211,3 +212,36 @@ build_cfg2.Return = function(node, helper, cfg) {
   NULL
 }
 
+
+recurse_to_cfg = function(node) {
+  UseMethod("recurse_to_cfg")
+}
+
+recurse_to_cfg.Function = function(node) {
+  to_cfg2.Function(node, in_place = TRUE, linearize = FALSE)
+}
+
+recurse_to_cfg.list = function(node) {
+  lapply(node, function(block) {
+    recurse_to_cfg(block$body)
+  })
+}
+
+recurse_to_cfg.Call = function(node) {
+  lapply(node$args, recurse_to_cfg)
+
+  recurse_to_cfg(node$fn)
+
+  node
+}
+
+recurse_to_cfg.Assign = function(node) {
+  recurse_to_cfg(node$read)
+  recurse_to_cfg(node$write)
+
+  node
+}
+
+recurse_to_cfg.ASTNode = function(node) {
+  node
+}
