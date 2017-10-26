@@ -118,7 +118,7 @@ build_cfg.BlockList = function(node, helper, cfg) {
     if (i > 1)
       new_helper$this_block = NULL
     new_helper$sib_block = siblings[[i]]
-    build_cfg(node[i], new_helper, cfg)
+    build_cfg(node[[i]], new_helper, cfg)
   }
 
   NULL
