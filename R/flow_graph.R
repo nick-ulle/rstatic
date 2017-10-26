@@ -121,3 +121,21 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
     }
   )
 )
+
+#' @export
+ControlFlowGraph2 = R6::R6Class("ControlFlowGraph2", inherit = FlowGraph,
+  "public" = list(
+    entry = NULL,
+    exit = NULL,
+
+    initialize = function() {
+      super$initialize()
+
+      self$exit = self$add_vertex()
+      # FIXME: Set parent
+      self$blocks[[self$exit]] = Brace$new()
+
+      return (self)
+    }
+  )
+)

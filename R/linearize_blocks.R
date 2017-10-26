@@ -18,7 +18,7 @@ linearize_blocks.Brace = function(node) {
   flows = c(FALSE, head(flows, -1))
 
   if (!any(flows))
-    return (node)
+    return (list(node))
 
   blocks = split(node$body, cumsum(flows))
 
@@ -36,6 +36,25 @@ linearize_blocks.If = function(node) {
   if (!is.null(node$false))
     node$false = linearize_blocks(node$false)
 
+  node
+}
+
+#' @export
+linearize_blocks.For = function(node) {
+  node$body = linearize_blocks(node$body)
+
+  node
+}
+
+#' @export
+linearize_blocks.Function = function(node) {
+  node$body = linearize_blocks(node$body)
+
+  node
+}
+
+#' @export
+linearize_blocks.Return = function(node) {
   node
 }
 
