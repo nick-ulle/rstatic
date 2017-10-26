@@ -117,19 +117,56 @@ If = R6::R6Class("If", inherit = ASTNode,
   )
 )
 
+
 #' @export
-For = R6::R6Class("For", inherit = ASTNode,
+Loop = R6::R6Class("Loop", inherit = ASTNode,
+  "public" = list(
+    .setup = NULL,
+    .header = NULL,
+    .body = NULL,
+
+    initialize = function(body, parent = NULL) {
+      super$initialize(parent)
+
+      self$body = body
+    }
+  ),
+
+  "active" = list(
+    setup = function(value) {
+      if (missing(value))
+        return (self$.setup)
+
+      self$.setup = .reparent_ast(value, self)
+    },
+
+    header = function(value) {
+      if (missing(value))
+        return (self$.header)
+
+      self$.header = .reparent_ast(value, self)
+    },
+
+    body = function(value) {
+      if (missing(value))
+        return (self$.body)
+
+      self$.body = .reparent_ast(value, self)
+    }
+  )
+)
+
+#' @export
+For = R6::R6Class("For", inherit = Loop,
   "public" = list(
     .ivar = NULL,
     .iter = NULL,
-    .body = NULL,
 
     initialize = function(ivar, iter, body, parent = NULL) {
-      super$initialize(parent)
+      super$initialize(body, parent)
 
       self$ivar = ivar
       self$iter = iter
-      self$body = body
     }
   ),
 
@@ -146,29 +183,20 @@ For = R6::R6Class("For", inherit = ASTNode,
         return (self$.iter)
 
       self$.iter = .reparent_ast(value, self)
-    },
-
-    body = function(value) {
-      if (missing(value))
-        return (self$.body)
-
-      self$.body = .reparent_ast(value, self)
     }
   )
 )
 
 #' @export
-While = R6::R6Class("While", inherit = ASTNode,
+While = R6::R6Class("While", inherit = Loop,
   "public" = list(
     .condition = NULL,
-    .body = NULL,
     is_repeat = FALSE,
 
     initialize = function(condition, body, is_repeat = FALSE, parent = NULL) {
-      super$initialize(parent)
+      super$initialize(body, parent)
 
       self$condition = condition
-      self$body = body
       self$is_repeat = is_repeat
     }
   ),
@@ -179,13 +207,6 @@ While = R6::R6Class("While", inherit = ASTNode,
         return (self$.condition)
 
       self$.condition = .reparent_ast(value, self)
-    },
-
-    body = function(value) {
-      if (missing(value))
-        return (self$.body)
-
-      self$.body = .reparent_ast(value, self)
     }
   )
 )
