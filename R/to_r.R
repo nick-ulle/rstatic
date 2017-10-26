@@ -14,8 +14,8 @@ to_r = function(node) {
 }
 
 #' @export
-to_r.list = function(node) {
-  body = unlist(lapply(node, function(x) {
+to_r.BlockList = function(node) {
+  body = unlist(lapply(node$body, function(x) {
       lapply(x$body, to_r)
   }), recursive = FALSE)
 

@@ -1,6 +1,7 @@
 CONTROL_FLOW = c("If", "For", "While", "Break", "Next", "Return")
 
 # FIXME: What if an Assign contains a Brace, If, etc?
+# FIXME: What happens to braces within braces?
 
 #' @export
 linearize_blocks = function(node) {
@@ -17,17 +18,20 @@ linearize_blocks.Brace = function(node) {
   # Shift over by one element so each block ends with a flow.
   flows = c(FALSE, head(flows, -1))
 
-  if (!any(flows))
-    return (list(node))
+  if (any(flows)) {
+    blocks = split(node$body, cumsum(flows))
 
-  blocks = split(node$body, cumsum(flows))
+    blocks = lapply(blocks, function(b) {
+      Brace$new(b)
+    })
 
-  blocks = lapply(blocks, function(b) {
-    Brace$new(b, parent = node$parent)
-  })
+  } else {
+    # FIXME: Clean up this code.
+    blocks = node
+    return (node)
+  }
 
-  names(blocks) = NULL
-  blocks
+  BlockList$new(blocks, parent = node$parent)
 }
 
 #' @export
@@ -54,26 +58,4 @@ linearize_blocks.Function = function(node) {
 }
 
 #' @export
-linearize_blocks.Return = function(node) {
-  node
-}
-
-#' @export
-linearize_blocks.Assign = function(node) {
-  node
-}
-
-#' @export
-linearize_blocks.Next = function(node) {
-  node
-}
-
-#' @export
-linearize_blocks.Break = function(node) {
-  node
-}
-
-#' @export
-linearize_blocks.Literal = function(node) {
-  node
-}
+linearize_blocks.ASTNode = function(node) node

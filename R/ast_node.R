@@ -42,17 +42,18 @@ ASTNode = R6::R6Class("ASTNode",
 
 # Containers
 # --------------------
-
 #' @export
-Brace = R6::R6Class("Brace", inherit = ASTNode,
+Container = R6::R6Class("Container", inherit = ASTNode,
   "public" = list(
     .body = NULL,
-    is_paren = FALSE,
 
-    initialize = function(body = list(), is_paren = FALSE, parent = NULL) {
+    initialize = function(body = list(), parent = NULL) {
       super$initialize(parent)
+
+      if (!is.list(body))
+        body = list(body)
+
       self$body = body
-      self$is_paren = is_paren
     }
   ),
 
@@ -66,6 +67,25 @@ Brace = R6::R6Class("Brace", inherit = ASTNode,
   )
 )
 
+#' @export
+BlockList = R6::R6Class("BlockList", inherit = Container)
+
+#' @export
+Brace = R6::R6Class("Brace", inherit = Container,
+  "public" = list(
+    is_paren = FALSE,
+    id = NA_character_,
+
+    initialize = function(body = list(), is_paren = FALSE, id = NA_character_,
+      parent = NULL)
+    {
+      super$initialize(body, parent)
+
+      self$is_paren = is_paren
+      self$id = id
+    }
+  )
+)
 
 
 # Control Flow
@@ -105,6 +125,7 @@ If = R6::R6Class("If", inherit = ASTNode,
       if (missing(value))
         return (self$.true)
 
+      value = as_blocks(value)
       self$.true = .reparent_ast(value, self)
     },
 
@@ -112,6 +133,7 @@ If = R6::R6Class("If", inherit = ASTNode,
       if (missing(value))
         return (self$.false)
 
+      value = as_blocks(value)
       self$.false = .reparent_ast(value, self)
     }
   )
@@ -137,6 +159,7 @@ Loop = R6::R6Class("Loop", inherit = ASTNode,
       if (missing(value))
         return (self$.setup)
 
+      value = as_blocks(value)
       self$.setup = .reparent_ast(value, self)
     },
 
@@ -144,6 +167,7 @@ Loop = R6::R6Class("Loop", inherit = ASTNode,
       if (missing(value))
         return (self$.header)
 
+      value = as_blocks(value)
       self$.header = .reparent_ast(value, self)
     },
 
@@ -151,6 +175,7 @@ Loop = R6::R6Class("Loop", inherit = ASTNode,
       if (missing(value))
         return (self$.body)
 
+      value = as_blocks(value)
       self$.body = .reparent_ast(value, self)
     }
   )
@@ -336,6 +361,7 @@ Function = R6::R6Class("Function", inherit = Callable,
       if (missing(value))
         return (self$.body)
 
+      value = as_blocks(value)
       self$.body = .reparent_ast(value, self)
     }
   )

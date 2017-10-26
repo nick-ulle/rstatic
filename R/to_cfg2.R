@@ -11,8 +11,6 @@
 # * `break_block`: `top_block` of current loop. Does this need to be separate
 #   from `top_block`?
 
-# FIXME: Now body code always needs to be inside a Brace/Block.
-
 #' @export
 to_cfg2 = function(node, in_place = FALSE, linearize = TRUE) {
   UseMethod("to_cfg2")
@@ -61,46 +59,52 @@ build_cfg2 = function(node, helper, cfg) {
   UseMethod("build_cfg2")
 }
 
-build_cfg2.list = function(node, helper, cfg) {
-  # Add all the blocks as vertices in the graph. Then make the edges.
-  ids = vapply(node, function(b) {
-    id = cfg$add_vertex()
-    cfg$blocks[[id]] = b
-    id
+build_cfg2.BlockList = function(node, helper, cfg) {
+  # Add all the blocks in the list to the graph.
+  siblings = vapply(node$body, function(block) {
+    block$id = cfg$add_block(block)
   }, "")
 
-  # Add an edge to the first block.
-  if (is.null(helper$this_block))
-    cfg$entry = ids[[1]]
-  else
-    cfg$add_edge(helper$this_block, ids[[1]])
+  # Add parent sibling block as last sibling block.
+  len = length(siblings)
+  siblings = c(siblings[2:len], helper$sib_block)
 
   # Now process the blocks to add their outgoing edges.
-  len = length(ids)
-  for (i in seq_len(len - 1)) {
+  for (i in seq_along(siblings)) {
     new_helper = helper
-    new_helper$this_block = ids[[i]]
-    new_helper$sib_block = ids[[i + 1]]
-    build_cfg2(node[[i]], new_helper, cfg)
+    if (i > 1)
+      new_helper$this_block = NULL
+    new_helper$sib_block = siblings[[i]]
+    build_cfg2(node[i], new_helper, cfg)
   }
 
-  new_helper = helper
-  new_helper$this_block = ids[[len]]
-  build_cfg2(node[[len]], new_helper, cfg)
+  NULL
 }
 
-
 build_cfg2.Brace = function(node, helper, cfg) {
-  lapply(node$body, recurse_to_cfg)
+  if (!inherits(node$parent, "BlockList"))
+    node$id = cfg$add_block(node)
 
-  # Since blocks are linear, only the final expression affects control flow.
+  # When parent is If, For, or While: this_block is not NULL and an incoming
+  # edge (e.g., If -> Block) must be added since the block was just added to
+  # the graph.
+  if (!is.null(helper$this_block))
+    cfg$add_edge(helper$this_block, node$id)
+
+  helper$this_block = node$id
+
+  # Check for function definitions.
+  lapply(node$body, nested_functions_to_cfg)
+
+  # Only the final expression affects control flow.
   len = length(node$body)
   if (len > 0)
     build_cfg2(node$body[[len]], helper, cfg)
   else
     # Empty block.
     cfg$add_edge(helper$this_block, helper$sib_block)
-    # NOTE: Could look for functions here.
+
+  NULL
 }
 
 
@@ -187,7 +191,7 @@ build_cfg2.For = function(node, helper, cfg) {
 
 # Edge-adding Cases ----------------------------------------
 build_cfg2.ASTNode = function(node, helper, cfg) {
-  # Normal control flow.
+  # In this case, control ascends from the current control structure.
   cfg$add_edge(helper$this_block, helper$sib_block)
 
   NULL
@@ -213,35 +217,31 @@ build_cfg2.Return = function(node, helper, cfg) {
 }
 
 
-recurse_to_cfg = function(node) {
-  UseMethod("recurse_to_cfg")
+nested_functions_to_cfg = function(node) {
+  UseMethod("nested_functions_to_cfg")
 }
 
-recurse_to_cfg.Function = function(node) {
+nested_functions_to_cfg.Function = function(node) {
   to_cfg2.Function(node, in_place = TRUE, linearize = FALSE)
 }
 
-recurse_to_cfg.list = function(node) {
-  lapply(node, function(block) {
-    recurse_to_cfg(block$body)
-  })
-}
+nested_functions_to_cfg.Call = function(node) {
+  lapply(node$args, nested_functions_to_cfg)
 
-recurse_to_cfg.Call = function(node) {
-  lapply(node$args, recurse_to_cfg)
-
-  recurse_to_cfg(node$fn)
+  nested_functions_to_cfg(node$fn)
 
   node
 }
 
-recurse_to_cfg.Assign = function(node) {
-  recurse_to_cfg(node$read)
-  recurse_to_cfg(node$write)
+nested_functions_to_cfg.Assign = function(node) {
+  nested_functions_to_cfg(node$read)
+  nested_functions_to_cfg(node$write)
 
   node
 }
 
-recurse_to_cfg.ASTNode = function(node) {
+nested_functions_to_cfg.ASTNode = function(node) {
+  # Skip over everything else. Blocks in If, For, and While are visited by
+  # build_cfg2(), so don't visit them again here.
   node
 }

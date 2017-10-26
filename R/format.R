@@ -24,14 +24,6 @@ format.ASTNode = function(x, indent = 0, ...) {
 print.ASTNode = .print
 
 #' @export
-format.Function = function(x, indent = 0, ...) {
-  if (is.null(x$cfg))
-    return(NextMethod())
-
-  format(x$cfg, tag = .format_tag(x))
-}
-
-#' @export
 format.FlowGraph = function(x, tag = .format_tag(x), ...) {
   # Format:
   #
