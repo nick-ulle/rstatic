@@ -109,28 +109,6 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
     initialize = function() {
       super$initialize()
 
-      self$entry = self$add_vertex()
-      self$blocks[[self$entry]] = BasicBlock$new(self$entry)
-
-      self$exit = self$add_vertex()
-      exit_block = BasicBlock$new(self$exit)
-      exit_block$terminator = RetTerminator$new()
-      self$blocks[[self$exit]] = exit_block
-
-      return (self)
-    }
-  )
-)
-
-#' @export
-ControlFlowGraph2 = R6::R6Class("ControlFlowGraph2", inherit = FlowGraph,
-  "public" = list(
-    entry = NULL,
-    exit = NULL,
-
-    initialize = function() {
-      super$initialize()
-
       self$exit = self$add_vertex()
       # FIXME: Set parent
       self$blocks[[self$exit]] = Brace$new()

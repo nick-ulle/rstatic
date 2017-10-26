@@ -1,0 +1,265 @@
+#to_cfg = function(ast, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+#  UseMethod("to_cfg")
+#}
+#
+##' @export
+#to_cfg.Function =
+#function(ast, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+#  # FIXME: Use a different parameter name?
+#  if (!in_place)
+#    node = ast$copy()
+#  else
+#    node = ast
+#
+#  if(insert_return)
+#    node = insert_return(node)
+#
+#  cfg = ControlFlowGraph$new()
+#  builder = CFGBuilder$new(cfg)
+#  build_cfg(node$body, builder)
+#
+#  # Always flow to the exit block.
+#  if (is.na(builder$insert_block))
+#    builder$insert_block = cfg$exit
+#  else if (builder$insert_block != cfg$exit)
+#    builder$create_br(cfg$exit)
+#
+#  node$body = NULL
+#  node$cfg = cfg
+#
+#  if (ssa)
+#    to_ssa(node, in_place = TRUE)
+#
+#  node
+#}
+#
+##' @export
+#to_cfg.ASTNode =
+#function(ast, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+#  if (!in_place)
+#    ast = ast$copy()
+#
+#  # This node isn't a Function, so wrap it up in one.
+#  ast = Function$new(params = list(), body = ast)
+#
+#  to_cfg.Function(ast, in_place = TRUE, ssa = ssa, insert_return = insert_return)
+#}
+#
+##' @export
+#to_cfg.default =
+#function(ast, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+#  ast = to_ast(ast)
+#  to_cfg(ast, in_place = TRUE, ssa = ssa, insert_return = insert_return)
+#}
+#
+#
+##' Build Basic Blocks from ASTNodes
+##'
+##' This helper function does a depth-first traversal of an AST in order to
+##' build basic blocks for a CFG.
+##'
+##' Generally, this function should only be called from \code{to_cfg()}.
+##'
+##' @param node (ASTNode) An ASTNode to build the graph from.
+##' @param builder (CFGBuilder) The graph builder.
+##'
+#build_cfg = function(node, builder) {
+#  # Don't do anything if no insert block is set.
+#  if (is.na(builder$insert_block))
+#    invisible (NULL)
+#  
+#  UseMethod("build_cfg")
+#}
+#
+##' @export
+#build_cfg.If = function(node, builder) {
+#  entry_t = builder$new_block()
+#  entry_f = builder$new_block()
+#  builder$create_cond_br(entry_t, entry_f, node$condition)
+#
+#  # FIXME: 
+#  exit = builder$new_block()
+#
+#  build_cfg(node$true, builder)
+#  # Flow to the exit if control didn't flow elsewhere.
+#  true_flows_to_exit = !is.na(builder$insert_block)
+#  if (true_flows_to_exit)
+#    builder$create_br(exit)
+#
+#  builder$insert_block = entry_f
+#  if (!is.null(node$false))
+#    build_cfg(node$false, builder)
+#
+#  if (!is.na(builder$insert_block)) # false flows to exit
+#    builder$create_br(exit)
+#  else if (true_flows_to_exit) # only true flows to exit
+#    builder$insert_block = exit
+#  else { # neither branch flows to exit
+#    # Delete the exit block and indicate that there is no control flow out of
+#    # this if-statement back to the caller (by leaving insert_block as NA).
+#    builder$remove_block(exit)
+#  }
+#
+#  invisible (NULL)
+#}
+#
+#
+##' @export
+#build_cfg.While = function(node, builder) {
+#  entry = builder$new_block()
+#  builder$create_br(entry)
+#
+#  entry_b = builder$new_block()
+#  exit = builder$new_block()
+#  builder$create_cond_br(entry_b, exit, node$condition)
+#
+#  # Push a new context so break/next flow to the correct place.
+#  builder$loop_push(entry, exit)
+#
+#  build_cfg(node$body, builder)
+#  if (!is.na(builder$insert_block))
+#    builder$create_br(entry)
+#
+#  builder$loop_pop()
+#
+#  builder$insert_block = exit
+#  invisible (NULL)
+#}
+#
+#
+##' @export
+#build_cfg.For = function(node, builder) {
+#  # Loop Setup (before entry)
+#  # =========================
+#  # Initialize the iterator.
+#  iterator_name = paste0("._iterator_", node$ivar$basename)
+#  iterator = Assign$new(Symbol$new(iterator_name), node$iter$copy())
+#
+#  builder$append(iterator)
+#
+#  # Initialize the counter and loop variable.
+#  counter_name = paste0("._counter_", node$ivar$basename)
+#  counter = Assign$new(Symbol$new(counter_name), Integer$new(1L))
+#  builder$append(counter)
+#
+#  loop_var = Assign$new(
+#    Symbol$new(node$ivar$basename),
+#    Call$new("[[", list(Symbol$new(iterator_name), Symbol$new(counter_name)))
+#  )
+#  builder$append(loop_var)
+#
+#  # Loop Entry
+#  # ==========
+#  entry = builder$new_block()
+#  builder$create_br(entry)
+#
+#  # Advance the counter and loop variable.
+#  counter = Assign$new(
+#    Symbol$new(counter_name),
+#    Call$new("+", list(Symbol$new(counter_name), Integer$new(1L)))
+#  )
+#  builder$cfg[[entry]]$append(counter)
+#  builder$cfg[[entry]]$append(loop_var$copy())
+#
+#  # Condition
+#  condition = Call$new("<=", list(
+#    Symbol$new(counter_name),
+#    Call$new("length", list(Symbol$new(iterator_name)))
+#  ))
+#
+#  # Loop Body
+#  # =========
+#  entry_b = builder$new_block()
+#  exit = builder$new_block()
+#  builder$create_iter(entry_b, exit, condition, node$ivar, node$iter)
+#
+#  # Push a new context so break/next flow to the correct place.
+#  builder$loop_push(entry, exit)
+#
+#  build_cfg(node$body, builder)
+#  if (!is.na(builder$insert_block))
+#    builder$create_br(entry)
+#
+#  builder$loop_pop()
+#
+#  builder$insert_block = exit
+#  invisible (NULL)
+#}
+#
+#
+##' @export
+#build_cfg.Break = function(node, builder) {
+#  builder$create_break()
+#  invisible (NULL)
+#}
+#
+#
+##' @export
+#build_cfg.Next = function(node, builder) {
+#  builder$create_next()
+#  invisible (NULL)
+#}
+#
+#
+##' @export
+#build_cfg.Return = function(node, builder) {
+#  # NOTE: We could keep the Return instead of creating a ._retval_ variable.
+#
+#  val = node$args[[1]]
+#
+#  # For returned assignments, return assigned variable. We could instead skip
+#  # the assignment altogether and just return the right-hand side.
+#  if (is(val, "Assign")) {
+#    val$parent = node$parent
+#    build_cfg(val, builder)
+#    val = val$write$copy()
+#  }
+#
+#  assign = Assign$new(Symbol$new("._return_"), val)
+#  build_cfg(assign, builder)
+#  builder$create_ret()
+#
+#  invisible (NULL)
+#}
+#
+#
+##' @export
+#build_cfg.Brace = function(node, builder) {
+#  # Handle all subexpressions; they'll automatically be added to the graph.
+#  lapply(node$body, build_cfg, builder)
+#  invisible (NULL)
+#}
+#
+#
+##' @export
+#build_cfg.Call = function(node, builder) {
+#  node_apply(node, functions_to_cfg, in_place = TRUE)
+#  builder$append(node)
+#  invisible (NULL)
+#}
+#
+##' @export
+#build_cfg.Assign = build_cfg.Call
+##' @export
+#build_cfg.Symbol = build_cfg.Call
+##' @export
+#build_cfg.Literal = build_cfg.Call
+#
+## Function definitions don't change control flow, but still need to compute
+## their CFGs.
+##' @export
+#build_cfg.Function = build_cfg.Call
+#
+#
+#functions_to_cfg = function(node, ...) {
+#  UseMethod("functions_to_cfg")
+#}
+#
+##' @export
+#functions_to_cfg.Function = function(node, ...) {
+#  to_cfg.Function(node, in_place = TRUE, ssa = FALSE)
+#  node
+#}
+#
+##' @export
+#functions_to_cfg.default = function(node, ...) node
