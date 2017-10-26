@@ -45,7 +45,8 @@ node_apply_unsafe.Break = function(node, fn, ...) fn(node, ...)
 node_apply_unsafe.If = function(node, fn, ...) {
   node$condition = node_apply_unsafe(node$condition, fn, ...)
   node$true      = node_apply_unsafe(node$true, fn, ...)
-  node$false     = node_apply_unsafe(node$false, fn, ...)
+  if (!is.null(node$false))
+    node$false   = node_apply_unsafe(node$false, fn, ...)
 
   fn(node, ...)
 }
