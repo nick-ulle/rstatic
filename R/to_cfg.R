@@ -169,67 +169,102 @@ build_cfg.If = function(node, helper, cfg) {
 
 #' @export
 build_cfg.While = function(node, helper, cfg) {
-  # Create block for header (a while-loop does not need a setup block).
-  node$header = Brace$new()
+  id_test = cfg$add_block()
+  node$test = cfg[[id_test]]
 
-  header_block = cfg$add_vertex()
-  cfg[[header_block]] = node$header
+  # NOTE: The test block should test the condition. The children of this block
+  # can be found in the CFG rather than on the generated If.
+  # FIXME: No way to distinguish true/false edge.
+  node$test[[1]] = If$new(node$condition$copy(), Brace$new())
 
-  # FIXME: Generate code for the header.
-  # ...
-
-  cfg$add_edge(helper$this_block, header_block)
+  cfg$add_edge(helper$this_block, id_test)
 
   # Set
   #   break_block = sib_block (the original)
-  #   next_block = header
-  #   sib_block = header (because this is where the last body block will go)
-  #   this_block = header (because this is where we enter from)
+  #   next_block = test
+  #   sib_block = test (because this is where the last body block will go)
+  #   this_block = test (because this is where we enter from)
   helper$break_block = helper$sib_block
-  helper$next_block = header_block
-  helper$sib_block = header_block
-  helper$this_block = header_block
+  helper$next_block = id_test
+  helper$sib_block = id_test
+  helper$this_block = id_test
 
   build_cfg(node$body, helper, cfg)
 
   # Add edge to exit loop.
-  cfg$add_edge(header_block, helper$break_block)
+  cfg$add_edge(id_test, helper$break_block)
 
   NULL
 }
 
 #' @export
 build_cfg.For = function(node, helper, cfg) {
-  # Create blocks for setup and header.
-  node$setup = Brace$new()
-  node$header = Brace$new()
+  id_setup = cfg$add_block()
+  node$setup = cfg[[id_setup]]
 
-  setup_block = cfg$add_vertex()
-  cfg[[setup_block]] = node$setup
+  id_test = cfg$add_block()
+  node$test = cfg[[id_test]]
 
-  header_block = cfg$add_vertex()
-  cfg[[header_block]] = node$header
+  id_increment = cfg$add_block()
+  node$increment = cfg[[id_increment]]
 
-  # FIXME: Generate code for these blocks.
-  # ...
+  # Generate code for the setup, test, and increment blocks.
+  #
+  #   for (x in xs) {...}
+  #
+  # becomes
+  #
+  #   # %setup
+  #   i = 1
+  #
+  #   repeat {
+  #     # %test
+  #     if (i > length(xs)) break
+  #
+  #     # %increment
+  #     x = xs[[i]]
+  #     i = i + 1
+  #
+  #     # %body
+  #     ...
+  #   }
+  counter = Symbol$new(paste0("._counter_", node$ivar$basename))
+  node$setup[[1]] = Assign$new(counter, Integer$new(1L))
 
-  cfg$add_edge(helper$this_block, setup_block)
-  cfg$add_edge(setup_block, header_block)
+  # NOTE: The test block should test the condition. The children of this block
+  # can be found in the CFG rather than on the generated If.
+  # FIXME: No way to distinguish true/false edge.
+  node$test[[1]] = If$new(
+    Call$new("<=", list(counter$copy(),
+        Call$new("length", list(node$iter$copy()))) ),
+    Brace$new() )
+
+  loop_var = Symbol$new(node$ivar$basename)
+  node$increment[[1]] = Assign$new(loop_var,
+    Subset$new("[[", list(node$iter$copy(), counter$copy())) )
+  node$increment[[2]] = Assign$new(counter$copy(),
+    Call$new("+", list(counter$copy(), Integer$new(1L))) )
+
+  # --------------------
+
+  cfg$add_edge(helper$this_block, id_setup)
+  cfg$add_edge(id_setup, id_test)
+  cfg$add_edge(id_test, id_increment)
 
   # Set
   #   break_block = sib_block (the original)
-  #   next_block = header
-  #   sib_block = header (because this is where the last body block will go)
-  #   this_block = header (because this is where we enter from)
+  #   next_block = test
+  #   sib_block = test (because this is where the last body block will go)
+  #   this_block = increment (because this is where we enter from)
   helper$break_block = helper$sib_block
-  helper$next_block = header_block
-  helper$sib_block = header_block
-  helper$this_block = header_block
+  helper$next_block = id_test
+  helper$sib_block = id_test
+  helper$this_block = id_increment
 
   build_cfg(node$body, helper, cfg)
 
   # Add edge to exit loop.
-  cfg$add_edge(header_block, helper$break_block)
+  cfg$add_edge(id_setup, helper$break_block)
 
   NULL
 }

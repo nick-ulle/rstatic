@@ -143,8 +143,7 @@ If = R6::R6Class("If", inherit = ASTNode,
 #' @export
 Loop = R6::R6Class("Loop", inherit = ASTNode,
   "public" = list(
-    .setup = NULL,
-    .header = NULL,
+    .test = NULL,
     .body = NULL,
 
     initialize = function(body, parent = NULL) {
@@ -155,20 +154,12 @@ Loop = R6::R6Class("Loop", inherit = ASTNode,
   ),
 
   "active" = list(
-    setup = function(value) {
+    test = function(value) {
       if (missing(value))
-        return (self$.setup)
+        return (self$.test)
 
       value = as_blocks(value)
-      self$.setup = .reparent_ast(value, self)
-    },
-
-    header = function(value) {
-      if (missing(value))
-        return (self$.header)
-
-      value = as_blocks(value)
-      self$.header = .reparent_ast(value, self)
+      self$.test = .reparent_ast(value, self)
     },
 
     body = function(value) {
@@ -186,6 +177,8 @@ For = R6::R6Class("For", inherit = Loop,
   "public" = list(
     .ivar = NULL,
     .iter = NULL,
+    .setup = NULL,
+    .increment = NULL,
 
     initialize = function(ivar, iter, body, parent = NULL) {
       super$initialize(body, parent)
@@ -208,6 +201,22 @@ For = R6::R6Class("For", inherit = Loop,
         return (self$.iter)
 
       self$.iter = .reparent_ast(value, self)
+    },
+
+    setup = function(value) {
+      if (missing(value))
+        return (self$.setup)
+
+      value = as_blocks(value)
+      self$.setup = .reparent_ast(value, self)
+    },
+
+    increment = function(value) {
+      if (missing(value))
+        return (self$.increment)
+
+      value = as_blocks(value)
+      self$.increment = .reparent_ast(value, self)
     }
   )
 )

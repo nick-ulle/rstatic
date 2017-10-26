@@ -114,7 +114,7 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
       self$blocks[[self$exit]] = Brace$new()
     },
 
-    add_block = function(block, id = NULL) {
+    add_block = function(block = Brace$new(), id = NULL) {
       # FIXME: Use defaults, not missing.
       if (missing(id))
         id = self$add_vertex()
