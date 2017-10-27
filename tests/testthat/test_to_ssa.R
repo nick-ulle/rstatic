@@ -1,33 +1,8 @@
-context("toSSA")
-
-
-test_that("CFG is copied when in_place = FALSE", {
-  # FIXME:
-  #cfg = ControlFlowGraph$new()
-  ## Can't compute CFG if entry isn't linked to exit.
-  #cfg$add_edge(cfg$entry, cfg$exit)
-
-  #result = toSSA(cfg, in_place = FALSE)
-
-  ## -----
-  #expect_false(identical(cfg, result))
-})
-
-
-test_that("CFG is not copied when in_place = FALSE", {
-  # FIXME:
-  #cfg = ControlFlowGraph$new()
-  #cfg$add_edge(cfg$entry, cfg$exit)
-
-  #result = toSSA(cfg, in_place = TRUE)
-
-  ## -----
-  #expect_identical(cfg, result)
-})
+context("to_ssa")
 
 
 test_that("SSA form for if-statement is correct", {
-  ast = quote_ast({
+  node = quote_ast({
     if (x > 3) {
       y = 1
     } else {
@@ -37,33 +12,31 @@ test_that("SSA form for if-statement is correct", {
     x = y
   })
 
-  node = to_cfg(ast)
-  cfg = node$cfg
+  node = to_cfg(node)
+  to_ssa(node, in_place = TRUE)
 
   # -----
-  expect_equal(length(cfg), 5)
-  y1 = cfg[[3]]$body[[1]]$write
-  expect_is(y1, "Symbol")
-  expect_equal(y1$ssa_number, 1)
+  true_block = node$body[[1]][[1]]$true
+  false_block = node$body[[1]][[1]]$false
 
-  y2 = cfg[[4]]$body[[1]]$write
-  expect_is(y2, "Symbol")
-  expect_equal(y2$ssa_number, 2)
+  y_true = true_block[[1]]$write
+  expect_false(is.na(y_true$ssa_number))
 
-  phi = cfg[[5]]$phi[[1]]
+  y_false = false_block[[1]]$write
+  expect_false(is.na(y_false$ssa_number))
+
+  phi = node$body[[2]]$phi[[1]]
   expect_is(phi, "Phi")
   expect_is(phi$write, "Symbol")
   expect_equal(phi$write$ssa_number, 3)
 
   args = phi$read
-  expect_named(args, c("%3", "%4"), ignore.order = TRUE)
-  expect_equal(args[["%3"]]$ssa_number, 1)
-  expect_equal(args[["%4"]]$ssa_number, 2)
+  expect_named(args, c(true_block$id, false_block$id), ignore.order = TRUE)
 })
 
 
-test_that("Phi nodes placed for assign in if in loop", {
-  ast = quote_ast({
+test_that("Phi nodes placed for Assign in if-statement in for-loop", {
+  node = quote_ast({
     x = 0
 
     for (i in 2:10) {
@@ -73,15 +46,25 @@ test_that("Phi nodes placed for assign in if in loop", {
     }
   })
 
-  node = to_cfg(ast)
-  cfg = node$cfg
+  node = to_cfg(node)
+  to_ssa(node, in_place = TRUE)
 
   # -----
-  expect_true(has_phi(cfg[["%3"]], "x"))
+  expect_false(is.na(node$body[[1]]$write$ssa_number))
+
+  # FIXME: Test the SSA more thoroughly.
+  loop = node$body[[2]]
+  expect_length(loop$test$phi, 2)
+
+  counter_phi = loop$test$phi[[1]]
+  expect_length(counter_phi$read, 3)
+
+  x_phi = loop$test$phi[[2]]
+  expect_length(counter_phi$read, 3)
 })
 
 test_that("uses of global variables are recorded", {
-  result = quote_cfg(
+  node = quote_ast(
     function(x, y) {
       y = z + 1
       x = 3
@@ -89,11 +72,14 @@ test_that("uses of global variables are recorded", {
     }
   )
 
+  node = to_cfg(node)
+  to_ssa(node, in_place = TRUE)
+
   # -----
-  expect_length(result$global_uses, 3)
-  expect_true("+" %in% result$global_uses)
-  expect_true("z" %in% result$global_uses)
-  expect_true("a" %in% result$global_uses)
+  expect_length(node$global_uses, 3)
+  expect_true("+" %in% node$global_uses)
+  expect_true("z" %in% node$global_uses)
+  expect_true("a" %in% node$global_uses)
 })
 
 
@@ -116,9 +102,9 @@ test_that("ifib", {
 #    return (new)
 #  }
 #
-#  ast = to_ast(ifib)
-#  cfg = to_cfg(ast)
+#  node = to_ast(ifib)
+#  node = to_cfg(node)
+#  to_ssa(node, in_place = TRUE)
 #
 #  # ----
-#  browser()
 })

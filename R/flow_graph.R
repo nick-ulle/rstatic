@@ -50,6 +50,17 @@ FlowGraph = R6::R6Class("FlowGraph",
 
     get_name = function(index) {
       igraph::V(self$graph)$name[index]
+    },
+
+    reorder = function(ordering) {
+      self$blocks = self$blocks[ordering, drop = FALSE]
+
+      # Transform the ordering into a permutation.
+      permutation = seq_along(ordering)
+      permutation[ordering] = permutation
+      self$graph = permute.vertices(self$graph, permutation)
+
+      NULL
     }
   )
 )

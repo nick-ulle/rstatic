@@ -75,14 +75,31 @@ Brace = R6::R6Class("Brace", inherit = Container,
   "public" = list(
     is_paren = FALSE,
     id = NA_character_,
+    .phi = NULL,
 
     initialize = function(body = list(), is_paren = FALSE, id = NA_character_,
-      parent = NULL)
+      phi = list(), parent = NULL)
     {
       super$initialize(body, parent)
 
       self$is_paren = is_paren
       self$id = id
+      self$phi = phi
+    },
+
+    append_phi = function(phi) {
+      self$.phi[[length(self$.phi) + 1]] = .reparent_ast(phi, self)
+
+      invisible(NULL)
+    }
+  ),
+
+  "active" = list(
+    phi = function(value) {
+      if (missing(value))
+        return (self$.phi)
+
+      self$.phi = .reparent_ast(value, self)
     }
   )
 )

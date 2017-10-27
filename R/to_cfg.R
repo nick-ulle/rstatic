@@ -59,6 +59,11 @@ to_cfg.Function = function(node, in_place = FALSE, linearize = TRUE) {
     next_block = NULL, break_block = NULL)
   build_cfg(node$body, helper, cfg)
 
+  # Sort the blocks in reverse postorder to make them easier to read and ensure
+  # SSA numbers will increase monotonically.
+  ordering = rev(postorder(cfg))
+  cfg$reorder(ordering)
+
   node$cfg = cfg
 
   node
@@ -231,17 +236,27 @@ build_cfg.For = function(node, helper, cfg) {
   counter = Symbol$new(paste0("._counter_", node$ivar$basename))
   node$setup[[1]] = Assign$new(counter, Integer$new(1L))
 
+  if (inherits(node$iter, "Call")) {
+    iterator = Symbol$new(paste0("._iterator_", node$ivar$basename))
+    node$setup[[2]] = Assign$new(iterator, node$iter$copy())
+  } else {
+    iterator = node$ivar
+  }
+
+  # NOTE: Technically the length could also be computed just once, in the setup
+  # block.
+
   # NOTE: The test block should test the condition. The children of this block
   # can be found in the CFG rather than on the generated If.
   # FIXME: No way to distinguish true/false edge.
   node$test[[1]] = If$new(
     Call$new("<=", list(counter$copy(),
-        Call$new("length", list(node$iter$copy()))) ),
+        Call$new("length", list(iterator$copy()))) ),
     Brace$new() )
 
   loop_var = Symbol$new(node$ivar$basename)
   node$increment[[1]] = Assign$new(loop_var,
-    Subset$new("[[", list(node$iter$copy(), counter$copy())) )
+    Subset$new("[[", list(iterator$copy(), counter$copy())) )
   node$increment[[2]] = Assign$new(counter$copy(),
     Call$new("+", list(counter$copy(), Integer$new(1L))) )
 
