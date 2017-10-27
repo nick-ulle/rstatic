@@ -12,7 +12,7 @@ test_that("SSA form for if-statement is correct", {
     x = y
   })
 
-  node = to_cfg(node)
+  node = to_cfg(node, ssa = FALSE)
   to_ssa(node, in_place = TRUE)
 
   # -----
@@ -46,14 +46,14 @@ test_that("Phi nodes placed for Assign in if-statement in for-loop", {
     }
   })
 
-  node = to_cfg(node)
+  node = to_cfg(node, ssa = FALSE)
   to_ssa(node, in_place = TRUE)
 
   # -----
-  expect_false(is.na(node$body[[1]]$write$ssa_number))
+  expect_false(is.na(node$body[[1]][[1]]$write$ssa_number))
 
   # FIXME: Test the SSA more thoroughly.
-  loop = node$body[[2]]
+  loop = node$body[[1]][[2]]
   expect_length(loop$test$phi, 2)
 
   counter_phi = loop$test$phi[[1]]

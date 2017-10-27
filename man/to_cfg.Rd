@@ -4,19 +4,26 @@
 \alias{to_cfg}
 \title{Build Control Flow Graph from ASTNodes}
 \usage{
-to_cfg(node, in_place = FALSE, linearize = TRUE)
+to_cfg(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
+  linearize = TRUE)
 }
 \arguments{
 \item{node}{A quoted R expression or an abstract syntax tree.}
 
-\item{in_place}{(logical) Don't copy AST before generating CFG?}
+\item{in_place}{(logical) Operate on the node in place? If \code{TRUE}, the
+node will be modified.}
 
-\item{linearize}{(logical) Linearize AST? This should be TRUE unless
-\code{linearize_blocks()} has already been called on the AST.}
+\item{ssa}{(logical) Also convert to static single assignment form?}
+
+\item{insert_return}{(logical) Apply \code{insert_return()} to the node
+before generating the CFG?}
+
+\item{linearize}{(logical) Apply \code{linearize_blocks()} to the node
+before generating the CFG?}
 }
 \value{
-The control flow graph as a CFGraph object. The \code{[[} operator
-can be used to extract individual basic blocks from the graph.
+A Function node with the control flow graph in its \code{$cfg}
+field.
 }
 \description{
 This function builds the control flow graph (CFG) for a quoted R expression

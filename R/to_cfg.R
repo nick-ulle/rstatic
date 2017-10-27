@@ -33,22 +33,35 @@ quote_cfg = function(expr, ...) {
 #' for-loop makes a cycle.
 #'
 #' @param node A quoted R expression or an abstract syntax tree.
-#' @param in_place (logical) Don't copy AST before generating CFG?
-#' @param linearize (logical) Linearize AST? This should be TRUE unless
-#' \code{linearize_blocks()} has already been called on the AST.
+#' @param in_place (logical) Operate on the node in place? If \code{TRUE}, the
+#' node will be modified.
+#' @param ssa (logical) Also convert to static single assignment form?
+#' @param insert_return (logical) Apply \code{insert_return()} to the node
+#' before generating the CFG?
+#' @param linearize (logical) Apply \code{linearize_blocks()} to the node
+#' before generating the CFG?
 #'
-#' @return The control flow graph as a CFGraph object. The \code{[[} operator
-#' can be used to extract individual basic blocks from the graph.
+#' @return A Function node with the control flow graph in its \code{$cfg}
+#' field.
 #'
 #' @export
-to_cfg = function(node, in_place = FALSE, linearize = TRUE) {
+to_cfg =
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
+  linearize = TRUE)
+{
   UseMethod("to_cfg")
 }
 
 #' @export
-to_cfg.Function = function(node, in_place = FALSE, linearize = TRUE) {
+to_cfg.Function =
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
+  linearize = TRUE)
+{
   if (!in_place)
     node = node$copy()
+
+  if (insert_return)
+    node = insert_return(node)
 
   if (linearize)
     node = linearize_blocks(node)
@@ -66,25 +79,33 @@ to_cfg.Function = function(node, in_place = FALSE, linearize = TRUE) {
 
   node$cfg = cfg
 
+  if (ssa)
+    to_ssa(node, in_place = TRUE)
+
   node
 }
 
 #' @export
-to_cfg.ASTNode = function(node, in_place = FALSE, linearize = TRUE) {
+to_cfg.ASTNode =
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
+  linearize = TRUE)
+{
   if (!in_place)
     node = node$copy()
 
   # This node isn't a Function, so wrap it up in one.
   node = Function$new(params = list(), body = node)
 
-  to_cfg.Function(node, in_place = TRUE, linearize = linearize)
+  to_cfg.Function(node, in_place = TRUE, ssa, insert_return, linearize)
 }
 
 #' @export
 to_cfg.default =
-function(node, in_place = FALSE, linearize = TRUE) {
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
+  linearize = TRUE)
+{
   node = to_ast(node)
-  to_cfg(node, in_place = TRUE, linearize = linearize)
+  to_cfg(node, in_place = TRUE, ssa, insert_return, linearize)
 }
 
 
@@ -279,7 +300,7 @@ build_cfg.For = function(node, helper, cfg) {
   build_cfg(node$body, helper, cfg)
 
   # Add edge to exit loop.
-  cfg$add_edge(id_setup, helper$break_block)
+  cfg$add_edge(id_test, helper$break_block)
 
   NULL
 }
@@ -323,7 +344,8 @@ nested_functions_to_cfg = function(node) {
 
 #' @export
 nested_functions_to_cfg.Function = function(node) {
-  to_cfg.Function(node, in_place = TRUE, linearize = FALSE)
+  to_cfg.Function(node, in_place = TRUE, ssa = FALSE, insert_return = FALSE,
+    linearize = FALSE)
 }
 
 #' @export

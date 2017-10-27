@@ -42,7 +42,7 @@ test_that("non-linear blocks are split (depth 1)", {
   result = linearize_blocks(node)
 
   # -----
-  expect_length(result, 3)
+  expect_true(length(result) == 3)
   expect_is(result[[1]], "Brace")
   expect_is(result[[2]], "Brace")
   expect_is(result[[3]], "Brace")
@@ -66,10 +66,26 @@ test_that("non-linear blocks are split (depth 2)", {
 
   # -----
   if_node = result$body[[2]]
-  expect_length(if_node$true, 2)
+  expect_true(length(if_node$true) == 2)
   expect_is(if_node$true[[1]], "Brace")
   expect_is(if_node$true[[2]], "Brace")
-  expect_identical(if_node, if_node$true[[1]]$parent)
-  expect_identical(if_node, if_node$true[[2]]$parent)
+  expect_identical(if_node$true, if_node$true[[1]]$parent)
+  expect_identical(if_node$true, if_node$true[[2]]$parent)
 })
 
+test_that("non-linear blocks are split (depth 2)", {
+  node = quote_ast(
+    function() {
+      function(x) {
+        if (x > 3) {
+          42
+        }
+        y = x
+      }
+  })
+
+  result = linearize_blocks(node)
+
+  # -----
+  # TODO:
+})
