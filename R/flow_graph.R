@@ -67,7 +67,6 @@ FlowGraph = R6::R6Class("FlowGraph",
 
 #' @export
 `[.FlowGraph` = function(x, i) {
-      # No S4 so can't do multiple dispatch!
   if(is(i, "igraph.vs"))
     i = as_ids(i)
   x$blocks[i]
@@ -82,7 +81,7 @@ FlowGraph = R6::R6Class("FlowGraph",
 #' @export
 `[[<-.FlowGraph` = function(x, i, value) {
   x$blocks[[i]] = value
-  return (x)
+  x
 }
 
 
@@ -122,7 +121,7 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
 
       self$exit = self$add_vertex()
       # FIXME: Set parent
-      self$blocks[[self$exit]] = Brace$new()
+      self$blocks[[self$exit]] = Brace$new(Symbol$new("._return_"))
     },
 
     add_block = function(block = Brace$new(), id = NULL) {
