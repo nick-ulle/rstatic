@@ -4,7 +4,7 @@
 \alias{to_r}
 \title{Convert ASTNodes to R Code}
 \usage{
-to_r(node)
+to_r(node, ...)
 }
 \arguments{
 \item{node}{(ASTNode) The tree to be converted.}

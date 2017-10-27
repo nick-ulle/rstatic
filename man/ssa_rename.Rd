@@ -13,7 +13,8 @@ ssa_rename(block, cfg, dom_t, builder)
 
 \item{dom_t}{(integer) The dominator tree for the CFG.}
 
-\item{builder}{(SSABuilder) A stateful object used by the renaming}
+\item{builder}{(SSABuilder) A stateful object used by the renaming
+algorithm.}
 }
 \description{
 This function renames variables in the basic blocks of a CFG with their SSA

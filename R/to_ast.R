@@ -147,12 +147,15 @@ to_ast.call = function(expr) {
       return (Break$new())
     else if (name == "next")
       return (Next$new())
+    else if (name == "return") {
+      arg = to_ast(expr[[2]])
+      return (Return$new(arg))
+    }
 
     # The standard call syntax applies, so construct an appropriate node.
     node = switch(name,
-      "return"      = Return$new()
       # TODO: .C .Fortran .Call .External
-      , ".Internal" = Internal$new()
+      ".Internal" = Internal$new()
 
       # NOTE: These can all be redefined by users.
       , "::" = Namespace$new(name)

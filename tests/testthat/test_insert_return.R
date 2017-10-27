@@ -7,7 +7,7 @@ test_that("return inserted for Literal", {
 
   # -----
   expect_is(result, "Return")
-  expect_is(result$args[[1]], "Numeric")
+  expect_is(result$read, "Numeric")
 })
 
 
@@ -18,7 +18,7 @@ test_that("return inserted for Symbol", {
 
   # -----
   expect_is(result, "Return")
-  expect_is(result$args[[1]], "Symbol")
+  expect_is(result$read, "Symbol")
 })
 
 
@@ -29,7 +29,7 @@ test_that("return inserted for Call", {
 
   # -----
   expect_is(result, "Return")
-  expect_is(result$args[[1]], "Call")
+  expect_is(result$read, "Call")
 })
 
 
@@ -40,7 +40,7 @@ test_that("return inserted for Assign", {
 
   # -----
   expect_is(result, "Return")
-  expect_is(result$args[[1]], "Assign")
+  expect_is(result$read, "Assign")
 })
 
 
@@ -89,6 +89,6 @@ test_that("return inserted for Function", {
 
   # -----
   expect_is(result, "Function")
-  expect_is(result$body, "Return")
-  expect_identical(result$body$parent, result)
+  expect_is(result$body[[1]], "Return")
+  expect_identical(result$body[[1]]$parent, result$body)
 })

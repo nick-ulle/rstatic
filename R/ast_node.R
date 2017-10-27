@@ -27,10 +27,15 @@ ASTNode = R6::R6Class("ASTNode",
       # Reparent ASTNode objects that aren't in the "parent" field.
       names = setdiff(names(cloned), c("parent", ".__enclos_env__"))
       for (name in names) {
-        if ( bindingIsActive(name, cloned) || is.function(cloned[[name]]) )
+        if (bindingIsActive(name, cloned))
           next
 
-        cloned[[name]] = .reparent_ast(cloned[[name]], cloned)
+        item = get(name, cloned)
+        if (is.function(item))
+          next
+
+        item = .reparent_ast(item, cloned)
+        assign(name, item, envir = cloned)
       }
 
       cloned
@@ -39,20 +44,20 @@ ASTNode = R6::R6Class("ASTNode",
 )
 
 
-
 # Containers
 # --------------------
-
 #' @export
-Brace = R6::R6Class("Brace", inherit = ASTNode,
+Container = R6::R6Class("Container", inherit = ASTNode,
   "public" = list(
     .body = NULL,
-    is_paren = FALSE,
 
-    initialize = function(body = list(), is_paren = FALSE, parent = NULL) {
+    initialize = function(body = list(), parent = NULL) {
       super$initialize(parent)
+
+      if (!is.list(body))
+        body = list(body)
+
       self$body = body
-      self$is_paren = is_paren
     }
   ),
 
@@ -66,16 +71,61 @@ Brace = R6::R6Class("Brace", inherit = ASTNode,
   )
 )
 
+#' @export
+BlockList = R6::R6Class("BlockList", inherit = Container)
+
+#' @export
+Brace = R6::R6Class("Brace", inherit = Container,
+  "public" = list(
+    is_paren = FALSE,
+    id = NA_character_,
+    .phi = NULL,
+
+    initialize = function(body = list(), is_paren = FALSE, id = NA_character_,
+      phi = list(), parent = NULL)
+    {
+      super$initialize(body, parent)
+
+      self$is_paren = is_paren
+      self$id = id
+      self$phi = phi
+    },
+
+    append_phi = function(phi) {
+      self$.phi[[length(self$.phi) + 1]] = .reparent_ast(phi, self)
+
+      invisible(NULL)
+    }
+  ),
+
+  "active" = list(
+    phi = function(value) {
+      if (missing(value))
+        return (self$.phi)
+
+      self$.phi = .reparent_ast(value, self)
+    }
+  )
+)
 
 
 # Control Flow
 # --------------------
-
 #' @export
 Next = R6::R6Class("Next", inherit = ASTNode)
 
 #' @export
 Break = R6::R6Class("Break", inherit = ASTNode)
+
+#' @export
+Return = R6::R6Class("Return", inherit = Assign,
+  "public" = list(
+    initialize = function(args, parent = NULL) {
+      write = Symbol$new("._return_")
+      super$initialize(write, args, parent)
+    }
+  )
+)
 
 #' @export
 If = R6::R6Class("If", inherit = ASTNode,
@@ -105,6 +155,7 @@ If = R6::R6Class("If", inherit = ASTNode,
       if (missing(value))
         return (self$.true)
 
+      value = as_blocks(value)
       self$.true = .reparent_ast(value, self)
     },
 
@@ -112,24 +163,57 @@ If = R6::R6Class("If", inherit = ASTNode,
       if (missing(value))
         return (self$.false)
 
+      value = as_blocks(value)
       self$.false = .reparent_ast(value, self)
     }
   )
 )
 
 #' @export
-For = R6::R6Class("For", inherit = ASTNode,
+Loop = R6::R6Class("Loop", inherit = ASTNode,
+  "public" = list(
+    .test = NULL,
+    .body = NULL,
+
+    initialize = function(body, parent = NULL) {
+      super$initialize(parent)
+
+      self$body = body
+    }
+  ),
+
+  "active" = list(
+    test = function(value) {
+      if (missing(value))
+        return (self$.test)
+
+      value = as_blocks(value)
+      self$.test = .reparent_ast(value, self)
+    },
+
+    body = function(value) {
+      if (missing(value))
+        return (self$.body)
+
+      value = as_blocks(value)
+      self$.body = .reparent_ast(value, self)
+    }
+  )
+)
+
+#' @export
+For = R6::R6Class("For", inherit = Loop,
   "public" = list(
     .ivar = NULL,
     .iter = NULL,
-    .body = NULL,
+    .setup = NULL,
+    .increment = NULL,
 
     initialize = function(ivar, iter, body, parent = NULL) {
-      super$initialize(parent)
+      super$initialize(body, parent)
 
       self$ivar = ivar
       self$iter = iter
-      self$body = body
     }
   ),
 
@@ -148,27 +232,34 @@ For = R6::R6Class("For", inherit = ASTNode,
       self$.iter = .reparent_ast(value, self)
     },
 
-    body = function(value) {
+    setup = function(value) {
       if (missing(value))
-        return (self$.body)
+        return (self$.setup)
 
-      self$.body = .reparent_ast(value, self)
+      value = as_blocks(value)
+      self$.setup = .reparent_ast(value, self)
+    },
+
+    increment = function(value) {
+      if (missing(value))
+        return (self$.increment)
+
+      value = as_blocks(value)
+      self$.increment = .reparent_ast(value, self)
     }
   )
 )
 
 #' @export
-While = R6::R6Class("While", inherit = ASTNode,
+While = R6::R6Class("While", inherit = Loop,
   "public" = list(
     .condition = NULL,
-    .body = NULL,
     is_repeat = FALSE,
 
     initialize = function(condition, body, is_repeat = FALSE, parent = NULL) {
-      super$initialize(parent)
+      super$initialize(body, parent)
 
       self$condition = condition
-      self$body = body
       self$is_repeat = is_repeat
     }
   ),
@@ -179,13 +270,6 @@ While = R6::R6Class("While", inherit = ASTNode,
         return (self$.condition)
 
       self$.condition = .reparent_ast(value, self)
-    },
-
-    body = function(value) {
-      if (missing(value))
-        return (self$.body)
-
-      self$.body = .reparent_ast(value, self)
     }
   )
 )
@@ -212,18 +296,6 @@ Application = R6::R6Class("Application", inherit = ASTNode,
         return (self$.args)
 
       self$.args = .reparent_ast(value, self)
-    }
-  )
-)
-
-#' @export
-Return = R6::R6Class("Return", inherit = Application,
-  "public" = list(
-    initialize = function(args = list(), parent = NULL) {
-      if (!is.list(args))
-        args = list(args)
-
-      super$initialize(args, parent)
     }
   )
 )
@@ -315,6 +387,7 @@ Function = R6::R6Class("Function", inherit = Callable,
       if (missing(value))
         return (self$.body)
 
+      value = as_blocks(value)
       self$.body = .reparent_ast(value, self)
     }
   )
@@ -349,7 +422,6 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
 
 # Assignment
 # --------------------
-
 #' @export
 Assign = R6::R6Class("Assign", inherit = ASTNode,
   "public" = list(

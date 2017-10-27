@@ -9,70 +9,118 @@
 #' 
 #' @param node (ASTNode) The tree to be converted.
 #' @export
-to_r = function(node) {
+to_r =
+function(node, ...) {
   UseMethod("to_r")
+}
+
+#' @export
+to_r.BlockList =
+function(node, ...) {
+  body = unlist(lapply(node$body, function(x) {
+      lapply(x$body, to_r, ...)
+  }), recursive = FALSE)
+
+  as.call(append(as.name("{"), body))
+}
+
+#' @export
+to_r.Brace =
+function(node, ...) {
+  keep_phi = list(...)[["keep_phi"]]
+  if (!is.null(keep_phi) && keep_phi) {
+    phi = lapply(node$phi, to_r, ...)
+  } else
+    phi = list()
+
+  body = lapply(node$body, to_r, ...)
+  body = append(phi, body)
+  if (node$is_paren)
+    name = "("
+  else
+    name = "{"
+
+  as.call(append(as.name(name), body))
 }
 
 
 #' @export
-to_r.Next = function(node) {
+to_r.Next =
+function(node, ...) {
   call("next")
 }
 
 
 #' @export
-to_r.Break = function(node) {
+to_r.Break =
+function(node, ...) {
   call("break")
 }
 
 
 #' @export
-to_r.If = function(node) {
-  if (is.null(node$false))
-    call("if", to_r(node$condition), to_r(node$true))
+to_r.If =
+function(node, ...) {
+  keep_phi = list(...)[["keep_phi"]]
+  if (!is.null(keep_phi) && keep_phi) {
+    call("if", to_r(node$condition, ...), as.name(".."))
+  } else if (is.null(node$false))
+    call("if", to_r(node$condition, ...), to_r(node$true, ...))
   else
-    call("if", to_r(node$condition), to_r(node$true), to_r(node$false))
+    call("if", to_r(node$condition, ...), to_r(node$true, ...),
+      to_r(node$false, ...))
 }
 
 
 #' @export
-to_r.For = function(node) {
-  call("for", to_r(node$ivar), to_r(node$iter), to_r(node$body))
+to_r.For =
+function(node, ...) {
+  keep_phi = list(...)[["keep_phi"]]
+  if (!is.null(keep_phi) && keep_phi) {
+    call("for", to_r(node$ivar, ...), to_r(node$iter, ...), as.name(".."))
+  } else
+    call("for", to_r(node$ivar, ...), to_r(node$iter, ...),
+      to_r(node$body, ...))
 }
 
 
 #' @export
-to_r.While = function(node) {
+to_r.While =
+function(node, ...) {
   if (node$is_repeat)
-    call("repeat", to_r(node$body))
+    call("repeat", to_r(node$body, ...))
   else
-    call("while", to_r(node$condition), to_r(node$body))
+    call("while", to_r(node$condition, ...), to_r(node$body, ...))
 }
 
 
 #' @export
-to_r.Assign = function(node) {
-  call("=", to_r(node$write), to_r(node$read))
+to_r.Assign =
+function(node, ...) {
+  call("=", to_r(node$write, ...), to_r(node$read, ...))
 }
 
 
 #' @export
-to_r.Call = function(node) {
-  fn = to_r(node$fn)
-  args = lapply(node$args, to_r)
+to_r.Call =
+function(node, ...) {
+  fn = to_r(node$fn, ...)
+  args = lapply(node$args, to_r, ...)
   as.call(append(fn, args))
 }
 
 #' @export
-to_r.Phi = function(node) {
-  reads = lapply(node$read, to_r)
+to_r.Phi =
+function(node, ...) {
+  reads = lapply(node$read, to_r, ...)
   phi = as.call(append(as.name("Phi"), reads))
-  call("=", to_r(node$write), phi)
+  call("=", to_r(node$write, ...), phi)
 }
 
 #' @export
-to_r.Replacement = function(node) {
-  lhs = to_r(node$read)
+to_r.Replacement =
+function(node, ...) {
+  lhs = to_r(node$read, ...)
 
   # Delete the <- in the function name.
   fn = as.character(lhs[[1]])
@@ -80,7 +128,7 @@ to_r.Replacement = function(node) {
   lhs[[1]] = as.symbol(fn)
 
   # Set the write variable.
-  lhs[[2]] = to_r(node$write)
+  lhs[[2]] = to_r(node$write, ...)
 
   len = length(lhs)
 
@@ -88,15 +136,14 @@ to_r.Replacement = function(node) {
 }
 
 #' @export
-to_r.Return = function(node) {
-  name = as.symbol("return")
-
-  args = lapply(node$args, to_r)
-  as.call(append(name, args))
+to_r.Return =
+function(node, ...) {
+  call("return", to_r(node$read, ...))
 }
 
 #' @export
-to_r.Symbol = function(node) {
+to_r.Symbol =
+function(node, ...) {
   # Handle empty arguments.
   if (node$basename == "")
     return (quote(expr = ))
@@ -109,12 +156,13 @@ to_r.Symbol = function(node) {
 
 
 #' @export
-to_r.Parameter = function(node) {
+to_r.Parameter =
+function(node, ...) {
   param =
     if (is.null(node$default))
       pairlist(quote(expr = ))
     else
-      pairlist(to_r(node$default))
+      pairlist(to_r(node$default, ...))
 
   names(param) = node$name
   return (param)
@@ -122,43 +170,36 @@ to_r.Parameter = function(node) {
 
 
 #' @export
-to_r.Function = function(node) {
+to_r.Function =
+function(node, ...) {
   params = pairlist()
   for (param in node$params)
-    params = append(params, to_r(param))
+    params = append(params, to_r(param, ...))
 
   if (is.null(node$body))
     call("function", as.pairlist(params), as.symbol(".."))
   else
-    call("function", as.pairlist(params), to_r(node$body))
+    call("function", as.pairlist(params), to_r(node$body, ...))
 }
 
 
 #' @export
-to_r.Primitive = function(node) {
+to_r.Primitive =
+function(node, ...) {
   .Primitive(node$fn$name)
 }
 
 
 #' @export
-to_r.Brace = function(node) {
-  body = lapply(node$body, to_r)
-  if (node$is_paren)
-    name = "("
-  else
-    name = "{"
-
-  as.call(append(as.name(name), body))
-}
-
-#' @export
-to_r.Literal = function(node) {
+to_r.Literal =
+function(node, ...) {
   node$value
 }
 
 
 #' @export
-to_r.default = function(node) {
+to_r.default =
+function(node, ...) {
   # FIXME:
   msg = sprintf("Cannot convert '%s' to R code.", class(node)[1])
   stop(msg)

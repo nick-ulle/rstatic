@@ -1,4 +1,4 @@
-
+# FIXME: Add parameter to control whether sub-blocks are checked.
 #' Collect All Reads in an AST
 #'
 #' This function collects the (unique) names of all variables that are read in
@@ -61,25 +61,16 @@ collect_reads.Literal = function(node) {
 }
 
 #' @export
-collect_reads.RetTerminator = function(node) {
-  collect_reads(node$value)
-}
-
-#' @export
-collect_reads.BrTerminator = function(node) {
-  character(0)
-}
-
-#' @export
-collect_reads.CondBrTerminator = function(node) {
+collect_reads.If = function(node) {
+  # Only collect for condition, not sub-blocks.
   collect_reads(node$condition)
 }
 
 #' @export
-collect_reads.IterTerminator = function(node) {
-  # FIXME: This shouldn't be a special case of CondBr. Loop code is generated
-  # with the CFG, and that should include the loop's condition.
-  collect_reads(node$iter)
+collect_reads.Loop = function(node) {
+  # Since an If is generated in the loop's test block, no need to collect reads
+  # here.
+  character(0)
 }
 
 #' @export

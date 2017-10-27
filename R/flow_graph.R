@@ -50,13 +50,23 @@ FlowGraph = R6::R6Class("FlowGraph",
 
     get_name = function(index) {
       igraph::V(self$graph)$name[index]
+    },
+
+    reorder = function(ordering) {
+      self$blocks = self$blocks[ordering, drop = FALSE]
+
+      # Transform the ordering into a permutation.
+      permutation = seq_along(ordering)
+      permutation[ordering] = permutation
+      self$graph = permute.vertices(self$graph, permutation)
+
+      NULL
     }
   )
 )
 
 #' @export
 `[.FlowGraph` = function(x, i) {
-      # No S4 so can't do multiple dispatch!
   if(is(i, "igraph.vs"))
     i = as_ids(i)
   x$blocks[i]
@@ -71,7 +81,7 @@ FlowGraph = R6::R6Class("FlowGraph",
 #' @export
 `[[<-.FlowGraph` = function(x, i, value) {
   x$blocks[[i]] = value
-  return (x)
+  x
 }
 
 
@@ -109,15 +119,24 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
     initialize = function() {
       super$initialize()
 
-      self$entry = self$add_vertex()
-      self$blocks[[self$entry]] = BasicBlock$new(self$entry)
-
       self$exit = self$add_vertex()
-      exit_block = BasicBlock$new(self$exit)
-      exit_block$terminator = RetTerminator$new()
-      self$blocks[[self$exit]] = exit_block
+      # FIXME: Set parent
+      self$blocks[[self$exit]] = Brace$new(Symbol$new("._return_"))
+    },
 
-      return (self)
+    add_block = function(block = Brace$new(), id = NULL) {
+      # FIXME: Use defaults, not missing.
+      if (missing(id))
+        id = self$add_vertex()
+      else
+        self$add_vertex(id)
+
+      self$blocks[[id]] = block
+
+      if (is.null(self$entry))
+        self$entry = id
+
+      id
     }
   )
 )

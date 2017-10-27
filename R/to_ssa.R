@@ -1,4 +1,3 @@
-
 #' Convert CFGraph to Static Single-Assignment Form
 #'
 #' This function converts code in a control flow graph (CFG) to static
@@ -42,7 +41,7 @@ to_ssa = function(node, in_place = FALSE) {
           next
 
         phi = Phi$new(name)
-        cfg[[d]]$append(phi)
+        cfg[[d]]$append_phi(phi)
         worklist = union(worklist, d)
       } # end for d
     }
@@ -72,20 +71,13 @@ to_ssa = function(node, in_place = FALSE) {
 #' @param cfg (CFGraph) A control-flow graph.
 #' @param dom_t (integer) The dominator tree for the CFG.
 #' @param builder (SSABuilder) A stateful object used by the renaming
+#' algorithm.
 #'
 ssa_rename = function(block, cfg, dom_t, builder) {
   # Rewrite LHS of phi-functions in this block.
   ssa_rename_ast(cfg[[block]]$phi, builder)
 
   ssa_rename_ast(cfg[[block]]$body, builder)
-
-  # Rewrite terminator in this block.
-  term = cfg[[block]]$terminator
-  if (inherits(term, "CondBrTerminator")) {
-    ssa_rename_ast(term$condition, builder)
-  } else if (inherits(term, "RetTerminator")) {
-    ssa_rename_ast(term$value, builder)
-  }
 
   # Rewrite RHS of phi-functions in successors.
   block_name = cfg$get_name(block)
@@ -94,6 +86,7 @@ ssa_rename = function(block, cfg, dom_t, builder) {
       n = builder$get_live_def(phi$write$basename)
       node = Symbol$new(phi$write$basename, n)
 
+      # FIXME: The design for Phis could be better.
       phi$set_read(block_name, node)
 
       # Add a backedge if the phi-function's LHS has been renamed already.
@@ -136,6 +129,22 @@ ssa_rename = function(block, cfg, dom_t, builder) {
 #'
 ssa_rename_ast = function(node, builder) {
   UseMethod("ssa_rename_ast")
+}
+
+#' @export
+ssa_rename_ast.If = function(node, builder) {
+  ssa_rename_ast(node$condition, builder)
+}
+
+#' @export
+ssa_rename_ast.For = function(node, builder) {
+  ssa_rename_ast(node$ivar, builder)
+  ssa_rename_ast(node$iter, builder)
+}
+
+#' @export
+ssa_rename_ast.While = function(node, builder) {
+  ssa_rename_ast(node$condition, builder)
 }
 
 #' @export

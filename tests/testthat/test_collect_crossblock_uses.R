@@ -17,7 +17,7 @@ test_that("assignment RHSs detected as a crossblock uses", {
   assign_blocks = result[[2]]
 
   # -----
-  expect_equal(uses, c("._return_", "x"))
+  expect_equal(sort(uses), c("._return_", "x"))
 })
 
 
@@ -37,7 +37,7 @@ test_that("replacement RHSs detected as crossblock uses", {
   assign_blocks = result[[2]]
 
   # -----
-  expect_equal(uses, c("._return_", "[<-", "y", "x"))
+  expect_equal(sort(uses), c("._return_", "[<-", "x", "y"))
 })
 
 
@@ -57,5 +57,5 @@ test_that("arguments detected as crossblock uses", {
   assign_blocks = result[[2]]
 
   # -----
-  expect_equal(uses, c("._return_", "mean", "x"))
+  expect_equal(sort(uses), c("._return_", "mean", "x"))
 })
