@@ -27,17 +27,21 @@ ASTNode = R6::R6Class("ASTNode",
       # Reparent ASTNode objects that aren't in the "parent" field.
       names = setdiff(names(cloned), c("parent", ".__enclos_env__"))
       for (name in names) {
-        if ( bindingIsActive(name, cloned) || is.function(cloned[[name]]) )
+        if (bindingIsActive(name, cloned))
           next
 
-        cloned[[name]] = .reparent_ast(cloned[[name]], cloned)
+        item = get(name, cloned)
+        if (is.function(item))
+          next
+
+        item = .reparent_ast(item, cloned)
+        assign(name, item, envir = cloned)
       }
 
       cloned
     }
   )
 )
-
 
 
 # Containers
@@ -155,7 +159,6 @@ If = R6::R6Class("If", inherit = ASTNode,
     }
   )
 )
-
 
 #' @export
 Loop = R6::R6Class("Loop", inherit = ASTNode,
@@ -422,7 +425,6 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
 
 # Assignment
 # --------------------
-
 #' @export
 Assign = R6::R6Class("Assign", inherit = ASTNode,
   "public" = list(
