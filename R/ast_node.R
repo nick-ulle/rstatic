@@ -111,12 +111,21 @@ Brace = R6::R6Class("Brace", inherit = Container,
 
 # Control Flow
 # --------------------
-
 #' @export
 Next = R6::R6Class("Next", inherit = ASTNode)
 
 #' @export
 Break = R6::R6Class("Break", inherit = ASTNode)
+
+#' @export
+Return = R6::R6Class("Return", inherit = Assign,
+  "public" = list(
+    initialize = function(args, parent = NULL) {
+      write = Symbol$new("._return_")
+      super$initialize(write, args, parent)
+    }
+  )
+)
 
 #' @export
 If = R6::R6Class("If", inherit = ASTNode,
@@ -287,18 +296,6 @@ Application = R6::R6Class("Application", inherit = ASTNode,
         return (self$.args)
 
       self$.args = .reparent_ast(value, self)
-    }
-  )
-)
-
-#' @export
-Return = R6::R6Class("Return", inherit = Application,
-  "public" = list(
-    initialize = function(args = list(), parent = NULL) {
-      if (!is.list(args))
-        args = list(args)
-
-      super$initialize(args, parent)
     }
   )
 )
