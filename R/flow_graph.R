@@ -116,12 +116,15 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
     entry = NULL,
     exit = NULL,
 
-    initialize = function() {
+    initialize = function(exit_block = Brace$new(Symbol$new("._return_"))) {
       super$initialize()
 
-      self$exit = self$add_vertex()
-      # FIXME: Set parent
-      self$blocks[[self$exit]] = Brace$new(Symbol$new("._return_"))
+      #self$entry = self$add_vertex("entry")
+      self$exit = self$add_vertex("%exit")
+
+      # FIXME: Set parent for exit_block.
+      self$blocks[[self$exit]] = exit_block
+
     },
 
     add_block = function(block = Brace$new(), id = NULL) {
