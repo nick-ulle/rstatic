@@ -1,5 +1,26 @@
 context("to_cfg")
 
+test_that("linear code has exit block", {
+  node = quote_ast(function() {
+      x = 3
+      y = 7 + x
+  })
+
+  result = to_cfg(node, ssa = FALSE)
+
+  # -----
+  # Check body block.
+  body = result$body
+  expect_equal(length(body), 2)
+
+  # Check exit block.
+  exit = result$cfg[[result$cfg$exit]]
+  expect_identical(exit$parent, result)
+  expect_equal(length(exit), 1)
+  expect_is(exit[[1]], "Symbol")
+  expect_equal(exit[[1]]$basename, "._return_")
+})
+
 test_that("if-statement graph has correct structure", {
   goal = igraph::make_empty_graph(n = 4)
   goal = goal + igraph::edges(c(1, 2, 1, 3, 2, 4, 3, 4))

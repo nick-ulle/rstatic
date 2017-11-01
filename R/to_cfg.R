@@ -66,7 +66,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
   if (linearize)
     node = linearize_blocks(node)
 
-  cfg = ControlFlowGraph$new()
+  cfg = ControlFlowGraph$new(node)
   helper = list(
     this_block = NULL, sib_block = cfg$exit,
     next_block = NULL, break_block = NULL)
