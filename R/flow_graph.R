@@ -22,8 +22,8 @@ FlowGraph = R6::R6Class("FlowGraph",
 
     copy = function() self$clone(deep = TRUE),
 
-    add_vertex = function(id) {
-      if (missing(id)) {
+    add_vertex = function(id = NULL) {
+      if (is.null(id)) {
         id = sprintf("%%%i", self$next_id)
         self$next_id = self$next_id + 1L
       }
@@ -35,13 +35,13 @@ FlowGraph = R6::R6Class("FlowGraph",
 
     remove_vertex = function(id) {
       self$graph = self$graph - igraph::vertex(id)
-      invisible (NULL)
+      invisible(NULL)
     },
 
     add_edge = function(from, to) {
       self$graph = self$graph + igraph::edge(from, to)
 
-      invisible (NULL)
+      invisible(NULL)
     },
 
     get_index = function(name) {
@@ -60,7 +60,7 @@ FlowGraph = R6::R6Class("FlowGraph",
       permutation[ordering] = permutation
       self$graph = permute.vertices(self$graph, permutation)
 
-      NULL
+      invisible(NULL)
     }
   )
 )
@@ -116,25 +116,32 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
     entry = NULL,
     exit = NULL,
 
-    initialize = function() {
+    initialize = function(
+      fn = NULL,
+      exit_block = Brace$new(Symbol$new("._return_"))
+    ) {
       super$initialize()
 
-      self$exit = self$add_vertex()
-      # FIXME: Set parent
-      self$blocks[[self$exit]] = Brace$new(Symbol$new("._return_"))
+      #self$entry = self$add_vertex("entry")
+      self$exit = self$add_vertex("%exit")
+
+      exit_block$parent = fn
+      self$blocks[[self$exit]] = exit_block
+
     },
 
     add_block = function(block = Brace$new(), id = NULL) {
-      # FIXME: Use defaults, not missing.
-      if (missing(id))
-        id = self$add_vertex()
-      else
-        self$add_vertex(id)
+      if (is.null(self$entry)) {
+        if (is.null(id)) {
+          id = "%entry"
+          self$entry = id
+        } else {
+          self$entry = id
+        }
+      }
 
+      id = self$add_vertex(id)
       self$blocks[[id]] = block
-
-      if (is.null(self$entry))
-        self$entry = id
 
       id
     }

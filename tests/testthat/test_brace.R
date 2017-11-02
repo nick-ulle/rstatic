@@ -11,9 +11,9 @@ test_that("$new() sets parents on body nodes", {
 })
 
 
-test_that("$append_phi() sets parent on appended Phi nodes", {
+test_that("$set_phi() sets parent on Phi nodes", {
   x = Brace$new()
-  x$append_phi(Phi$new("x"))
+  x$set_phi(Phi$new("x"))
 
   # -----
   expect_identical(x, x$phi[[1]]$parent)
@@ -39,7 +39,7 @@ test_that("copying sets parents on body nodes", {
 
 test_that("copying sets parents on Phi nodes", {
   x = Brace$new()
-  x$append_phi(Phi$new("x"))
+  x$set_phi(Phi$new("x"))
 
   y = x$copy()
 

@@ -150,6 +150,10 @@ to_ast.call = function(expr) {
     else if (name == "return") {
       arg = to_ast(expr[[2]])
       return (Return$new(arg))
+    } else if (name == "<<-") {
+      read = to_ast(expr[[3]])
+      write = to_ast(expr[[2]])
+      return (SuperAssign$new(write, read))
     }
 
     # The standard call syntax applies, so construct an appropriate node.
@@ -191,7 +195,7 @@ to_ast.name = function(expr) {
 
 #' @export
 `to_ast.(` = function(expr) {
-  Brace$new(lapply(expr[-1], to_ast), is_paren = TRUE)
+  Parenthesis$new(to_ast(expr[[2]]))
 }
 
 
@@ -207,10 +211,3 @@ to_ast.numeric   = function(expr) Numeric$new(expr)
 to_ast.complex   = function(expr) Complex$new(expr)
 #' @export
 to_ast.character = function(expr) Character$new(expr)
-
-
-#' @export
-to_ast.default = function(expr) {
-  msg = sprintf("Cannot convert '%s' to an ASTNode.", class(expr)[1])
-  stop(msg)
-}

@@ -37,11 +37,11 @@ to_ssa = function(node, in_place = FALSE) {
       worklist = worklist[-1]
 
       for (d in dom_f[[b]]) {
-        if (has_phi(cfg[[d]], name))
+        if (name %in% names(cfg[[d]]$phi))
           next
 
         phi = Phi$new(name)
-        cfg[[d]]$append_phi(phi)
+        cfg[[d]]$set_phi(phi)
         worklist = union(worklist, d)
       } # end for d
     }
@@ -180,11 +180,15 @@ ssa_rename_ast.Parameter = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Call = function(node, builder) {
+ssa_rename_ast.Application = function(node, builder) {
   lapply(node$args, ssa_rename_ast, builder)
+  node
+}
 
+#' @export
+ssa_rename_ast.Call = function(node, builder) {
+  NextMethod()
   ssa_rename_ast(node$fn, builder)
-
   node
 }
 
