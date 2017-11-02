@@ -207,10 +207,3 @@ to_ast.numeric   = function(expr) Numeric$new(expr)
 to_ast.complex   = function(expr) Complex$new(expr)
 #' @export
 to_ast.character = function(expr) Character$new(expr)
-
-
-#' @export
-to_ast.default = function(expr) {
-  msg = sprintf("Cannot convert '%s' to an ASTNode.", class(expr)[1])
-  stop(msg)
-}

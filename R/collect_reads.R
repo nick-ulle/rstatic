@@ -1,11 +1,12 @@
 # FIXME: Add parameter to control whether sub-blocks are checked.
+
 #' Collect All Reads in an AST
 #'
 #' This function collects the (unique) names of all variables that are read in
 #' an AST. This function doesn't consider calling a function a read.
 #'
 #' Beware that there are many ASTNode subclasses that this function doesn't
-#' attempt to handle; the function raises an error for unsupported classes.
+#' attempt to handle.
 #'
 #' @param node (ASTNode) An abstract syntax tree.
 #'
@@ -81,12 +82,4 @@ collect_reads.NULL = function(node) {
 #' @export
 collect_reads.Function = function(node) {
   character(0)
-}
-
-#' @export
-collect_reads.default = function(node) {
-  msg = sprintf(
-    "Cannot collect reads for object of class '%s'.", class(node)[[1]]
-  )
-  stop(msg)
 }
