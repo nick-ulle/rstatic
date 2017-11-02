@@ -91,8 +91,8 @@ Brace = R6::R6Class("Brace", inherit = Container,
       self$phi = phi
     },
 
-    append_phi = function(phi) {
-      self$.phi[[length(self$.phi) + 1]] = .reparent_ast(phi, self)
+    set_phi = function(phi) {
+      self$.phi[[phi$write$basename]] = .reparent_ast(phi, self)
 
       invisible(NULL)
     }
