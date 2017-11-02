@@ -38,7 +38,7 @@ format.FlowGraph = function(x, tag = .format_tag(x), ...) {
   msg = if (length(x) == 1) "%i block" else "%i blocks"
   v_count = sprintf(msg, length(x))
 
-  fmt = vapply(x$blocks, format, NA_character_ , keep_phi = TRUE)
+  fmt = vapply(x$blocks, format, NA_character_ , use_inner_blocks = FALSE)
   blocks = sprintf('%s %s', names(x), fmt)
   blocks = paste0(blocks, collapse = "\n\n")
 
@@ -47,92 +47,6 @@ format.FlowGraph = function(x, tag = .format_tag(x), ...) {
 
 #' @export
 print.FlowGraph = .print
-
-#
-##' @export
-#format.BasicBlock = function(x, show_body = TRUE, ...) {
-#  # Format:
-#  #
-#  #   <BasicBlock>
-#  #   x = x + 1
-#  #   x = x / y
-#  #   foo(x)
-#  #   # if (x < 4) %3 else %4
-#  #
-#  display = paste0("# ", format(x$terminator, show_tag = FALSE))
-#
-#  if (show_body) {
-#    to_str = function(line) deparse_to_string(to_r(line))
-#
-#    phi = vapply(x$phi, to_str, character(1))
-#    body = vapply(x$body, to_str, character(1))
-#
-#    display = paste0(c(phi, body, display), collapse = "\n")
-#  }
-#
-#  msg = sprintf("%s\n%s", .format_tag(x), display)
-#
-#  return (msg)
-#}
-#
-##' @export
-#print.BasicBlock = .print
-#
-#
-##' @export
-#format.RetTerminator = function(x, show_tag = TRUE, ...) {
-#  value = deparse_to_string(to_r(x$value))
-#  term = sprintf("ret %s", value)
-#
-#  if (show_tag)
-#    msg = sprintf("%s\n%s", .format_tag(x), term)
-#  else
-#    msg = sprintf("%s", term)
-#
-#  return (msg)
-#}
-#
-##' @export
-#format.BrTerminator = function(x, show_tag = TRUE, ...) {
-#  term = sprintf("br %s", x$dest)
-#
-#  if (show_tag)
-#    msg = sprintf("%s\n%s", .format_tag(x), term)
-#  else 
-#    msg = sprintf("%s", term)
-#
-#  return (msg)
-#}
-#
-##' @export
-#format.CondBrTerminator = function(x, show_tag = TRUE, ...) {
-#  condition = deparse_to_string(to_r(x$condition))
-#  term = sprintf("br (%s) %s, %s", condition, x$true, x$false)
-#
-#  if (show_tag)
-#    msg = sprintf("%s\n%s", .format_tag(x), term)
-#  else 
-#    msg = sprintf("%s", term)
-#
-#  return (msg)
-#}
-#
-#format.IterTerminator = function(x, show_tag = TRUE, ...) {
-#
-#  ivar = deparse_to_string(to_r(x$ivar))
-#  iter = deparse_to_string(to_r(x$iter))
-#  term = sprintf("iter (%s in %s) %s, %s", ivar, iter, x$true, x$false)
-#
-#  if (show_tag)
-#    msg = sprintf("%s\n%s", .format_tag(x), term)
-#  else
-#    msg = sprintf("%s", term)
-#
-#  return (msg)
-#}
-#
-##' @export
-#print.Terminator = .print
 
 
 format.NONCONST = function(x, ...) "NONCONST"

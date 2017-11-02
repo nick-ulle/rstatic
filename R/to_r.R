@@ -1,13 +1,12 @@
-#
-# Methods for converting to R code.
-#
-
-
-#' Convert ASTNodes to R Code
+#' Convert ASTNode to R Code
 #'
-#' This function converts a tree of ASTNodes to the corresponding R code.
+#' This function convert an abstract syntax tree to the corresponding R code.
 #' 
 #' @param node (ASTNode) The tree to be converted.
+#' @param use_ssa (logical) Use SSA numbering?
+#' @param use_phi (logical) Include phi-functions?
+#' @param use_inner_blocks (logical) Include inner blocks?
+#'
 #' @export
 to_r =
 function(node, ...) {
@@ -17,25 +16,26 @@ function(node, ...) {
 #' @export
 to_r.BlockList =
 function(node, ...) {
-  body = unlist(lapply(node$body, function(x) {
-      lapply(x$body, to_r, ...)
-  }), recursive = FALSE)
+  body = lapply(node$body, function(block) {
+    block = to_r(block, ...)
+    as.list(block[-1])
+  })
+  body = unlist(body, recursive = FALSE)
 
-  as.call(append(as.name("{"), body))
+  as.call(c(as.name("{"), body))
 }
 
 #' @export
 to_r.Brace =
 function(node, ...) {
-  keep_phi = list(...)[["keep_phi"]]
-  if (!is.null(keep_phi) && keep_phi) {
+  use_phi = list(...)[["use_phi"]]
+  if (is.null(use_phi) || use_phi)
     phi = lapply(node$phi, to_r, ...)
-  } else
+  else
     phi = list()
 
-  body = lapply(node$body, to_r, ...)
-  body = append(phi, body)
-  as.call(append(as.name("{"), body))
+  x = c(as.name("{"), phi, lapply(node$body, to_r, ...))
+  as.call(x)
 }
 
 
@@ -63,36 +63,44 @@ function(node, ...) {
 #' @export
 to_r.If =
 function(node, ...) {
-  keep_phi = list(...)[["keep_phi"]]
-  if (!is.null(keep_phi) && keep_phi) {
-    call("if", to_r(node$condition, ...), as.name(".."))
-  } else if (is.null(node$false))
-    call("if", to_r(node$condition, ...), to_r(node$true, ...))
+  use_inner_blocks = list(...)[["use_inner_blocks"]]
+  if (!is.null(use_inner_blocks) && !use_inner_blocks)
+    blocks = as.name("..")
+  else if (is.null(node$false))
+    blocks = to_r(node$true, ...)
   else
-    call("if", to_r(node$condition, ...), to_r(node$true, ...),
-      to_r(node$false, ...))
+    blocks = c(to_r(node$true, ...), to_r(node$false, ...))
+
+  as.call(c(as.name("if"), to_r(node$condition, ...), blocks))
 }
 
 
 #' @export
 to_r.For =
 function(node, ...) {
-  keep_phi = list(...)[["keep_phi"]]
-  if (!is.null(keep_phi) && keep_phi) {
-    call("for", to_r(node$ivar, ...), to_r(node$iter, ...), as.name(".."))
-  } else
-    call("for", to_r(node$ivar, ...), to_r(node$iter, ...),
-      to_r(node$body, ...))
+  use_inner_blocks = list(...)[["use_inner_blocks"]]
+  if (!is.null(use_inner_blocks) && !use_inner_blocks)
+    block = as.name("..")
+  else
+    block = to_r(node$body, ...)
+
+  call("for", to_r(node$ivar, ...), to_r(node$iter, ...), block)
 }
 
 
 #' @export
 to_r.While =
 function(node, ...) {
-  if (node$is_repeat)
-    call("repeat", to_r(node$body, ...))
+  use_inner_blocks = list(...)[["use_inner_blocks"]]
+  if (!is.null(use_inner_blocks) && !use_inner_blocks)
+    block = as.name("..")
   else
-    call("while", to_r(node$condition, ...), to_r(node$body, ...))
+    block = to_r(node$body, ...)
+
+  if (node$is_repeat)
+    call("repeat", block)
+  else
+    call("while", to_r(node$condition, ...), block)
 }
 
 
@@ -150,10 +158,16 @@ function(node, ...) {
   if (node$basename == "")
     return (quote(expr = ))
 
-  if (is.na(node$namespace))
-    as.name(node$name)
+  use_ssa = list(...)[["use_ssa"]]
+  if (is.null(use_ssa) || use_ssa)
+    name = node$name
   else
-    call(node$namespace_fn$name, as.name(node$namespace), as.name(node$name))
+    name = node$basename
+
+  if (is.na(node$namespace))
+    as.name(name)
+  else
+    call(node$namespace_fn$name, as.name(node$namespace), as.name(name))
 }
 
 

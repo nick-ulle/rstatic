@@ -2,13 +2,19 @@
 % Please edit documentation in R/to_r.R
 \name{to_r}
 \alias{to_r}
-\title{Convert ASTNodes to R Code}
+\title{Convert ASTNode to R Code}
 \usage{
 to_r(node, ...)
 }
 \arguments{
 \item{node}{(ASTNode) The tree to be converted.}
+
+\item{use_ssa}{(logical) Use SSA numbering?}
+
+\item{use_phi}{(logical) Include phi-functions?}
+
+\item{use_inner_blocks}{(logical) Include inner blocks?}
 }
 \description{
-This function converts a tree of ASTNodes to the corresponding R code.
+This function convert an abstract syntax tree to the corresponding R code.
 }
