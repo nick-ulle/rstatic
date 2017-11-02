@@ -35,12 +35,14 @@ function(node, ...) {
 
   body = lapply(node$body, to_r, ...)
   body = append(phi, body)
-  if (node$is_paren)
-    name = "("
-  else
-    name = "{"
+  as.call(append(as.name("{"), body))
+}
 
-  as.call(append(as.name(name), body))
+
+#' @export
+to_r.Parenthesis =
+function(node, ...) {
+  call("(", to_r(node$args[[1]], ...))
 }
 
 
@@ -194,13 +196,4 @@ function(node, ...) {
 to_r.Literal =
 function(node, ...) {
   node$value
-}
-
-
-#' @export
-to_r.default =
-function(node, ...) {
-  # FIXME:
-  msg = sprintf("Cannot convert '%s' to R code.", class(node)[1])
-  stop(msg)
 }

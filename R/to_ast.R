@@ -191,7 +191,7 @@ to_ast.name = function(expr) {
 
 #' @export
 `to_ast.(` = function(expr) {
-  Brace$new(lapply(expr[-1], to_ast), is_paren = TRUE)
+  Parenthesis$new(to_ast(expr[[2]]))
 }
 
 

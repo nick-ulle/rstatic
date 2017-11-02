@@ -77,16 +77,14 @@ BlockList = R6::R6Class("BlockList", inherit = Container)
 #' @export
 Brace = R6::R6Class("Brace", inherit = Container,
   "public" = list(
-    is_paren = FALSE,
     id = NA_character_,
     .phi = NULL,
 
-    initialize = function(body = list(), is_paren = FALSE, id = NA_character_,
+    initialize = function(body = list(), id = NA_character_,
       phi = list(), parent = NULL)
     {
       super$initialize(body, parent)
 
-      self$is_paren = is_paren
       self$id = id
       self$phi = phi
     },
@@ -295,6 +293,8 @@ Application = R6::R6Class("Application", inherit = ASTNode,
       if (missing(value))
         return (self$.args)
 
+      if (!is.list(value))
+        value = list(value)
       self$.args = .reparent_ast(value, self)
     }
   )
@@ -335,6 +335,8 @@ Internal = R6::R6Class("Internal", inherit = Call,
   )
 )
 
+#' @export
+Parenthesis = R6::R6Class("Parenthesis", inherit = Application)
 
 #' @export
 Namespace = R6::R6Class("Namespace", inherit = Call)

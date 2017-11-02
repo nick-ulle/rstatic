@@ -180,11 +180,15 @@ ssa_rename_ast.Parameter = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Call = function(node, builder) {
+ssa_rename_ast.Application = function(node, builder) {
   lapply(node$args, ssa_rename_ast, builder)
+  node
+}
 
+#' @export
+ssa_rename_ast.Call = function(node, builder) {
+  NextMethod()
   ssa_rename_ast(node$fn, builder)
-
   node
 }
 
