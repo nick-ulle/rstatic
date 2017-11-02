@@ -317,14 +317,26 @@ build_cfg.ASTNode = function(node, helper, cfg) {
 
 #' @export
 build_cfg.Break = function(node, helper, cfg) {
-  cfg$add_edge(helper$this_block, helper$break_block)
+  if (is.null(helper$break_block))
+    warning(sprintf(
+      'invalid use of Break. No outgoing edge will be added for block "%s".',
+      helper$this_block
+    ))
+  else
+    cfg$add_edge(helper$this_block, helper$break_block)
 
   NULL
 }
 
 #' @export
 build_cfg.Next = function(node, helper, cfg) {
-  cfg$add_edge(helper$this_block, helper$next_block)
+  if (is.null(helper$next_block))
+    warning(sprintf(
+      'invalid use of Next. No outgoing edge will be added for block "%s".',
+      helper$this_block
+    ))
+  else
+    cfg$add_edge(helper$this_block, helper$next_block)
 
   NULL
 }

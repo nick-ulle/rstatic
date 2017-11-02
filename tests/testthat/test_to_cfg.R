@@ -71,6 +71,17 @@ test_that("while-loop graph has correct structure", {
 })
 
 
+test_that("warning on dead break/next after return", {
+  node = quote_ast({
+    return (42L)
+    next
+  })
+
+  # -----
+  expect_warning(to_cfg(node, ssa = FALSE), "invalid use")
+})
+
+
 test_that("for-loop graph has correct structure", {
   goal = igraph::make_empty_graph(n = 7)
   goal = goal + igraph::edges(c(1,2, 2,3, 3,4, 4,5, 5,3, 3,6, 6,7))

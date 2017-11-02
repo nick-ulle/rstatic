@@ -19,7 +19,7 @@ insert_return = function(node) {
 }
 
 #' @export
-`insert_return.Brace` = function(node) {
+insert_return.Brace = function(node) {
   # Insert Return for last statement if not already.
   len = length(node$body)
   ret = insert_return(node$body[[len]])
@@ -69,6 +69,7 @@ insert_return.While = function(node) {
 #' @export
 insert_return.For = insert_return.While
 
+
 #' @export
 insert_return.Literal = function(node) {
   Return$new(node)
@@ -83,15 +84,21 @@ insert_return.Call = insert_return.Literal
 #' @export
 insert_return.Assign = insert_return.Literal
 
+
 #' @export
 insert_return.NULL = function(node) {
   Return$new(Null$new())
 }
 
+
 #' @export
-insert_return.Return = function(node) {
-  node
-}
+insert_return.Return = function(node) node
+
+#' @export
+insert_return.Break = insert_return.Return
+
+#' @export
+insert_return.Next = insert_return.Return
 
 
 isSelect =
