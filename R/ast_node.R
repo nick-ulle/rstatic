@@ -116,16 +116,6 @@ Next = R6::R6Class("Next", inherit = ASTNode)
 Break = R6::R6Class("Break", inherit = ASTNode)
 
 #' @export
-Return = R6::R6Class("Return", inherit = Assign,
-  "public" = list(
-    initialize = function(args, parent = NULL) {
-      write = Symbol$new("._return_")
-      super$initialize(write, args, parent)
-    }
-  )
-)
-
-#' @export
 If = R6::R6Class("If", inherit = ASTNode,
   "public" = list(
     .condition = NULL,
@@ -275,7 +265,6 @@ While = R6::R6Class("While", inherit = Loop,
 
 # Calls
 # --------------------
-
 #' export
 Application = R6::R6Class("Application", inherit = ASTNode,
   "public" = list(
@@ -344,9 +333,9 @@ Namespace = R6::R6Class("Namespace", inherit = Call)
 #' @export
 Subset = R6::R6Class("Subset", inherit = Call)
 
+
 # Functions
 # --------------------
-
 #' @export
 Callable = R6::R6Class("Callable", inherit = ASTNode,
   "public" = list(
@@ -455,6 +444,8 @@ Assign = R6::R6Class("Assign", inherit = ASTNode,
   )
 )
 
+#' @export
+SuperAssign = R6::R6Class("SuperAssign", inherit = Assign)
 
 #' @export
 Replacement = R6::R6Class("Replacement", inherit = Assign,
@@ -472,6 +463,19 @@ Replacement = R6::R6Class("Replacement", inherit = Assign,
       read = Call$new(fn, args)
 
       super$initialize(write, read, parent)
+    }
+  )
+)
+
+#' @export
+Return = R6::R6Class("Return", inherit = Assign,
+  # NOTE: Return is a subclass of Assign because the CFG models returning `x`
+  # as setting the special variable `._return_ <- x` and then branching to the
+  # exit block.
+  "public" = list(
+    initialize = function(args, parent = NULL) {
+      write = Symbol$new("._return_")
+      super$initialize(write, args, parent)
     }
   )
 )

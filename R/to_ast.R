@@ -150,6 +150,10 @@ to_ast.call = function(expr) {
     else if (name == "return") {
       arg = to_ast(expr[[2]])
       return (Return$new(arg))
+    } else if (name == "<<-") {
+      read = to_ast(expr[[3]])
+      write = to_ast(expr[[2]])
+      return (SuperAssign$new(write, read))
     }
 
     # The standard call syntax applies, so construct an appropriate node.

@@ -21,11 +21,10 @@
     the functions that function calls).
 
 * Syntax Objects (ASTNode subclasses)
-  * [ ] `<<-`
   * [ ] `...`
-  * [ ] Lists, Data Frames
   * [ ] S4
   * [ ] Closures (Functions must to keep track of parent environment)
+  * [x] `<<-`
   * [x] `(`
   * [x] `break` and `next`
   * [x] `invisible()`
