@@ -12,7 +12,7 @@
 #' @export
 to_ssa = function(node, in_place = FALSE) {
   # TODO: make this function's implementation more idiomatic.
-  if (!inherits(node, "Function") || is.null(node$cfg))
+  if (!is(node, "Function") || is.null(node$cfg))
     stop("node must be a Function in CFG form. Use to_cfg() to convert.")
 
   if (!in_place)

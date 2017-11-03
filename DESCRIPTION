@@ -12,7 +12,9 @@ Depends:
     R (>= 3.2.0)
 Imports:
     R6,
-    igraph
+    igraph,
+    methods,
+    utils
 Suggests:
     testthat,
     knitr,

@@ -5,7 +5,7 @@ FlowGraph = R6::R6Class("FlowGraph",
     deep_clone = function(name, value) {
       switch(name,
         "blocks" = lapply(value, function(v) v$copy()),
-        if (inherits(value, "R6")) value$clone(deep = TRUE)
+        if (is(value, "R6")) value$clone(deep = TRUE)
         else value
       )
     }

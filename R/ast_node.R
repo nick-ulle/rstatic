@@ -307,7 +307,7 @@ Call = R6::R6Class("Call", inherit = Application,
         return (self$.fn)
 
       # NOTE: fn could be a Symbol, Function, Primitive, or Call.
-      if (!inherits(value, "ASTNode"))
+      if (!is(value, "ASTNode"))
         value = Symbol$new(value)
 
       self$.fn = .reparent_ast(value, self)
@@ -400,7 +400,7 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
       if (missing(value))
         return (self$.fn)
 
-      if (!inherits(value, "Symbol"))
+      if (!is(value, "Symbol"))
         value = Symbol$new(value)
 
       self$.fn = .reparent_ast(value, self)
@@ -450,7 +450,7 @@ SuperAssign = R6::R6Class("SuperAssign", inherit = Assign)
 Replacement = R6::R6Class("Replacement", inherit = Assign,
   "public" = list(
     initialize = function(write, fn, args, parent = NULL) {
-      if (!inherits(fn, "ASTNode")) {
+      if (!is(fn, "ASTNode")) {
         fn = as.character(fn)
 
         if (!endsWith(fn, "<-"))
@@ -516,7 +516,7 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
       if (missing(value))
         return (self$.write)
 
-      if (!inherits(value, "Symbol"))
+      if (!is(value, "Symbol"))
         value = Symbol$new(value)
 
       self$.write = .reparent_ast(value, self)

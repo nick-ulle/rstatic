@@ -152,7 +152,7 @@ build_cfg.BlockList = function(node, helper, cfg) {
 
 #' @export
 build_cfg.Brace = function(node, helper, cfg) {
-  if (!inherits(node$parent, "BlockList"))
+  if (!is(node$parent, "BlockList"))
     node$id = cfg$add_block(node)
 
   # When parent is If, For, or While: this_block is not NULL and an incoming
@@ -257,7 +257,7 @@ build_cfg.For = function(node, helper, cfg) {
   counter = Symbol$new(paste0("._counter_", node$ivar$basename))
   node$setup[[1]] = Assign$new(counter, Integer$new(1L))
 
-  if (inherits(node$iter, "Call")) {
+  if (is(node$iter, "Call")) {
     iterator = Symbol$new(paste0("._iterator_", node$ivar$basename))
     node$setup[[2]] = Assign$new(iterator, node$iter$copy())
   } else {
