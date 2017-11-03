@@ -21,6 +21,18 @@ length.Container = function(x) {
 }
 
 
+#' Test If Node Is Control Flow
+#'
+#' This function tests if a node is a control flow node.
+#'
+#' @param node (ASTNode) The node to test.
+#'
+#' @export
+is_control_flow = function(node) {
+  any(class(node) %in% c("If", "For", "While", "Break", "Next", "Return"))
+}
+
+
 #' @export
 as_blocks = function(node) {
   UseMethod("as_blocks")

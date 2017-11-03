@@ -1,5 +1,3 @@
-CONTROL_FLOW = c("If", "For", "While", "Break", "Next", "Return")
-
 # FIXME: What if an Assign contains a Brace, If, etc?
 # FIXME: What happens to braces within braces?
 
@@ -12,9 +10,7 @@ linearize_blocks = function(node) {
 linearize_blocks.Brace = function(node) {
   node$body = lapply(node$body, linearize_blocks)
 
-  flows = vapply(node$body, function(x) {
-    any(class(x) %in% CONTROL_FLOW)
-  }, NA)
+  flows = vapply(node$body, is_control_flow, NA)
   # Shift over by one element so each block ends with a flow.
   flows = c(FALSE, head(flows, -1))
 
