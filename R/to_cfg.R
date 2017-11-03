@@ -38,7 +38,7 @@ quote_cfg = function(expr, ...) {
 #' @param ssa (logical) Also convert to static single assignment form?
 #' @param insert_return (logical) Apply \code{insert_return()} to the node
 #' before generating the CFG?
-#' @param linearize (logical) Apply \code{linearize_blocks()} to the node
+#' @param linearize (logical) Apply \code{split_blocks()} to the node
 #' before generating the CFG?
 #'
 #' @return A Function node with the control flow graph in its \code{$cfg}
@@ -64,7 +64,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
     node = insert_return(node)
 
   if (linearize)
-    node = linearize_blocks(node)
+    node = split_blocks(node)
 
   cfg = ControlFlowGraph$new(node)
   helper = list(
