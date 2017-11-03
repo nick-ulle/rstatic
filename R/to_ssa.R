@@ -73,6 +73,9 @@ to_ssa = function(node, in_place = FALSE) {
 #' algorithm.
 #'
 ssa_rename = function(block, cfg, dom_t, builder) {
+  # Save defs from parent block.
+  parent_defs = builder$defs
+
   # Rewrite LHS of phi-functions in this block.
   ssa_rename_ast(cfg[[block]]$phi, builder)
 
@@ -106,13 +109,11 @@ ssa_rename = function(block, cfg, dom_t, builder) {
   }
 
   # Descend to blocks dominated by this block (children in dom tree).
-  builder$save_local_defs()
-
   children = setdiff(which(dom_t == block), block)
   lapply(children, ssa_rename, cfg, dom_t, builder)
 
-  # End lifetimes of variables defined in this block.
-  builder$clear_local_defs()
+  # Restore defs from parent block.
+  builder$defs = parent_defs
 }
 
 
