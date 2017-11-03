@@ -7,10 +7,9 @@ SSABuilder = R6::R6Class("SSABuilder",
     local_stack = NULL,
     local = character(0),
     ssa = NULL,
-    global_uses = character(0),
 
     initialize = function() {
-      self$ssa = FlowGraph$new()
+      self$ssa = DataFlowGraph$new()
       self$name_counter = Counter$new()
       self$local_stack = Stack$new(type = "list")
     },
@@ -64,14 +63,10 @@ SSABuilder = R6::R6Class("SSABuilder",
     },
 
     register_use = function(name, at) {
-      id = self$ssa$add_vertex()
-      self$ssa[[id]] = at
+      id = self$ssa$add_use(at)
 
-      if (name %in% names(self$ssa))
-        self$ssa$add_edge(name, id)
-      else
-        # Keep track of uses of global variables.
-        self$global_uses = union(self$global_uses, name)
+      # Add incoming edge.
+      self$ssa$add_edge(name, id)
 
       invisible (NULL)
     },
@@ -79,24 +74,17 @@ SSABuilder = R6::R6Class("SSABuilder",
     # A node can be a use and a def when one variable is used to define
     # another. We need to register the def and then add edges to the def from
     # all the older defs it uses.
-    register_def = function(name, at) {
-      if (is.null(self$ssa[[name]])) {
-        # Add node to the graph.
-        id = self$ssa$add_vertex(name)
-        self$ssa[[id]] = at
-
-        reads = collect_reads(at)
-        defs = names(self$ssa)
-        for (r in reads) {
-          if (r %in% defs)
-            self$ssa$add_edge(r, name)
-          else
-            self$global_uses = union(self$global_uses, r)
-        }
-
-      } else {
+    register_def = function(name, basename, at) {
+      if (name %in% names(self$ssa))
         stop(sprintf("symbol '%s' already defined.", name))
-      }
+
+      id = self$ssa$add_def(at, basename, name)
+
+      # Add incoming edges.
+      reads = collect_reads(at)
+      defs = names(self$ssa)
+      for (r in reads)
+        self$ssa$add_edge(r, name)
 
       invisible (NULL)
     }

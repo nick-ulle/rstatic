@@ -54,7 +54,6 @@ to_ssa = function(node, in_place = FALSE) {
   ssa_rename(entry_idx, cfg, dom_t, builder)
 
   node$ssa = builder$ssa
-  node$global_uses = builder$global_uses
 
   node
 }
@@ -154,7 +153,7 @@ ssa_rename_ast.Assign = function(node, builder) {
   builder$register_uses = TRUE
 
   node$write$ssa_number = builder$new_def(node$write$basename)
-  builder$register_def(node$write$name, node)
+  builder$register_def(node$write$name, node$write$basename, node)
 
   node
 }
@@ -162,7 +161,7 @@ ssa_rename_ast.Assign = function(node, builder) {
 #' @export
 ssa_rename_ast.Phi = function(node, builder) {
   node$write$ssa_number = builder$new_def(node$write$basename)
-  builder$register_def(node$write$name, node)
+  builder$register_def(node$write$name, node$write$basename, node)
 
   node
 }
@@ -174,7 +173,7 @@ ssa_rename_ast.Parameter = function(node, builder) {
 
   node$ssa_number = builder$new_def(node$basename)
   # FIXME: Parameter processing order might not put all defs before uses.
-  builder$register_def(node$name, node)
+  builder$register_def(node$name, node$basename, node)
 
   node
 }
