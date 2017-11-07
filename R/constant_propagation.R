@@ -1,7 +1,7 @@
 
 NONCONST = structure(list(), class = "NONCONST")
 is_constant = function(x) {
-  return (!inherits(x, "NONCONST"))
+  return (!is(x, "NONCONST"))
 }
 
 #' Sparse Conditional Constant Propagation
@@ -83,11 +83,11 @@ const_visit_block = function(b, helper) {
 
   # Add outgoing edges (to next executed blocks) to flow worklist.
   trm = block$terminator
-  if (inherits(trm, "BrTerminator")) {
+  if (is(trm, "BrTerminator")) {
     edge = igraph::E(helper$cfg$graph)[b %->% trm$dest]
     helper$flow_list = union(helper$flow_list, edge)
 
-  } else if (inherits(trm, "CondBrTerminator")) {
+  } else if (is(trm, "CondBrTerminator")) {
     val = evalConst(trm$condition, helper)
     if (!is_constant(val)) {
       edge = igraph::E(helper$cfg$graph)[from(b)]
@@ -99,7 +99,7 @@ const_visit_block = function(b, helper) {
 
     helper$flow_list = union(helper$flow_list, edge)
 
-  } else if (inherits(trm, "RetTerminator")) {
+  } else if (is(trm, "RetTerminator")) {
     # pass
   } else {
     # FIXME:

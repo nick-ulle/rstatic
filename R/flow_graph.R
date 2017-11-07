@@ -5,7 +5,7 @@ FlowGraph = R6::R6Class("FlowGraph",
     deep_clone = function(name, value) {
       switch(name,
         "blocks" = lapply(value, function(v) v$copy()),
-        if (inherits(value, "R6")) value$clone(deep = TRUE)
+        if (is(value, "R6")) value$clone(deep = TRUE)
         else value
       )
     }
@@ -67,8 +67,9 @@ FlowGraph = R6::R6Class("FlowGraph",
 
 #' @export
 `[.FlowGraph` = function(x, i) {
-  if(is(i, "igraph.vs"))
-    i = as_ids(i)
+  # NOTE: The coercion for igraph vertices that used to be here was not needed.
+  # In a sane FlowGraph object, the order of the vertices will always match the
+  # order of the list.
   x$blocks[i]
 }
 
@@ -144,6 +145,41 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
       self$blocks[[id]] = block
 
       id
+    }
+  )
+)
+
+
+#' @export
+DataFlowGraph = R6::R6Class("DataFlowGraph", inherit = FlowGraph,
+  "public" = list(
+    global_uses = character(0),
+
+    add_use = function(node, id = NULL) {
+      id = self$add_vertex(id)
+      self$graph = set_vertex_attr(self$graph, "is_def", id, FALSE)
+      self$graph = set_vertex_attr(self$graph, "basename", id, NA)
+      self$blocks[[id]] = node
+
+      id
+    },
+
+    add_def = function(node, basename, id = NULL) {
+      id = self$add_vertex(id)
+      self$graph = set_vertex_attr(self$graph, "is_def", id, TRUE)
+      self$graph = set_vertex_attr(self$graph, "basename", id, basename)
+      self$blocks[[id]] = node
+
+      id
+    },
+
+    add_edge = function(def, use) {
+      if (def %in% names(self$blocks))
+        super$add_edge(def, use)
+      else
+        self$global_uses = union(self$global_uses, def)
+
+      invisible(NULL)
     }
   )
 )

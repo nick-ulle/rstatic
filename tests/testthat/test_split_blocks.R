@@ -1,4 +1,4 @@
-context("linearize_blocks")
+context("split_blocks")
 
 
 test_that("linear blocks are not changed", {
@@ -6,7 +6,7 @@ test_that("linear blocks are not changed", {
     x = 3
   })
 
-  result = linearize_blocks(node)
+  result = split_blocks(node)
 
   # -----
   expect_identical(node, result)
@@ -21,7 +21,7 @@ test_that("linear blocks that end with a flow are not changed", {
     }
   })
 
-  result = linearize_blocks(node)
+  result = split_blocks(node)
 
   # -----
   expect_identical(node, result)
@@ -39,7 +39,7 @@ test_that("non-linear blocks are split (depth 1)", {
     z = y
   })
 
-  result = linearize_blocks(node)
+  result = split_blocks(node)
 
   # -----
   expect_true(length(result) == 3)
@@ -62,7 +62,7 @@ test_that("non-linear blocks are split (depth 2)", {
     }
   })
 
-  result = linearize_blocks(node)
+  result = split_blocks(node)
 
   # -----
   if_node = result$body[[2]]
@@ -84,7 +84,7 @@ test_that("non-linear blocks are split (depth 2)", {
       }
   })
 
-  result = linearize_blocks(node)
+  result = split_blocks(node)
 
   # -----
   # TODO:

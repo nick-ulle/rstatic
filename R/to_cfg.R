@@ -38,7 +38,7 @@ quote_cfg = function(expr, ...) {
 #' @param ssa (logical) Also convert to static single assignment form?
 #' @param insert_return (logical) Apply \code{insert_return()} to the node
 #' before generating the CFG?
-#' @param linearize (logical) Apply \code{linearize_blocks()} to the node
+#' @param linearize (logical) Apply \code{split_blocks()} to the node
 #' before generating the CFG?
 #'
 #' @return A Function node with the control flow graph in its \code{$cfg}
@@ -64,7 +64,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
     node = insert_return(node)
 
   if (linearize)
-    node = linearize_blocks(node)
+    node = split_blocks(node)
 
   cfg = ControlFlowGraph$new(node)
   helper = list(
@@ -152,7 +152,7 @@ build_cfg.BlockList = function(node, helper, cfg) {
 
 #' @export
 build_cfg.Brace = function(node, helper, cfg) {
-  if (!inherits(node$parent, "BlockList"))
+  if (!is(node$parent, "BlockList"))
     node$id = cfg$add_block(node)
 
   # When parent is If, For, or While: this_block is not NULL and an incoming
@@ -257,7 +257,7 @@ build_cfg.For = function(node, helper, cfg) {
   counter = Symbol$new(paste0("._counter_", node$ivar$basename))
   node$setup[[1]] = Assign$new(counter, Integer$new(1L))
 
-  if (inherits(node$iter, "Call")) {
+  if (is(node$iter, "Call")) {
     iterator = Symbol$new(paste0("._iterator_", node$ivar$basename))
     node$setup[[2]] = Assign$new(iterator, node$iter$copy())
   } else {

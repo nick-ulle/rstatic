@@ -18,7 +18,7 @@ node will be modified.}
 \item{insert_return}{(logical) Apply \code{insert_return()} to the node
 before generating the CFG?}
 
-\item{linearize}{(logical) Apply \code{linearize_blocks()} to the node
+\item{linearize}{(logical) Apply \code{split_blocks()} to the node
 before generating the CFG?}
 }
 \value{

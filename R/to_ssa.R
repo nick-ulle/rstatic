@@ -12,7 +12,7 @@
 #' @export
 to_ssa = function(node, in_place = FALSE) {
   # TODO: make this function's implementation more idiomatic.
-  if (!inherits(node, "Function") || is.null(node$cfg))
+  if (!is(node, "Function") || is.null(node$cfg))
     stop("node must be a Function in CFG form. Use to_cfg() to convert.")
 
   if (!in_place)
@@ -54,7 +54,6 @@ to_ssa = function(node, in_place = FALSE) {
   ssa_rename(entry_idx, cfg, dom_t, builder)
 
   node$ssa = builder$ssa
-  node$global_uses = builder$global_uses
 
   node
 }
@@ -74,6 +73,9 @@ to_ssa = function(node, in_place = FALSE) {
 #' algorithm.
 #'
 ssa_rename = function(block, cfg, dom_t, builder) {
+  # Save defs from parent block.
+  parent_defs = builder$defs
+
   # Rewrite LHS of phi-functions in this block.
   ssa_rename_ast(cfg[[block]]$phi, builder)
 
@@ -107,13 +109,11 @@ ssa_rename = function(block, cfg, dom_t, builder) {
   }
 
   # Descend to blocks dominated by this block (children in dom tree).
-  builder$save_local_defs()
-
   children = setdiff(which(dom_t == block), block)
   lapply(children, ssa_rename, cfg, dom_t, builder)
 
-  # End lifetimes of variables defined in this block.
-  builder$clear_local_defs()
+  # Restore defs from parent block.
+  builder$defs = parent_defs
 }
 
 
@@ -154,7 +154,7 @@ ssa_rename_ast.Assign = function(node, builder) {
   builder$register_uses = TRUE
 
   node$write$ssa_number = builder$new_def(node$write$basename)
-  builder$register_def(node$write$name, node)
+  builder$register_def(node$write$name, node$write$basename, node)
 
   node
 }
@@ -162,7 +162,7 @@ ssa_rename_ast.Assign = function(node, builder) {
 #' @export
 ssa_rename_ast.Phi = function(node, builder) {
   node$write$ssa_number = builder$new_def(node$write$basename)
-  builder$register_def(node$write$name, node)
+  builder$register_def(node$write$name, node$write$basename, node)
 
   node
 }
@@ -174,7 +174,7 @@ ssa_rename_ast.Parameter = function(node, builder) {
 
   node$ssa_number = builder$new_def(node$basename)
   # FIXME: Parameter processing order might not put all defs before uses.
-  builder$register_def(node$name, node)
+  builder$register_def(node$name, node$basename, node)
 
   node
 }

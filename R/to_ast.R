@@ -57,7 +57,7 @@ to_ast_callable = function(expr, is_primitive = FALSE) {
   # TODO: If this is a function definition, the environment it will exist in
   # hasn't been created yet, so what should happen?
   params = Map(function(name, default) {
-    if (inherits(default, "name") && default == "")
+    if (is(default, "name") && default == "")
       default = NULL
     else
       default = to_ast(default)
@@ -111,7 +111,7 @@ to_ast_repeat = function(expr) {
   read = expr[[3]]
   write = expr[[2]]
 
-  if (inherits(write, "call")) {
+  if (is(write, "call")) {
     # FIXME: the read argument is for the "value" parameter.
     args = append(lapply(write[-1], to_ast), to_ast(read))
     node = Replacement$new(write = args[[1]]$copy(), fn = write[[1]], args)
@@ -131,7 +131,7 @@ to_ast_repeat = function(expr) {
 #' @export
 to_ast.call = function(expr) {
   func = expr[[1]]
-  if (inherits(func, "name")) {
+  if (is(func, "name")) {
     name = as.character(func)
 
     # FIXME: match.call() would be helpful here but at this point there is no

@@ -11,7 +11,7 @@
 #'
 #' @export
 collapse_namespaces = function(node, in_place = FALSE) {
-  if (in_place && inherits(node, "Namespace"))
+  if (in_place && is(node, "Namespace"))
     warning("in_place = TRUE and root node is a Namespace.\n",
       "  Use node$args[[1]] to get the new root node.")
 
