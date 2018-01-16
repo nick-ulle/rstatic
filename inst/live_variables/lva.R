@@ -30,6 +30,46 @@ toy3 = quote_cfg({
 # Now that we can compute the KU sets, we need to iterate to find the live
 # variables.
 
+chaotic = function(fn) {
+  cfg = fn$cfg
+
+  # Step 1: Initialize worklist and analysis list.
+  worklist = igraph::ends(cfg$graph, igraph::E(cfg$graph))
+  worklist = worklist[, 2:1, drop = FALSE]
+
+  result = vector("list", length(cfg))
+  result[] = list( character(0) )
+  names(result) = names(cfg$blocks)
+
+  ku = compute_ku(fn)
+
+  live = function(result, ku) {
+    union(setdiff(result, ku$killed), ku$used)
+  }
+
+  # Step 2: Iterate until worklist is empty.
+  while (nrow(worklist) > 0) {
+    b      = worklist[1, 1]
+    b_next = worklist[1, 2]
+    worklist = worklist[-1, , drop = FALSE]
+
+    # Update exit set for b_next.
+    old = result[[b_next]]
+    result[[b_next]] = union(old, live(result[[b]], ku[[b]]))
+
+    # Check if exit set changed.
+    if (length(result[[b_next]]) != length(old)) {
+      # Add edges from b_next to ancestors.
+      in_edges = igraph::incident(cfg$graph, b_next, "in")
+      to_bind = igraph::ends(cfg$graph, in_edges)[, 2:1, drop = FALSE]
+      worklist = rbind(to_bind, worklist)
+    }
+  }
+
+  # Step 3: Compute entry sets.
+  result
+}
+
 live_variables = function(fn, max_iter = 20) {
   ku = compute_ku(fn)
 
@@ -57,7 +97,7 @@ live_variables = function(fn, max_iter = 20) {
       break
   }
 
-  message(sprintf("Solution found after %i iterations.", i))
+  #message(sprintf("Solution found after %i iterations.", i))
   live
 }
 
