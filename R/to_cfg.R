@@ -80,7 +80,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
   node$cfg = cfg
 
   if (ssa)
-    to_ssa(node, in_place = TRUE)
+    to_ssa(node)
 
   node
 }

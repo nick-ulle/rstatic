@@ -13,7 +13,7 @@ test_that("SSA form for if-statement is correct", {
   })
 
   node = to_cfg(node, ssa = FALSE)
-  to_ssa(node, in_place = TRUE)
+  rstatic:::to_ssa(node)
 
   # -----
   true_block = node$body[[1]][[1]]$true
@@ -47,7 +47,7 @@ test_that("Phi nodes placed for Assign in if-statement in for-loop", {
   })
 
   node = to_cfg(node, ssa = FALSE)
-  to_ssa(node, in_place = TRUE)
+  rstatic:::to_ssa(node)
 
   # -----
   expect_false(is.na(node$body[[1]][[1]]$write$ssa_number))
@@ -73,13 +73,13 @@ test_that("uses of global variables are recorded", {
   )
 
   node = to_cfg(node)
-  to_ssa(node, in_place = TRUE)
+  rstatic:::to_ssa(node)
 
   # -----
-  expect_length(node$global_uses, 3)
-  expect_true("+" %in% node$global_uses)
-  expect_true("z" %in% node$global_uses)
-  expect_true("a" %in% node$global_uses)
+  expect_length(node$ssa$global_uses, 3)
+  expect_true("+" %in% node$ssa$global_uses)
+  expect_true("z" %in% node$ssa$global_uses)
+  expect_true("a" %in% node$ssa$global_uses)
 })
 
 

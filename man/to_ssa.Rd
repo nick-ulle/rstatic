@@ -4,12 +4,10 @@
 \alias{to_ssa}
 \title{Convert CFGraph to Static Single-Assignment Form}
 \usage{
-to_ssa(node, in_place = FALSE)
+to_ssa(node)
 }
 \arguments{
 \item{node}{(Function) A function with CFG attached.}
-
-\item{in_place}{(logical) Don't copy CFG before conversion?}
 }
 \value{
 The function with its control flow graph converted to static
@@ -18,4 +16,9 @@ single-assignment form.
 \description{
 This function converts code in a control flow graph (CFG) to static
 single-assignment form.
+}
+\details{
+This function has side effects. A CFG holds references to abstract syntax
+tree (AST) nodes. As a result, there is no simple way to copy a CFG without
+breaking the AST. This function always modifies CFGs in place.
 }

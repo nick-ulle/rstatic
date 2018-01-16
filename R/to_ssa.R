@@ -3,20 +3,19 @@
 #' This function converts code in a control flow graph (CFG) to static
 #' single-assignment form.
 #'
+#' This function has side effects. A CFG holds references to abstract syntax
+#' tree (AST) nodes. As a result, there is no simple way to copy a CFG without
+#' breaking the AST. This function always modifies CFGs in place.
+#'
 #' @param node (Function) A function with CFG attached.
-#' @param in_place (logical) Don't copy CFG before conversion?
 #' 
 #' @return The function with its control flow graph converted to static
 #' single-assignment form.
 #'
-#' @export
-to_ssa = function(node, in_place = FALSE) {
+to_ssa = function(node) {
   # TODO: make this function's implementation more idiomatic.
   if (!is(node, "Function") || is.null(node$cfg))
     stop("node must be a Function in CFG form. Use to_cfg() to convert.")
-
-  if (!in_place)
-    node = node$copy()
 
   cfg = node$cfg
 
@@ -194,7 +193,7 @@ ssa_rename_ast.Call = function(node, builder) {
 
 #' @export
 ssa_rename_ast.Function = function(node, builder) {
-  to_ssa(node, in_place = TRUE)
+  to_ssa(node)
 
   node
 }
