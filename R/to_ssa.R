@@ -19,30 +19,50 @@ to_ssa = function(node) {
 
   cfg = node$cfg
 
-  cb = collect_crossblock_uses(cfg)
-  uses = cb[[1]]
-  assign_blocks = cb[[2]]
+  # Run live variables analysis to generate pruned SSA.
+  live = live_variables(cfg, full_analysis = TRUE)
+  killgen = live[["killgen"]]
+  live = live[["entry"]]
+
+  # Get the kill set for each block to figure out where definitions are.
+  # NOTE: This assumes the analysis returns blocks in the same order as their
+  # indices.
+  definitions = list()
+  for (b in names(killgen)) {
+    for (name in killgen[[b]][["kill"]]) {
+      idx = cfg$get_index(b)
+      definitions[[name]] = append(definitions[[name]], idx)
+    }
+  }
+
+  # For semi-pruned SSA, uses is the union of the gen sets.
 
   entry_idx = cfg$get_index(cfg$entry)
   dom_t = dominator_tree(cfg, entry_idx)
   dom_f = dominator_frontier(cfg, dom_t)
 
   # Insert phi-functions.
-  for (name in uses) {
+  for (name in names(definitions)) {
     # Add phi-function to dominance frontier for each block with an assignment.
-    worklist = assign_blocks[[name]]
+    worklist = definitions[[name]]
+
     while (length(worklist) > 0) {
       b = worklist[[1]]
       worklist = worklist[-1]
 
-      for (d in dom_f[[b]]) {
-        if (name %in% names(cfg[[d]]$phi))
+      for (frontier in dom_f[[b]]) {
+        # Do nothing if phi-function is already present.
+        if (name %in% names(cfg[[frontier]]$phi))
           next
 
-        phi = Phi$new(name)
-        cfg[[d]]$set_phi(phi)
-        worklist = union(worklist, d)
-      } # end for d
+        # Check if variable is live at entry to the frontier.
+        if (name %in% live[[frontier]]) {
+          phi = Phi$new(name)
+          cfg[[frontier]]$set_phi(phi)
+          # The phi-function is a definition, so add frontier to worklist.
+          worklist = union(worklist, frontier)
+        }
+      } # end for frontier
     }
   } # end for name
 
