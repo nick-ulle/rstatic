@@ -22,6 +22,11 @@ insert_return = function(node) {
 insert_return.Brace = function(node) {
   # Insert Return for last statement if not already.
   len = length(node$body)
+  if (len == 0) {
+    node$body[[len + 1]] = Return$new(Null$new(), parent = node)
+    return (node)
+  }
+  
   ret = insert_return(node$body[[len]])
 
   if (is.list(ret)) {
@@ -83,13 +88,6 @@ insert_return.Application = insert_return.Literal
 
 #' @export
 insert_return.Assign = insert_return.Literal
-
-
-#' @export
-insert_return.NULL = function(node) {
-  Return$new(Null$new())
-}
-
 
 #' @export
 insert_return.Return = function(node) node
