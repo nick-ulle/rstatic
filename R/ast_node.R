@@ -54,9 +54,6 @@ Container = R6::R6Class("Container", inherit = ASTNode,
     initialize = function(body = list(), parent = NULL) {
       super$initialize(parent)
 
-      if (!is.list(body))
-        body = list(body)
-
       self$body = body
     }
   ),
@@ -66,16 +63,29 @@ Container = R6::R6Class("Container", inherit = ASTNode,
       if (missing(value))
         return (self$.body)
 
+      if (!is.list(value))
+        value = list(value)
+
       self$.body = .reparent_ast(value, self)
     }
   )
 )
 
 #' @export
-BlockList = R6::R6Class("BlockList", inherit = Container)
+Brace = R6::R6Class("Brace", inherit = Container,
+  "public" = list(
+    is_hidden = FALSE,
+
+    initialize = function(body = list(), is_hidden = FALSE, parent = NULL) {
+      super$initialize(body, parent)
+
+      self$is_hidden = FALSE
+    }
+  )
+)
 
 #' @export
-Brace = R6::R6Class("Brace", inherit = Container,
+Block = R6::R6Class("Block", inherit = Container,
   "public" = list(
     id = NA_character_,
     .phi = NULL,
@@ -122,7 +132,9 @@ If = R6::R6Class("If", inherit = ASTNode,
     .true = NULL,
     .false = NULL,
 
-    initialize = function(condition, true, false = NULL, parent = NULL) {
+    initialize = function(condition, true, false = Brace$new(),
+      parent = NULL)
+    {
       super$initialize(parent)
 
       self$condition = condition
@@ -143,7 +155,6 @@ If = R6::R6Class("If", inherit = ASTNode,
       if (missing(value))
         return (self$.true)
 
-      #value = as_blocks(value)
       self$.true = .reparent_ast(value, self)
     },
 
@@ -151,7 +162,6 @@ If = R6::R6Class("If", inherit = ASTNode,
       if (missing(value))
         return (self$.false)
 
-      #value = as_blocks(value)
       self$.false = .reparent_ast(value, self)
     }
   )
@@ -175,7 +185,6 @@ Loop = R6::R6Class("Loop", inherit = ASTNode,
       if (missing(value))
         return (self$.test)
 
-      #value = as_blocks(value)
       self$.test = .reparent_ast(value, self)
     },
 
@@ -183,7 +192,6 @@ Loop = R6::R6Class("Loop", inherit = ASTNode,
       if (missing(value))
         return (self$.body)
 
-      #value = as_blocks(value)
       self$.body = .reparent_ast(value, self)
     }
   )
@@ -224,7 +232,6 @@ For = R6::R6Class("For", inherit = Loop,
       if (missing(value))
         return (self$.setup)
 
-      #value = as_blocks(value)
       self$.setup = .reparent_ast(value, self)
     },
 
@@ -232,7 +239,6 @@ For = R6::R6Class("For", inherit = Loop,
       if (missing(value))
         return (self$.increment)
 
-      #value = as_blocks(value)
       self$.increment = .reparent_ast(value, self)
     }
   )
@@ -377,7 +383,6 @@ Function = R6::R6Class("Function", inherit = Callable,
       if (missing(value))
         return (self$.body)
 
-      #value = as_blocks(value)
       self$.body = .reparent_ast(value, self)
     }
   )

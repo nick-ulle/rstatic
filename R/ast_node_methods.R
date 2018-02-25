@@ -37,21 +37,14 @@ is_loop = function(node) {
 }
 
 
+#' Wrap ASTNode With Brace
+#'
+#' This function wraps an ASTNode in a Brace if it isn't one already.
+#'
 #' @export
-as_blocks = function(node) {
-  UseMethod("as_blocks")
+wrap_brace = function(node) {
+  if (is(node, "Brace"))
+    node
+  else
+    Brace$new(node, parent = node$parent)
 }
-
-#' @export
-as_blocks.ASTNode = function(node) {
-  Brace$new(node, parent = node$parent)
-}
-
-#' @export
-as_blocks.Brace = function(node) node
-
-#' @export
-as_blocks.BlockList = function(node) node
-
-#' @export
-as_blocks.NULL = function(node) node

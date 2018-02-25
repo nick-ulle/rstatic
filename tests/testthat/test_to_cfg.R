@@ -10,7 +10,7 @@ test_that("linear code has exit block", {
 
   # -----
   # Check body block.
-  body = result$body[[1]]
+  body = result$cfg[[result$cfg$entry]]
   expect_equal(length(body), 2)
 
   # Check exit block.
@@ -27,8 +27,25 @@ test_that("if-statement graph has correct structure", {
 
   ast = If$new(
     Logical$new(TRUE),
-    Brace$new(list(Assign$new(Symbol$new("x"), Integer$new(3L)))),
-    Brace$new(list(Assign$new(Symbol$new("x"), Integer$new(4L))))
+    Brace$new(Assign$new(Symbol$new("x"), Integer$new(3L))),
+    Brace$new(Assign$new(Symbol$new("x"), Integer$new(4L)))
+  )
+
+  result = to_cfg(ast, ssa = FALSE)
+  g = result$cfg$graph
+
+  # -----
+  expect_true(igraph::isomorphic(g, goal))
+})
+
+
+test_that("pathological if-statement has correct structure", {
+  goal = igraph::make_empty_graph(n = 4)
+  goal = goal + igraph::edges(c(1, 2, 1, 3, 2, 4, 3, 4))
+
+  ast = If$new(
+    Symbol$new("x"),
+    Brace$new()
   )
 
   result = to_cfg(ast, ssa = FALSE)
@@ -104,7 +121,7 @@ test_that("for-loop graph has correct structure", {
 test_that("AST is copied when in_place = FALSE", {
   node = Assign$new(Symbol$new("x"), Integer$new(42L))
 
-  result = to_cfg(node, in_place = FALSE) #, ssa = FALSE)
+  result = to_cfg(node, in_place = FALSE, ssa = FALSE)
 
   # -----
   result = result$body[[1]]
@@ -120,7 +137,7 @@ test_that("AST is not copied when in_place = TRUE", {
   result = to_cfg(node, in_place = TRUE, insert_return = FALSE, ssa = FALSE)
 
   # -----
-  result = result$body[[1]][[1]]
+  result = result$cfg[[result$cfg$entry]][[1]]
   expect_identical(result, node)
   expect_identical(result$read, node$read)
   expect_identical(result$write, node$write)
@@ -140,7 +157,7 @@ test_that("nested functions have CFG generated", {
       f
     })
 
-  result = to_cfg(ast)
+  result = to_cfg(ast, ssa = FALSE)
 
   # -----
   fn = result$cfg[[1]][[2]]$read

@@ -71,7 +71,8 @@ to_ast_callable = function(expr, is_primitive = FALSE) {
 
   } else {
     # Construct function with params and body.
-    Function$new(params, to_ast(expr[[3]]))
+    body = to_ast(expr[[3]])
+    Function$new(params, wrap_brace(body))
   }
 }
 
@@ -79,32 +80,27 @@ to_ast_callable = function(expr, is_primitive = FALSE) {
 
 #' @export
 to_ast.if = function(expr) {
-  If$new(
-    to_ast(expr[[2]]),
-    to_ast(expr[[3]]), 
-    if (length(expr) == 4) to_ast(expr[[4]])
-    else NULL
-  )
+  true = to_ast(expr[[3]])
+  if (length(expr) == 4) {
+    false = to_ast(expr[[4]])
+    false = wrap_brace(false)
+  } else
+    false = Brace$new()
+
+  If$new(to_ast(expr[[2]]), wrap_brace(true), false)
 }
 
 #' @export
 to_ast.for = function(expr) {
-  For$new(to_ast(expr[[2]]), to_ast(expr[[3]]), to_ast(expr[[4]]))
+  body = to_ast(expr[[4]])
+  For$new(to_ast(expr[[2]]), to_ast(expr[[3]]), wrap_brace(body))
 }
 
 #' @export
 to_ast.while = function(expr) {
-  While$new(to_ast(expr[[2]]), to_ast(expr[[3]]))
+  body = to_ast(expr[[3]])
+  While$new(to_ast(expr[[2]]), wrap_brace(body))
 }
-
-#' Convert a repeat to an ASTNode
-#'
-#' @param expr (language) Quoted R code to be converted.
-#'
-to_ast_repeat = function(expr) {
-  While$new(Logical$new(TRUE), to_ast(expr[[2]]), is_repeat = TRUE)
-}
-
 
 #' @export
 `to_ast.=` = function(expr) {
@@ -137,30 +133,32 @@ to_ast.call = function(expr) {
     # FIXME: match.call() would be helpful here but at this point there is no
     # scoping information available.
 
-    # Handle "calls" that don't use the standard call syntax. Most of these are
-    # actually keywords.
-    if (name == "function")
-      return (to_ast_callable(expr))
-    else if (name == "repeat")
-      return (to_ast_repeat(expr))
-    else if (name == "break")
-      return (Break$new())
-    else if (name == "next")
-      return (Next$new())
-    else if (name == "return") {
-      arg = to_ast(expr[[2]])
-      return (Return$new(arg))
-    } else if (name == "<<-") {
-      read = to_ast(expr[[3]])
-      write = to_ast(expr[[2]])
-      return (SuperAssign$new(write, read))
-    }
-
-    # The standard call syntax applies, so construct an appropriate node.
     node = switch(name,
-      # TODO: .C .Fortran .Call .External
-      ".Internal" = Internal$new()
+      # Handle "calls" that don't use the standard call syntax. Most of these
+      # are actually keywords.
+      "function" =
+        return (to_ast_callable(expr))
+      , "repeat" = {
+          body = to_ast(expr[[2]])
+          return (While$new(Logical$new(TRUE), body, is_repeat = TRUE))
+        }
+      , "break" =
+        return (Break$new())
+      , "next" =
+        return (Next$new())
+      , "return" = {
+        arg = to_ast(expr[[2]])
+        return (Return$new(arg))
+      }
+      , "<<-" = {
+        read = to_ast(expr[[3]])
+        write = to_ast(expr[[2]])
+        return (SuperAssign$new(write, read))
+      }
 
+      # The standard call syntax applies, so construct an appropriate node.
+      # TODO: .C .Fortran .Call .External
+      , ".Internal" = Internal$new()
       # NOTE: These can all be redefined by users.
       , "::" = Namespace$new(name)
       , ":::" = Namespace$new(name)

@@ -119,7 +119,7 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
 
     initialize = function(
       fn = NULL,
-      exit_block = Brace$new(Symbol$new("._return_"))
+      exit_block = Block$new(Symbol$new("._return_"))
     ) {
       super$initialize()
 
@@ -131,7 +131,7 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
 
     },
 
-    add_block = function(block = Brace$new(), id = NULL) {
+    add_block = function(block = Block$new(), id = NULL) {
       if (is.null(self$entry)) {
         if (is.null(id)) {
           id = "%entry"

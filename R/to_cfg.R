@@ -38,24 +38,20 @@ quote_cfg = function(expr, ...) {
 #' @param ssa (logical) Also convert to static single assignment form?
 #' @param insert_return (logical) Apply \code{insert_return()} to the node
 #' before generating the CFG?
-#' @param linearize (logical) Apply \code{split_blocks()} to the node
-#' before generating the CFG?
 #'
 #' @return A Function node with the control flow graph in its \code{$cfg}
 #' field.
 #'
 #' @export
 to_cfg =
-function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
-  linearize = TRUE)
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
 {
   UseMethod("to_cfg")
 }
 
 #' @export
 to_cfg.Function =
-function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
-  linearize = TRUE)
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
 {
   if (!in_place)
     node = node$copy()
@@ -63,13 +59,10 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
   if (insert_return)
     node = insert_return(node)
 
-  if (linearize)
-    node = split_blocks(node)
-
   cfg = ControlFlowGraph$new(node)
-  helper = list(
-    this_block = NULL, sib_block = cfg$exit,
-    next_block = NULL, break_block = NULL)
+  helper = c(
+    this_block = NA, sib_block = cfg$exit,
+    next_block = NA, break_block = NA)
   build_cfg(node$body, helper, cfg)
 
   # Sort the blocks in reverse postorder to make them easier to read and ensure
@@ -87,8 +80,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
 
 #' @export
 to_cfg.ASTNode =
-function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
-  linearize = TRUE)
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
 {
   if (!in_place)
     node = node$copy()
@@ -99,16 +91,15 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
   # This node isn't a Function, so wrap it up in one.
   node = Function$new(params = list(), body = node)
 
-  to_cfg.Function(node, in_place = TRUE, ssa, insert_return, linearize)
+  to_cfg.Function(node, in_place = TRUE, ssa, insert_return)
 }
 
 #' @export
 to_cfg.default =
-function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
-  linearize = TRUE)
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
 {
   node = to_ast(node)
-  to_cfg(node, in_place = TRUE, ssa, insert_return, linearize)
+  to_cfg(node, in_place = TRUE, ssa, insert_return)
 }
 
 
@@ -130,27 +121,25 @@ build_cfg = function(node, helper, cfg) {
   UseMethod("build_cfg")
 }
 
-# The problem is that .list handles figuring out siblings, but we need to
-# grab the id of the first block for true/false in .If
 
-build_cfg.list = function(node, helper, cfg) {
-  # Add all the blocks in the list to the graph.
-  siblings = vapply(node, function(block) {
+build_cfg.Brace = function(node, helper, cfg) {
+  # Split into blocks and add them to the graph.
+  blocks = split_blocks(node)
+  siblings = vapply(blocks, function(block) {
     block$id = cfg$add_block(block)
   }, "")
 
-  # Add parent sibling block as last sibling block.
+  # After last block, branch to parent's sibling block.
   len = length(siblings)
   entry = siblings[1]
-  siblings = c(siblings[-1], helper$sib_block)
+  siblings = c(siblings[-1], helper[["sib_block"]])
 
-  # Now process the blocks to add their outgoing edges.
+  # Build the subgraph for each block.
   for (i in seq_along(siblings)) {
-    new_helper = helper
-    if (i > 1)
-      new_helper$this_block = NULL
-    new_helper$sib_block = siblings[[i]]
-    build_cfg.Brace(node[[i]], new_helper, cfg)
+    helper[["sib_block"]] = siblings[[i]]
+    build_cfg.Block(blocks[[i]], helper, cfg)
+    if (i == 1)
+      helper[["this_block"]] = NA
   }
 
   return (entry)
@@ -158,16 +147,8 @@ build_cfg.list = function(node, helper, cfg) {
 
 
 #' @export
-build_cfg.Brace = function(node, helper, cfg) {
-  # FIXME: Try to add incoming edges at the source block rather than the
-  # destination block.
-  # When parent is If, For, or While: this_block is not NULL and an incoming
-  # edge (e.g., If -> Block) must be added since the block was just added to
-  # the graph.
-  #if (!is.null(helper$this_block))
-  #  cfg$add_edge(helper$this_block, node$id)
-
-  helper$this_block = node$id
+build_cfg.Block = function(node, helper, cfg) {
+  helper[["this_block"]] = node$id
 
   # Check for function definitions.
   lapply(node$body, nested_functions_to_cfg)
@@ -178,7 +159,7 @@ build_cfg.Brace = function(node, helper, cfg) {
     build_cfg(node$body[[len]], helper, cfg)
   else
     # Empty block.
-    cfg$add_edge(helper$this_block, helper$sib_block)
+    cfg$add_edge(helper[["this_block"]], helper[["sib_block"]])
 
   NULL
 }
@@ -187,34 +168,11 @@ build_cfg.Brace = function(node, helper, cfg) {
 #' @export
 build_cfg.If = function(node, helper, cfg) {
   # Process true branch, then false branch.
-  # NOTE: Edges get added when the component blocks are converted, not here.
-  # In other words, see the .Brace method.
-
-  # We need to do a few things here:
-  #   1) Get ids for the true and false blocks, so the labels can be added to
-  #      the conditional branch at the end of this block.
-  #   2) Mark the end of each subgraph
-  # 
-  # The helper IS the pointer into the CFG. The tricky thing is that blocks are
-  # created in .Brace, so edges get added when `this block` is the child.
-  #
-  # We could create the block here and update `this_block`. Then construct the
-  # rest of the subgraph recursively. This is ugly since we have to handle the
-  # first block on each subgraph specially.
-
-  # Add all the blocks in the list to the graph.
-  id_true = build_cfg.list(node$true, helper, cfg)
+  id_true = build_cfg.Brace(node$true, helper, cfg)
   cfg$add_edge(helper[["this_block"]], id_true)
   node$true = id_true
 
-  # Same thing for false block, but check that there's actually something
-  # inside. NOTE: We could have empty false blocks have list(Brace) so we don't
-  # need to do this.
-  if (length(node$false) > 0)
-    id_false = build_cfg.list(node$false, helper, cfg)
-  else # exit to sibling block.
-    id_false = helper[["sib_block"]]
-
+  id_false = build_cfg.Brace(node$false, helper, cfg)
   cfg$add_edge(helper[["this_block"]], id_false)
   node$false = id_false
 
@@ -244,7 +202,7 @@ build_cfg.While = function(node, helper, cfg) {
   helper[["next_block"]]  = helper[["this_block"]]
   helper[["sib_block"]]   = helper[["this_block"]]
 
-  id_body = build_cfg.list(node$body, helper, cfg)
+  id_body = build_cfg.Brace(node$body, helper, cfg)
   cfg$add_edge(helper[["this_block"]], id_body)
   node$body = id_body
 
@@ -328,7 +286,7 @@ build_cfg.For = function(node, helper, cfg) {
   helper[["next_block"]]  = helper[["this_block"]]
   helper[["sib_block"]]   = helper[["this_block"]]
 
-  id_body = build_cfg.list(node$body, helper, cfg)
+  id_body = build_cfg.Brace(node$body, helper, cfg)
   cfg$add_edge(helper[["this_block"]], id_body)
   node$body = id_body
 
@@ -343,33 +301,33 @@ build_cfg.For = function(node, helper, cfg) {
 #' @export
 build_cfg.ASTNode = function(node, helper, cfg) {
   # In this case, control ascends from the current control structure.
-  cfg$add_edge(helper$this_block, helper$sib_block)
+  cfg$add_edge(helper[["this_block"]], helper[["sib_block"]])
 
   NULL
 }
 
 #' @export
 build_cfg.Break = function(node, helper, cfg) {
-  if (is.null(helper$break_block))
+  if (is.na(helper[["break_block"]]))
     warning(sprintf(
       'invalid use of Break. No outgoing edge will be added for block "%s".',
-      helper$this_block
+      helper[["this_block"]]
     ))
   else
-    cfg$add_edge(helper$this_block, helper$break_block)
+    cfg$add_edge(helper[["this_block"]], helper[["break_block"]])
 
   NULL
 }
 
 #' @export
 build_cfg.Next = function(node, helper, cfg) {
-  if (is.null(helper$next_block))
+  if (is.na(helper[["next_block"]]))
     warning(sprintf(
       'invalid use of Next. No outgoing edge will be added for block "%s".',
-      helper$this_block
+      helper[["this_block"]]
     ))
   else
-    cfg$add_edge(helper$this_block, helper$next_block)
+    cfg$add_edge(helper[["this_block"]], helper[["next_block"]])
 
   NULL
 }
@@ -377,7 +335,7 @@ build_cfg.Next = function(node, helper, cfg) {
 #' @export
 build_cfg.Return = function(node, helper, cfg) {
   # Link to exit block.
-  cfg$add_edge(helper$this_block, cfg$exit)
+  cfg$add_edge(helper[["this_block"]], cfg$exit)
 
   NULL
 }
@@ -389,8 +347,7 @@ nested_functions_to_cfg = function(node) {
 
 #' @export
 nested_functions_to_cfg.Function = function(node) {
-  to_cfg.Function(node, in_place = TRUE, ssa = FALSE, insert_return = FALSE,
-    linearize = TRUE)
+  to_cfg.Function(node, in_place = TRUE, ssa = FALSE, insert_return = FALSE)
 }
 
 #' @export
@@ -415,4 +372,30 @@ nested_functions_to_cfg.ASTNode = function(node) {
   # Skip over everything else. Blocks in If, For, and While are visited by
   # build_cfg(), so don't visit them again here.
   node
+}
+
+
+split_blocks = function(node) {
+  #node$body = lapply(node$body, split_blocks)
+
+  flows = vapply(node$body, function(line) {
+    c(is_control_flow(line), is_loop(line))
+  }, logical(2))
+  is_loop = flows[2, ]
+  flows = flows[1, ]
+
+  # Shift over by one element so each block starts after a flow.
+  flows = c(FALSE, head(flows, -1))
+
+  # Put each loop in its own block.
+  flows[is_loop] = TRUE
+
+  blocks = split(node$body, cumsum(flows))
+  blocks = lapply(blocks, function(b) {
+     # Could be Block$new(b)
+    Block$new(b)
+  })
+
+  names(blocks) = NULL
+  blocks
 }

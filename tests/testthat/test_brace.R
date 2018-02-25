@@ -11,15 +11,6 @@ test_that("$new() sets parents on body nodes", {
 })
 
 
-test_that("$set_phi() sets parent on Phi nodes", {
-  x = Brace$new()
-  x$set_phi(Phi$new("x"))
-
-  # -----
-  expect_identical(x, x$phi[[1]]$parent)
-})
-
-
 test_that("copying sets parents on body nodes", {
   x = Brace$new(body = list(
     Assign$new(Symbol$new("x"), Integer$new(3L))
@@ -37,15 +28,24 @@ test_that("copying sets parents on body nodes", {
 })
 
 
-test_that("copying sets parents on Phi nodes", {
-  x = Brace$new()
-  x$set_phi(Phi$new("x"))
+#test_that("$set_phi() sets parent on Phi nodes", {
+#  x = Brace$new()
+#  x$set_phi(Phi$new("x"))
+#
+#  # -----
+#  expect_identical(x, x$phi[[1]]$parent)
+#})
 
-  y = x$copy()
 
-  # -----
-  expect_identical(y, y$phi[[1]]$parent)
-
-  expect_false(identical(x, y$phi[[1]]$parent))
-  expect_false(identical(y, x$phi[[1]]$parent))
-})
+#test_that("copying sets parents on Phi nodes", {
+#  x = Brace$new()
+#  x$set_phi(Phi$new("x"))
+#
+#  y = x$copy()
+#
+#  # -----
+#  expect_identical(y, y$phi[[1]]$parent)
+#
+#  expect_false(identical(x, y$phi[[1]]$parent))
+#  expect_false(identical(y, x$phi[[1]]$parent))
+#})
