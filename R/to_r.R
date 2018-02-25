@@ -13,10 +13,25 @@ function(node, ...) {
   UseMethod("to_r")
 }
 
+# FIXME: This shouldn't be here
+to_r.character = function(node, ...) node
+
 #' @export
 to_r.BlockList =
 function(node, ...) {
   body = lapply(node$body, function(block) {
+    block = to_r(block, ...)
+    as.list(block[-1])
+  })
+  body = unlist(body, recursive = FALSE)
+
+  as.call(c(as.name("{"), body))
+}
+
+# FIXME: This might be temporary
+to_r.list =
+function(node, ...) {
+  body = lapply(node, function(block) {
     block = to_r(block, ...)
     as.list(block[-1])
   })

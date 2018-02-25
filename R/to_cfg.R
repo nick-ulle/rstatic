@@ -93,6 +93,9 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE,
   if (!in_place)
     node = node$copy()
 
+  if (!is(node, "Brace"))
+    node = Brace$new(node)
+
   # This node isn't a Function, so wrap it up in one.
   node = Function$new(params = list(), body = node)
 
@@ -127,16 +130,19 @@ build_cfg = function(node, helper, cfg) {
   UseMethod("build_cfg")
 }
 
-#' @export
-build_cfg.BlockList = function(node, helper, cfg) {
+# The problem is that .list handles figuring out siblings, but we need to
+# grab the id of the first block for true/false in .If
+
+build_cfg.list = function(node, helper, cfg) {
   # Add all the blocks in the list to the graph.
-  siblings = vapply(node$body, function(block) {
+  siblings = vapply(node, function(block) {
     block$id = cfg$add_block(block)
   }, "")
 
   # Add parent sibling block as last sibling block.
   len = length(siblings)
-  siblings = c(siblings[2:len], helper$sib_block)
+  entry = siblings[1]
+  siblings = c(siblings[-1], helper$sib_block)
 
   # Now process the blocks to add their outgoing edges.
   for (i in seq_along(siblings)) {
@@ -144,22 +150,22 @@ build_cfg.BlockList = function(node, helper, cfg) {
     if (i > 1)
       new_helper$this_block = NULL
     new_helper$sib_block = siblings[[i]]
-    build_cfg(node[[i]], new_helper, cfg)
+    build_cfg.Brace(node[[i]], new_helper, cfg)
   }
 
-  NULL
+  return (entry)
 }
+
 
 #' @export
 build_cfg.Brace = function(node, helper, cfg) {
-  if (!is(node$parent, "BlockList"))
-    node$id = cfg$add_block(node)
-
+  # FIXME: Try to add incoming edges at the source block rather than the
+  # destination block.
   # When parent is If, For, or While: this_block is not NULL and an incoming
   # edge (e.g., If -> Block) must be added since the block was just added to
   # the graph.
-  if (!is.null(helper$this_block))
-    cfg$add_edge(helper$this_block, node$id)
+  #if (!is.null(helper$this_block))
+  #  cfg$add_edge(helper$this_block, node$id)
 
   helper$this_block = node$id
 
@@ -181,58 +187,83 @@ build_cfg.Brace = function(node, helper, cfg) {
 #' @export
 build_cfg.If = function(node, helper, cfg) {
   # Process true branch, then false branch.
+  # NOTE: Edges get added when the component blocks are converted, not here.
+  # In other words, see the .Brace method.
 
-  build_cfg(node$true, helper, cfg)
+  # We need to do a few things here:
+  #   1) Get ids for the true and false blocks, so the labels can be added to
+  #      the conditional branch at the end of this block.
+  #   2) Mark the end of each subgraph
+  # 
+  # The helper IS the pointer into the CFG. The tricky thing is that blocks are
+  # created in .Brace, so edges get added when `this block` is the child.
+  #
+  # We could create the block here and update `this_block`. Then construct the
+  # rest of the subgraph recursively. This is ugly since we have to handle the
+  # first block on each subgraph specially.
 
-  if (is.null(node$false))
-    # No false branch, so exit to sibling block.
-    cfg$add_edge(helper$this_block, helper$sib_block)
-  else
-    build_cfg(node$false, helper, cfg)
+  # Add all the blocks in the list to the graph.
+  id_true = build_cfg.list(node$true, helper, cfg)
+  cfg$add_edge(helper[["this_block"]], id_true)
+  node$true = id_true
+
+  # Same thing for false block, but check that there's actually something
+  # inside. NOTE: We could have empty false blocks have list(Brace) so we don't
+  # need to do this.
+  if (length(node$false) > 0)
+    id_false = build_cfg.list(node$false, helper, cfg)
+  else # exit to sibling block.
+    id_false = helper[["sib_block"]]
+
+  cfg$add_edge(helper[["this_block"]], id_false)
+  node$false = id_false
 
   NULL
 }
 
 #' @export
 build_cfg.While = function(node, helper, cfg) {
-  id_test = cfg$add_block()
-  node$test = cfg[[id_test]]
+  # This *IS* the test block.
 
-  # NOTE: The test block should test the condition. The children of this block
-  # can be found in the CFG rather than on the generated If.
-  # FIXME: No way to distinguish true/false edge.
-  node$test[[1]] = If$new(node$condition$copy(), Brace$new())
+  #id_test = cfg$add_block()
+  #node$test = cfg[[id_test]]
 
-  cfg$add_edge(helper$this_block, id_test)
+  ## NOTE: The test block should test the condition. The children of this block
+  ## can be found in the CFG rather than on the generated If.
+  ## FIXME: No way to distinguish true/false edge.
+  #node$test[[1]] = If$new(node$condition$copy(), Brace$new())
+
+  #cfg$add_edge(helper$this_block, id_test)
 
   # Set
   #   break_block = sib_block (the original)
   #   next_block = test
   #   sib_block = test (because this is where the last body block will go)
   #   this_block = test (because this is where we enter from)
-  helper$break_block = helper$sib_block
-  helper$next_block = id_test
-  helper$sib_block = id_test
-  helper$this_block = id_test
+  helper[["break_block"]] = helper[["sib_block"]]
+  helper[["next_block"]]  = helper[["this_block"]]
+  helper[["sib_block"]]   = helper[["this_block"]]
 
-  build_cfg(node$body, helper, cfg)
+  id_body = build_cfg.list(node$body, helper, cfg)
+  cfg$add_edge(helper[["this_block"]], id_body)
+  node$body = id_body
 
   # Add edge to exit loop.
-  cfg$add_edge(id_test, helper$break_block)
+  cfg$add_edge(helper[["this_block"]], helper[["break_block"]])
 
   NULL
 }
 
 #' @export
 build_cfg.For = function(node, helper, cfg) {
-  id_setup = cfg$add_block()
-  node$setup = cfg[[id_setup]]
+  #id_setup = cfg$add_block()
+  #node$setup = cfg[[id_setup]]
 
-  id_test = cfg$add_block()
-  node$test = cfg[[id_test]]
+  #id_test = cfg$add_block()
+  #node$test = cfg[[id_test]]
 
-  id_increment = cfg$add_block()
-  node$increment = cfg[[id_increment]]
+  #id_increment = cfg$add_block()
+  #node$increment = cfg[[id_increment]]
 
   # Generate code for the setup, test, and increment blocks.
   #
@@ -254,15 +285,16 @@ build_cfg.For = function(node, helper, cfg) {
   #     # %body
   #     ...
   #   }
-  counter = Symbol$new(paste0("._counter_", node$ivar$basename))
-  node$setup[[1]] = Assign$new(counter, Integer$new(1L))
 
-  if (is(node$iter, "Call")) {
-    iterator = Symbol$new(paste0("._iterator_", node$ivar$basename))
-    node$setup[[2]] = Assign$new(iterator, node$iter$copy())
-  } else {
-    iterator = node$ivar
-  }
+  #counter = Symbol$new(paste0("._counter_", node$ivar$basename))
+  #node$setup[[1]] = Assign$new(counter, Integer$new(1L))
+
+  #if (is(node$iter, "Call")) {
+  #  iterator = Symbol$new(paste0("._iterator_", node$ivar$basename))
+  #  node$setup[[2]] = Assign$new(iterator, node$iter$copy())
+  #} else {
+  #  iterator = node$ivar
+  #}
 
   # NOTE: Technically the length could also be computed just once, in the setup
   # block.
@@ -270,37 +302,38 @@ build_cfg.For = function(node, helper, cfg) {
   # NOTE: The test block should test the condition. The children of this block
   # can be found in the CFG rather than on the generated If.
   # FIXME: No way to distinguish true/false edge.
-  node$test[[1]] = If$new(
-    Call$new("<=", list(counter$copy(),
-        Call$new("length", list(iterator$copy()))) ),
-    Brace$new() )
+  #node$test[[1]] = If$new(
+  #  Call$new("<=", list(counter$copy(),
+  #      Call$new("length", list(iterator$copy()))) ),
+  #  Brace$new() )
 
-  loop_var = Symbol$new(node$ivar$basename)
-  node$increment[[1]] = Assign$new(loop_var,
-    Subset$new("[[", list(iterator$copy(), counter$copy())) )
-  node$increment[[2]] = Assign$new(counter$copy(),
-    Call$new("+", list(counter$copy(), Integer$new(1L))) )
+  #loop_var = Symbol$new(node$ivar$basename)
+  #node$increment[[1]] = Assign$new(loop_var,
+  #  Subset$new("[[", list(iterator$copy(), counter$copy())) )
+  #node$increment[[2]] = Assign$new(counter$copy(),
+  #  Call$new("+", list(counter$copy(), Integer$new(1L))) )
 
   # --------------------
 
-  cfg$add_edge(helper$this_block, id_setup)
-  cfg$add_edge(id_setup, id_test)
-  cfg$add_edge(id_test, id_increment)
+  #cfg$add_edge(helper$this_block, id_setup)
+  #cfg$add_edge(id_setup, id_test)
+  #cfg$add_edge(id_test, id_increment)
 
   # Set
   #   break_block = sib_block (the original)
   #   next_block = test
   #   sib_block = test (because this is where the last body block will go)
   #   this_block = increment (because this is where we enter from)
-  helper$break_block = helper$sib_block
-  helper$next_block = id_test
-  helper$sib_block = id_test
-  helper$this_block = id_increment
+  helper[["break_block"]] = helper[["sib_block"]]
+  helper[["next_block"]]  = helper[["this_block"]]
+  helper[["sib_block"]]   = helper[["this_block"]]
 
-  build_cfg(node$body, helper, cfg)
+  id_body = build_cfg.list(node$body, helper, cfg)
+  cfg$add_edge(helper[["this_block"]], id_body)
+  node$body = id_body
 
   # Add edge to exit loop.
-  cfg$add_edge(id_test, helper$break_block)
+  cfg$add_edge(helper[["this_block"]], helper[["break_block"]])
 
   NULL
 }
@@ -357,7 +390,7 @@ nested_functions_to_cfg = function(node) {
 #' @export
 nested_functions_to_cfg.Function = function(node) {
   to_cfg.Function(node, in_place = TRUE, ssa = FALSE, insert_return = FALSE,
-    linearize = FALSE)
+    linearize = TRUE)
 }
 
 #' @export

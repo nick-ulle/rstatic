@@ -10,7 +10,7 @@ test_that("linear code has exit block", {
 
   # -----
   # Check body block.
-  body = result$body
+  body = result$body[[1]]
   expect_equal(length(body), 2)
 
   # Check exit block.
@@ -45,8 +45,8 @@ test_that("if-statement with dual returns has correct structure", {
 
   ast = If$new(
     Call$new(">", list(Symbol$new("x"), Integer$new(0)) ),
-    Return$new(Integer$new(3)),
-    Return$new(Integer$new(-1))
+    Brace$new(Return$new(Integer$new(3))),
+    Brace$new(Return$new(Integer$new(-1)))
   )
 
   result = to_cfg(ast, ssa = FALSE)
@@ -58,10 +58,10 @@ test_that("if-statement with dual returns has correct structure", {
 
 
 test_that("while-loop graph has correct structure", {
-  goal = igraph::make_empty_graph(n = 5)
-  goal = goal + igraph::edges(c(1,2, 2,3, 3,2, 2,4, 4,5))
+  goal = igraph::make_empty_graph(n = 4)
+  goal = goal + igraph::edges(c(1,2, 2,1, 1,3, 3,4))
 
-  ast = While$new(Logical$new(TRUE), Integer$new(42L))
+  ast = While$new(Logical$new(TRUE), Brace$new(Integer$new(42L)))
 
   result = to_cfg(ast, ssa = FALSE)
   g = result$cfg$graph
@@ -83,12 +83,13 @@ test_that("warning on dead break/next after return", {
 
 
 test_that("for-loop graph has correct structure", {
-  goal = igraph::make_empty_graph(n = 7)
-  goal = goal + igraph::edges(c(1,2, 2,3, 3,4, 4,5, 5,3, 3,6, 6,7))
+  goal = igraph::make_empty_graph(n = 4)
+  goal = goal + igraph::edges(c(1,2, 2,1, 1,3, 3,4))
+  #goal = goal + igraph::edges(c(1,2, 2,3, 3,4, 4,5, 5,3, 3,6, 6,7))
 
   ast = For$new(Symbol$new("i"),
-    Call$new(":", list(Integer$new(1L), Integer$new(3L))),
-    Integer$new(42L)
+      Call$new(":", list(Integer$new(1L), Integer$new(3L))),
+      Brace$new(Integer$new(42L))
   )
 
   result = to_cfg(ast, ssa = FALSE)
@@ -119,7 +120,7 @@ test_that("AST is not copied when in_place = TRUE", {
   result = to_cfg(node, in_place = TRUE, insert_return = FALSE, ssa = FALSE)
 
   # -----
-  result = result$body[[1]]
+  result = result$body[[1]][[1]]
   expect_identical(result, node)
   expect_identical(result$read, node$read)
   expect_identical(result$write, node$write)
@@ -142,6 +143,6 @@ test_that("nested functions have CFG generated", {
   result = to_cfg(ast)
 
   # -----
-  fn = result$body[[2]]$read
+  fn = result$cfg[[1]][[2]]$read
   expect_is(fn$cfg, "ControlFlowGraph")
 })

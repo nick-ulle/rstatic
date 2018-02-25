@@ -32,6 +32,10 @@ is_control_flow = function(node) {
   any(class(node) %in% c("If", "For", "While", "Break", "Next", "Return"))
 }
 
+is_loop = function(node) {
+  any(class(node) %in% c("For", "While"))
+}
+
 
 #' @export
 as_blocks = function(node) {

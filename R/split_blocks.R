@@ -1,5 +1,6 @@
 # FIXME: What if an Assign contains a Brace, If, etc?
 # FIXME: What happens to braces within braces?
+# NOTE: This does not visit subfunctions.
 
 #' Split Blocks at Control Flow
 #'
@@ -18,25 +19,34 @@ split_blocks = function(node) {
 split_blocks.Brace = function(node) {
   node$body = lapply(node$body, split_blocks)
 
-  flows = vapply(node$body, is_control_flow, NA)
-  # Shift over by one element so each block ends with a flow.
+  # We need to put loops in their own block.
+  flows = vapply(node$body, function(line) {
+    c(is_control_flow(line), is_loop(line))
+  }, logical(2))
+  is_loop = flows[2, ]
+  flows = flows[1, ]
+
+  # Shift over by one element so each block starts after a flow.
   flows = c(FALSE, head(flows, -1))
 
-  if (!any(flows))
-    return(node)
+  # Put each loop in its own block.
+  flows[is_loop] = TRUE
 
   blocks = split(node$body, cumsum(flows))
   blocks = lapply(blocks, function(b) {
     Brace$new(b)
   })
 
-  BlockList$new(blocks, parent = node$parent)
+  names(blocks) = NULL
+  blocks
 }
 
 #' @export
 split_blocks.If = function(node) {
   node$true = split_blocks(node$true)
-  if (!is.null(node$false))
+  if (is.null(node$false))
+    node$false = list()
+  else
     node$false = split_blocks(node$false)
 
   node
@@ -48,6 +58,8 @@ split_blocks.For = function(node) {
 
   node
 }
+
+split_blocks.While = split_blocks.For
 
 #' @export
 split_blocks.Function = function(node) {
