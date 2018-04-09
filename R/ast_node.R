@@ -88,14 +88,16 @@ Brace = R6::R6Class("Brace", inherit = Container,
 Block = R6::R6Class("Block", inherit = Container,
   "public" = list(
     id = NA_character_,
+    depth = NA_integer_,
     .phi = NULL,
 
     initialize = function(body = list(), id = NA_character_,
-      phi = list(), parent = NULL)
+      depth = NA_integer_, phi = list(), parent = NULL)
     {
       super$initialize(body, parent)
 
       self$id = id
+      self$depth = depth
       self$phi = phi
     },
 
@@ -172,6 +174,7 @@ Loop = R6::R6Class("Loop", inherit = ASTNode,
   "public" = list(
     .test = NULL,
     .body = NULL,
+    exit = NULL,
 
     initialize = function(body, parent = NULL) {
       super$initialize(parent)

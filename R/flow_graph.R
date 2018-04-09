@@ -119,7 +119,7 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
 
     initialize = function(
       fn = NULL,
-      exit_block = Block$new(Symbol$new("._return_"))
+      exit_block = Block$new(Symbol$new("._return_"), depth = 1L)
     ) {
       super$initialize()
 
@@ -183,3 +183,17 @@ DataFlowGraph = R6::R6Class("DataFlowGraph", inherit = FlowGraph,
     }
   )
 )
+
+
+# FIXME: Functions for succ/preds need consistent parameters.
+successors = function(block, cfg) {
+  if (is(block, "Block"))
+    block = block$id
+
+  names(igraph::neighbors(cfg$graph, block))
+}
+
+predecessors = function(cfg, block) {
+  names(igraph::neighbors(cfg$graph, block, "in"))
+}
+

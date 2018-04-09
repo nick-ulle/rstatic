@@ -117,12 +117,12 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
 #   from `top_block`?
 
 
-build_cfg = function(node, helper, cfg) {
+build_cfg = function(node, helper, cfg, depth) {
   UseMethod("build_cfg")
 }
 
 
-build_cfg.Brace = function(node, helper, cfg) {
+build_cfg.Brace = function(node, helper, cfg, depth = 1L) {
   # Split into blocks and add them to the graph.
   blocks = split_blocks(node)
   siblings = vapply(blocks, function(block) {
@@ -131,24 +131,25 @@ build_cfg.Brace = function(node, helper, cfg) {
 
   # After last block, branch to parent's sibling block.
   len = length(siblings)
-  entry = siblings[1]
+  entry = siblings[[1]]
   siblings = c(siblings[-1], helper[["sib_block"]])
 
   # Build the subgraph for each block.
   for (i in seq_along(siblings)) {
     helper[["sib_block"]] = siblings[[i]]
-    build_cfg.Block(blocks[[i]], helper, cfg)
+    build_cfg.Block(blocks[[i]], helper, cfg, depth)
     if (i == 1)
       helper[["this_block"]] = NA
   }
 
-  return (entry)
+  entry
 }
 
 
 #' @export
-build_cfg.Block = function(node, helper, cfg) {
+build_cfg.Block = function(node, helper, cfg, depth = 1L) {
   helper[["this_block"]] = node$id
+  node$depth = depth
 
   # Check for function definitions.
   lapply(node$body, nested_functions_to_cfg)
@@ -156,7 +157,7 @@ build_cfg.Block = function(node, helper, cfg) {
   # Only the final expression affects control flow.
   len = length(node$body)
   if (len > 0)
-    build_cfg(node$body[[len]], helper, cfg)
+    build_cfg(node$body[[len]], helper, cfg, depth)
   else
     # Empty block.
     cfg$add_edge(helper[["this_block"]], helper[["sib_block"]])
@@ -164,23 +165,27 @@ build_cfg.Block = function(node, helper, cfg) {
   NULL
 }
 
-
 #' @export
-build_cfg.If = function(node, helper, cfg) {
+build_cfg.If = function(node, helper, cfg, depth = 1L) {
   # Process true branch, then false branch.
-  id_true = build_cfg.Brace(node$true, helper, cfg)
+  id_true = build_cfg.Brace(node$true, helper, cfg, depth + 1L)
   cfg$add_edge(helper[["this_block"]], id_true)
   node$true = id_true
 
-  id_false = build_cfg.Brace(node$false, helper, cfg)
+  id_false = build_cfg.Brace(node$false, helper, cfg, depth + 1L)
   cfg$add_edge(helper[["this_block"]], id_false)
   node$false = id_false
+
+  # Mark the blocks at the end of the if-statement.
+  #exits = predecessors(cfg, helper[["sib_block"]])
+  #vapply(cfg[exits], function(block) block$endif = TRUE, NA)
+  #browser()
 
   NULL
 }
 
 #' @export
-build_cfg.While = function(node, helper, cfg) {
+build_cfg.While = function(node, helper, cfg, depth = 1L) {
   # This *IS* the test block.
 
   #id_test = cfg$add_block()
@@ -202,18 +207,19 @@ build_cfg.While = function(node, helper, cfg) {
   helper[["next_block"]]  = helper[["this_block"]]
   helper[["sib_block"]]   = helper[["this_block"]]
 
-  id_body = build_cfg.Brace(node$body, helper, cfg)
+  id_body = build_cfg.Brace(node$body, helper, cfg, depth + 1L)
   cfg$add_edge(helper[["this_block"]], id_body)
   node$body = id_body
 
   # Add edge to exit loop.
   cfg$add_edge(helper[["this_block"]], helper[["break_block"]])
+  node$exit = helper[["break_block"]]
 
   NULL
 }
 
 #' @export
-build_cfg.For = function(node, helper, cfg) {
+build_cfg.For = function(node, helper, cfg, depth = 1L) {
   #id_setup = cfg$add_block()
   #node$setup = cfg[[id_setup]]
 
@@ -286,12 +292,13 @@ build_cfg.For = function(node, helper, cfg) {
   helper[["next_block"]]  = helper[["this_block"]]
   helper[["sib_block"]]   = helper[["this_block"]]
 
-  id_body = build_cfg.Brace(node$body, helper, cfg)
+  id_body = build_cfg.Brace(node$body, helper, cfg, depth + 1L)
   cfg$add_edge(helper[["this_block"]], id_body)
   node$body = id_body
 
   # Add edge to exit loop.
   cfg$add_edge(helper[["this_block"]], helper[["break_block"]])
+  node$exit = helper[["break_block"]]
 
   NULL
 }
@@ -299,7 +306,7 @@ build_cfg.For = function(node, helper, cfg) {
 
 # Edge-adding Cases ----------------------------------------
 #' @export
-build_cfg.ASTNode = function(node, helper, cfg) {
+build_cfg.ASTNode = function(node, helper, cfg, depth = 1L) {
   # In this case, control ascends from the current control structure.
   cfg$add_edge(helper[["this_block"]], helper[["sib_block"]])
 
@@ -307,7 +314,7 @@ build_cfg.ASTNode = function(node, helper, cfg) {
 }
 
 #' @export
-build_cfg.Break = function(node, helper, cfg) {
+build_cfg.Break = function(node, helper, cfg, depth = 1L) {
   if (is.na(helper[["break_block"]]))
     warning(sprintf(
       'invalid use of Break. No outgoing edge will be added for block "%s".',
@@ -320,7 +327,7 @@ build_cfg.Break = function(node, helper, cfg) {
 }
 
 #' @export
-build_cfg.Next = function(node, helper, cfg) {
+build_cfg.Next = function(node, helper, cfg, depth = 1L) {
   if (is.na(helper[["next_block"]]))
     warning(sprintf(
       'invalid use of Next. No outgoing edge will be added for block "%s".',
@@ -333,7 +340,7 @@ build_cfg.Next = function(node, helper, cfg) {
 }
 
 #' @export
-build_cfg.Return = function(node, helper, cfg) {
+build_cfg.Return = function(node, helper, cfg, depth = 1L) {
   # Link to exit block.
   cfg$add_edge(helper[["this_block"]], cfg$exit)
 
