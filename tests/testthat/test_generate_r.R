@@ -4,11 +4,11 @@ context("generate_r")
 test_that("no branches", {
   r_code = quote({
     x = 1
-    3
+    return (3)
   })
   
   code = to_cfg(r_code, ssa = FALSE)
-  result = rebuild_r(code$cfg)
+  result = generate_r(code$cfg)
 
   # -----
   # NOTE: Code is deparsed to a string here because `==` does not compare code
@@ -28,11 +28,11 @@ test_that("if-statement (depth 1)", {
     } else {
       x = 3
     }
-    3
+    return (3)
   })
 
   code = to_cfg(r_code, ssa = FALSE)
-  result = rebuild_r(code$cfg)
+  result = generate_r(code$cfg)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -49,11 +49,12 @@ test_that("for-loop (depth 1)", {
       x = x + i
     }
     x = x^2
+    return (x)
   })
 
   code = to_cfg(r_code, ssa = FALSE)
 
-  result = rebuild_r(code$cfg, NULL)
+  result = generate_r(code$cfg)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -79,10 +80,11 @@ test_that("if-statement (depth 2)", {
       }
     }
     x = 5
+    return (x)
   })
 
-  code = to_cfg(ast, ssa = FALSE)
-  result = rebuild_r(code$cfg, NULL)
+  code = to_cfg(r_code, ssa = FALSE)
+  result = generate_r(code$cfg)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -100,11 +102,11 @@ test_that("if-statement (depth 1) with early return", {
       x = x + 1
       x = x^2
     }
-    x + 7
+    return (x + 7)
   })
 
   code = to_cfg(r_code, ssa = FALSE)
-  result = rebuild_r(code$cfg, NULL)
+  result = generate_r(code$cfg)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -119,18 +121,20 @@ test_that("if-statement (depth 2) with early return", {
     if (x == 42) {
       return (x)
     } else {
-      if (x > 12)
+      if (x > 12) {
         #x = sqrt(x)
         return (x)
-      else
+      } else {
         x = x^2
+      }
       x = x + 1
     }
     x = x + 7
+    return (x)
   })
 
   code = to_cfg(r_code, ssa = FALSE)
-  result = rebuild_r(code$cfg, NULL)
+  result = generate_r(code$cfg)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)

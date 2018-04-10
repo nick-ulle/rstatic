@@ -84,51 +84,20 @@ Brace = R6::R6Class("Brace", inherit = Container,
   )
 )
 
-#' @export
-Block = R6::R6Class("Block", inherit = Container,
-  "public" = list(
-    id = NA_character_,
-    depth = NA_integer_,
-    .phi = NULL,
-
-    initialize = function(body = list(), id = NA_character_,
-      depth = NA_integer_, phi = list(), parent = NULL)
-    {
-      super$initialize(body, parent)
-
-      self$id = id
-      self$depth = depth
-      self$phi = phi
-    },
-
-    set_phi = function(phi) {
-      self$.phi[[phi$write$basename]] = .reparent_ast(phi, self)
-
-      invisible(NULL)
-    }
-  ),
-
-  "active" = list(
-    phi = function(value) {
-      if (missing(value))
-        return (self$.phi)
-
-      self$.phi = .reparent_ast(value, self)
-    }
-  )
-)
-
-
 # Control Flow
 # --------------------
-#' @export
-Next = R6::R6Class("Next", inherit = ASTNode)
 
 #' @export
-Break = R6::R6Class("Break", inherit = ASTNode)
+ControlFlow = R6::R6Class("ControlFlow", inherit = ASTNode)
 
 #' @export
-If = R6::R6Class("If", inherit = ASTNode,
+Next = R6::R6Class("Next", inherit = ControlFlow)
+
+#' @export
+Break = R6::R6Class("Break", inherit = ControlFlow)
+
+#' @export
+If = R6::R6Class("If", inherit = ControlFlow,
   "public" = list(
     .condition = NULL,
     .true = NULL,
@@ -170,9 +139,8 @@ If = R6::R6Class("If", inherit = ASTNode,
 )
 
 #' @export
-Loop = R6::R6Class("Loop", inherit = ASTNode,
+Loop = R6::R6Class("Loop", inherit = ControlFlow,
   "public" = list(
-    .test = NULL,
     .body = NULL,
     exit = NULL,
 
@@ -343,6 +311,141 @@ Namespace = R6::R6Class("Namespace", inherit = Call)
 Subset = R6::R6Class("Subset", inherit = Call)
 
 
+# Assignment
+# --------------------
+#' @export
+Assign = R6::R6Class("Assign", inherit = ASTNode,
+  "public" = list(
+    .write = NULL,
+    .read = NULL,
+
+    initialize = function(write, read, parent = NULL) {
+      super$initialize(parent)
+
+      self$write = write
+      self$read = read
+    }
+  ),
+
+  "active" = list(
+    write = function(value) {
+      if (missing(value))
+        return (self$.write)
+
+      self$.write = .reparent_ast(value, self)
+    },
+
+    read = function(value) {
+      if (missing(value))
+        return (self$.read)
+
+      self$.read = .reparent_ast(value, self)
+    }
+  )
+)
+
+#' @export
+SuperAssign = R6::R6Class("SuperAssign", inherit = Assign)
+
+#' @export
+Replacement = R6::R6Class("Replacement", inherit = Assign,
+  "public" = list(
+    initialize = function(write, fn, args, parent = NULL) {
+      if (!is(fn, "ASTNode")) {
+        fn = as.character(fn)
+
+        if (!endsWith(fn, "<-"))
+          fn = paste0(fn, "<-")
+
+        fn = Symbol$new(fn)
+      }
+
+      read = Call$new(fn, args)
+
+      super$initialize(write, read, parent)
+    }
+  )
+)
+
+#' @export
+Return = R6::R6Class("Return", inherit = Assign,
+  # NOTE: Return is a subclass of Assign because the CFG models returning `x`
+  # as setting the special variable `._return_ <- x` and then branching to the
+  # exit block.
+  "public" = list(
+    initialize = function(args, parent = NULL) {
+      write = Symbol$new("._return_")
+      super$initialize(write, args, parent)
+    }
+  )
+)
+
+
+# Symbols
+# --------------------
+
+#' @export
+Symbol = R6::R6Class("Symbol", inherit = ASTNode,
+  "public" = list(
+    basename = NULL,
+    ssa_number = NULL,
+    namespace = NULL,
+    namespace_fn = NULL,
+
+    initialize = function(
+      basename, ssa_number = NA_integer_,
+      namespace = NA_character_, namespace_fn = NULL,
+      parent = NULL
+    ) {
+      if ( !(is.character(basename) || is.symbol(basename)) )
+        stop("Symbol basename must be a character or a name.", call. = FALSE)
+
+      super$initialize(parent)
+      self$basename = as.character(basename)
+      self$ssa_number = ssa_number
+
+      self$namespace = namespace
+      self$namespace_fn = namespace_fn
+    }
+  ),
+
+  "active" = list(
+    name = function() {
+      ssa_number = self$ssa_number
+      if (is.na(ssa_number))
+        return (self$basename)
+
+      sprintf("%s_%i", self$basename, ssa_number)
+    }
+  )
+)
+
+#' @export
+Parameter = R6::R6Class("Parameter", inherit = Symbol,
+  "public" = list(
+    .default = NULL,
+
+    initialize = function(name, default = NULL, ssa = NA_integer_,
+      parent = NULL)
+    {
+      super$initialize(name, ssa, parent)
+
+      self$default = default
+    }
+  ),
+
+  "active" = list(
+    default = function(value) {
+      if (missing(value))
+        return (self$.default)
+
+      self$.default = .reparent_ast(value, self)
+    }
+  )
+)
+
+
+
 # Functions
 # --------------------
 #' @export
@@ -415,189 +518,6 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
     }
   )
 )
-
-
-
-# Assignment
-# --------------------
-#' @export
-Assign = R6::R6Class("Assign", inherit = ASTNode,
-  "public" = list(
-    .write = NULL,
-    .read = NULL,
-
-    initialize = function(write, read, parent = NULL) {
-      super$initialize(parent)
-
-      self$write = write
-      self$read = read
-    }
-  ),
-
-  "active" = list(
-    write = function(value) {
-      if (missing(value))
-        return (self$.write)
-
-      self$.write = .reparent_ast(value, self)
-    },
-
-    read = function(value) {
-      if (missing(value))
-        return (self$.read)
-
-      self$.read = .reparent_ast(value, self)
-    }
-  )
-)
-
-#' @export
-SuperAssign = R6::R6Class("SuperAssign", inherit = Assign)
-
-#' @export
-Replacement = R6::R6Class("Replacement", inherit = Assign,
-  "public" = list(
-    initialize = function(write, fn, args, parent = NULL) {
-      if (!is(fn, "ASTNode")) {
-        fn = as.character(fn)
-
-        if (!endsWith(fn, "<-"))
-          fn = paste0(fn, "<-")
-
-        fn = Symbol$new(fn)
-      }
-
-      read = Call$new(fn, args)
-
-      super$initialize(write, read, parent)
-    }
-  )
-)
-
-#' @export
-Return = R6::R6Class("Return", inherit = Assign,
-  # NOTE: Return is a subclass of Assign because the CFG models returning `x`
-  # as setting the special variable `._return_ <- x` and then branching to the
-  # exit block.
-  "public" = list(
-    initialize = function(args, parent = NULL) {
-      write = Symbol$new("._return_")
-      super$initialize(write, args, parent)
-    }
-  )
-)
-
-
-#' @export
-Phi = R6::R6Class("Phi", inherit = ASTNode,
-  # FIXME: Phi and Assign should probably have a common superclass for
-  # variable-changing instructions. The Replacement class is also related.
-  "public" = list(
-    .write = NULL,
-    blocks = integer(0),
-    read = list(),
-
-    initialize = function(write, parent = NULL) {
-      super$initialize(parent)
-
-      self$write = write
-    },
-
-    set_read = function(block, value) {
-      idx = match(block, self$blocks)
-      if (is.na(idx)) {
-        idx = length(self$blocks) + 1L
-        self$blocks[[idx]] = block
-      }
-      self$read[[idx]] = value
-      names(self$read)[[idx]] = block
-    },
-
-    get_read = function(block) {
-      idx = match(block, self$blocks)
-      self$read[[idx]]
-    }
-  ),
-
-  "active" = list(
-    write = function(value) {
-      if (missing(value))
-        return (self$.write)
-
-      if (!is(value, "Symbol"))
-        value = Symbol$new(value)
-
-      self$.write = .reparent_ast(value, self)
-    }
-  )
-)
-
-
-
-# Symbols
-# --------------------
-
-#' @export
-Symbol = R6::R6Class("Symbol", inherit = ASTNode,
-  "public" = list(
-    basename = NULL,
-    ssa_number = NULL,
-    namespace = NULL,
-    namespace_fn = NULL,
-
-    initialize = function(
-      basename, ssa_number = NA_integer_,
-      namespace = NA_character_, namespace_fn = NULL,
-      parent = NULL
-    ) {
-      if ( !(is.character(basename) || is.symbol(basename)) )
-        stop("Symbol basename must be a character or a name.", call. = FALSE)
-
-      super$initialize(parent)
-      self$basename = as.character(basename)
-      self$ssa_number = ssa_number
-
-      self$namespace = namespace
-      self$namespace_fn = namespace_fn
-    }
-  ),
-
-  "active" = list(
-    name = function() {
-      ssa_number = self$ssa_number
-      if (is.na(ssa_number))
-        return (self$basename)
-
-      sprintf("%s_%i", self$basename, ssa_number)
-    }
-  )
-)
-
-#' @export
-Parameter = R6::R6Class("Parameter", inherit = Symbol,
-  "public" = list(
-    .default = NULL,
-
-    initialize = function(name, default = NULL, ssa = NA_integer_,
-      parent = NULL)
-    {
-      super$initialize(name, ssa, parent)
-
-      self$default = default
-    }
-  ),
-
-  "active" = list(
-    default = function(value) {
-      if (missing(value))
-        return (self$.default)
-
-      self$.default = .reparent_ast(value, self)
-    }
-  )
-)
-
-
 
 # Literals
 # --------------------

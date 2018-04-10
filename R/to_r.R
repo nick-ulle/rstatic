@@ -13,22 +13,25 @@ function(node, ...) {
   UseMethod("to_r")
 }
 
+
+# ---
+
 #' @export
 to_r.Brace =
 function(node, ...) {
-  use_phi = list(...)[["use_phi"]]
-  if (is.null(use_phi) || use_phi)
-    phi = lapply(node$phi, to_r, ...)
-  else
-    phi = list()
+  #use_phi = list(...)[["use_phi"]]
+  #if (is.null(use_phi) || use_phi)
+  #  phi = lapply(node$phi, to_r, ...)
+  #else
+  #  phi = list()
 
-  x = c(as.name("{"), phi, lapply(node$body, to_r, ...))
+  x = c(as.name("{"), lapply(node$body, to_r, ...))
   as.call(x)
 }
 
 # FIXME: This shouldn't be here
 to_r.character = function(node, ...) node
-to_r.Block = to_r.Brace
+#to_r.Block = to_r.Brace
 
 #' @export
 to_r.Parenthesis =
@@ -39,66 +42,55 @@ function(node, ...) {
 
 #' @export
 to_r.Next =
-function(node, ...) {
-  call("next")
-}
+function(node, ...) call("next")
 
 
 #' @export
 to_r.Break =
-function(node, ...) {
-  call("break")
-}
+function(node, ...) call("break")
 
 
 #' @export
 to_r.If =
 function(node, ...) {
-  use_inner_blocks = list(...)[["use_inner_blocks"]]
-  if (!is.null(use_inner_blocks) && !use_inner_blocks)
-    blocks = as.name("..")
-  else if (is.null(node$false))
-    blocks = to_r(node$true, ...)
-  else
-    blocks = c(to_r(node$true, ...), to_r(node$false, ...))
+  true = to_r(node$true, ...)
+  false = to_r(node$false, ...)
+  condition = to_r(node$condition, ...)
 
-  as.call(c(as.name("if"), to_r(node$condition, ...), blocks))
+  call("if", condition, true, false)
 }
 
-
 #' @export
-to_r.For =
-function(node, ...) {
-  use_inner_blocks = list(...)[["use_inner_blocks"]]
-  if (!is.null(use_inner_blocks) && !use_inner_blocks)
-    block = as.name("..")
-  else
-    block = to_r(node$body, ...)
+to_r.For = function(node, ...) {
+  body = to_r(node$body, ...)
+  variable = to_r.Symbol(node$ivar, ...)
+  iterator = to_r(node$iter, ...)
 
-  call("for", to_r(node$ivar, ...), to_r(node$iter, ...), block)
+  call("for", variable, iterator, body)
 }
 
 
 #' @export
 to_r.While =
 function(node, ...) {
-  use_inner_blocks = list(...)[["use_inner_blocks"]]
-  if (!is.null(use_inner_blocks) && !use_inner_blocks)
-    block = as.name("..")
-  else
-    block = to_r(node$body, ...)
+  body = to_r.Brace(node$body)
 
-  if (node$is_repeat)
-    call("repeat", block)
-  else
-    call("while", to_r(node$condition, ...), block)
+  if (node$is_repeat) {
+    call("repeat", body)
+  } else {
+    condition = to_r(node$condition, ...)
+    call("while", condition, body)
+  }
 }
 
 
 #' @export
 to_r.Assign =
 function(node, ...) {
-  call("=", to_r(node$write, ...), to_r(node$read, ...))
+  read = to_r(node$read, ...)
+  write = to_r(node$write, ...)
+
+  call("=", write, read)
 }
 
 
@@ -107,6 +99,7 @@ to_r.Call =
 function(node, ...) {
   fn = to_r(node$fn, ...)
   args = lapply(node$args, to_r, ...)
+
   as.call(append(fn, args))
 }
 
