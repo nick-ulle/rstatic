@@ -48,9 +48,9 @@ FlowGraph = R6::R6Class("FlowGraph",
       match(name, igraph::V(self$graph)$name)
     },
 
-    get_name = function(index) {
-      igraph::V(self$graph)$name[index]
-    },
+    #get_name = function(index) {
+    #  igraph::V(self$graph)$name[index]
+    #},
 
     reorder = function(ordering) {
       self$blocks = self$blocks[ordering, drop = FALSE]
@@ -190,10 +190,13 @@ successors = function(block, cfg) {
   if (is(block, "Block"))
     block = block$id
 
-  names(igraph::neighbors(cfg$graph, block))
+  names(igraph::neighbors(cfg$graph, block, "out"))
 }
 
-predecessors = function(cfg, block) {
+predecessors = function(block, cfg) {
+  if (is(block, "Block"))
+    block = block$id
+
   names(igraph::neighbors(cfg$graph, block, "in"))
 }
 

@@ -42,9 +42,9 @@ to_ssa = function(node) {
   dom_f = dominator_frontier(cfg, dom_t)
 
   # Insert phi-functions.
-  for (name in names(definitions)) {
+  for (symbol in names(definitions)) {
     # Add phi-function to dominance frontier for each block with an assignment.
-    worklist = definitions[[name]]
+    worklist = definitions[[symbol]]
 
     while (length(worklist) > 0) {
       b = worklist[[1]]
@@ -52,24 +52,24 @@ to_ssa = function(node) {
 
       for (frontier in dom_f[[b]]) {
         # Do nothing if phi-function is already present.
-        if (name %in% names(cfg[[frontier]]$phi))
+        if (symbol %in% names(cfg[[frontier]]$phi))
           next
 
         # Check if variable is live at entry to the frontier.
-        if (name %in% live[[frontier]]) {
-          phi = Phi$new(name)
+        if (symbol %in% live[[frontier]]) {
+          phi = Phi$new(symbol)
           cfg[[frontier]]$set_phi(phi)
           # The phi-function is a definition, so add frontier to worklist.
           worklist = union(worklist, frontier)
         }
       } # end for frontier
     }
-  } # end for name
+  } # end for symbol
 
   # Rename variables.
   builder = SSABuilder$new()
 
-  ssa_rename_ast(node$params, builder)
+  ssa_rename_ast(node$params, builder, record_uses = TRUE)
   ssa_rename(entry_idx, cfg, dom_t, builder)
 
   node$ssa = builder$ssa
@@ -95,44 +95,46 @@ ssa_rename = function(block, cfg, dom_t, builder) {
   # Save defs from parent block.
   parent_defs = builder$defs
 
-  # Rewrite LHS of phi-functions in this block.
-  ssa_rename_ast(cfg[[block]]$phi, builder)
+  # Set SSA numbers in this block.
+  ssa_rename_ast(cfg[[block]]$phi, builder, record_uses = TRUE)
+  ssa_rename_ast(cfg[[block]]$body, builder, record_uses = TRUE)
 
-  ssa_rename_ast(cfg[[block]]$body, builder)
-
-  # Rewrite RHS of phi-functions in successors.
-  block_name = cfg$get_name(block)
-  for (i in neighbors(cfg$graph, block, "out")) {
-    lapply(cfg[[i]]$phi, function(phi) {
-      n = builder$get_live_def(phi$write$basename)
-      node = Symbol$new(phi$write$basename, n)
-
-      # FIXME: The design for Phis could be better.
-      phi$set_read(block_name, node)
-
-      # Add a backedge if the phi-function's LHS has been renamed already.
-      #
-      # NOTE: The second check is in case the read symbol is a global; globals
-      # are not included in the SSA graph. Globals appear in phi-functions when
-      # the definition of a symbol is conditional, e.g.,
-      #
-      #   if ( ... )
-      #     x = 3
-      #
-      # Minimal SSA form prevents extraneous phi-functions from being generated
-      # when the symbol is only live inside the body of the conditional.
-      if (!is.na(phi$write$ssa_number) && !is.na(node$ssa_number))
-        # TODO: This should be in the builder API.
-        builder$ssa$add_edge(node$name, phi$write$name)
-    })
+  # Set SSA numbers for USES in phi-functions of immediate successors.
+  block_name = names(cfg)[[block]]
+  for (i in successors(block_name, cfg)) {
+    lapply(cfg[[i]]$phi, set_ssa_successor_phis, builder, block_name)
   }
 
-  # Descend to blocks dominated by this block (children in dom tree).
+  # Set SSA numbers in blocks dominated by this block.
   children = setdiff(which(dom_t == block), block)
   lapply(children, ssa_rename, cfg, dom_t, builder)
 
   # Restore defs from parent block.
   builder$defs = parent_defs
+}
+
+
+set_ssa_successor_phis = function(phi, builder, block_name) {
+  n = builder$get_live_def(phi$write$basename)
+  node = Symbol$new(phi$write$basename, n)
+
+  # FIXME: The design for Phis could be better.
+  phi$set_read(block_name, node)
+
+  # Add a backedge if the phi-function's LHS has been renamed already.
+  #
+  # NOTE: The second check is in case the read symbol is a global; globals
+  # are not included in the SSA graph. Globals appear in phi-functions when
+  # the definition of a symbol is conditional, e.g.,
+  #
+  #   if ( ... )
+  #     x = 3
+  #
+  # Minimal SSA form prevents extraneous phi-functions from being generated
+  # when the symbol is only live inside the body of the conditional.
+  if (!is.na(phi$write$ssa_number) && !is.na(node$ssa_number))
+    # TODO: This should be in the builder API.
+    builder$ssa$add_edge(node$name, phi$write$name)
 }
 
 
@@ -146,31 +148,16 @@ ssa_rename = function(block, cfg, dom_t, builder) {
 #' @param builder (SSABuilder) A stateful object used by the renaming
 #' algorithm.
 #'
-ssa_rename_ast = function(node, builder) {
+ssa_rename_ast = function(node, builder, record_uses) {
   UseMethod("ssa_rename_ast")
 }
 
-#' @export
-ssa_rename_ast.If = function(node, builder) {
-  ssa_rename_ast(node$condition, builder)
-}
+# Definitions --------------------
 
 #' @export
-ssa_rename_ast.For = function(node, builder) {
-  ssa_rename_ast(node$ivar, builder)
-  ssa_rename_ast(node$iter, builder)
-}
-
-#' @export
-ssa_rename_ast.While = function(node, builder) {
-  ssa_rename_ast(node$condition, builder)
-}
-
-#' @export
-ssa_rename_ast.Assign = function(node, builder) {
-  builder$register_uses = FALSE
-  ssa_rename_ast(node$read, builder)
-  builder$register_uses = TRUE
+ssa_rename_ast.Assign = function(node, builder, record_uses) {
+  # NOTE: This method also handles Replacement objects.
+  ssa_rename_ast(node$read, builder, record_uses = FALSE)
 
   node$write$ssa_number = builder$new_def(node$write$basename)
   builder$register_def(node$write$name, node$write$basename, node)
@@ -179,7 +166,7 @@ ssa_rename_ast.Assign = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Phi = function(node, builder) {
+ssa_rename_ast.Phi = function(node, builder, record_uses) {
   node$write$ssa_number = builder$new_def(node$write$basename)
   builder$register_def(node$write$name, node$write$basename, node)
 
@@ -187,66 +174,88 @@ ssa_rename_ast.Phi = function(node, builder) {
 }
 
 #' @export
-ssa_rename_ast.Parameter = function(node, builder) {
+ssa_rename_ast.Parameter = function(node, builder, record_uses) {
   if (!is.null(node$default))
-    ssa_rename_ast(node$default, builder)
+    ssa_rename_ast(node$default, builder, record_uses)
 
-  node$ssa_number = builder$new_def(node$basename)
   # FIXME: Parameter processing order might not put all defs before uses.
+  node$ssa_number = builder$new_def(node$basename)
   builder$register_def(node$name, node$basename, node)
 
   node
 }
 
 #' @export
-ssa_rename_ast.Application = function(node, builder) {
-  lapply(node$args, ssa_rename_ast, builder)
-  node
-}
+ssa_rename_ast.For = function(node, builder, record_uses) {
+  ssa_rename_ast(node$iter, builder, record_uses = FALSE)
 
-#' @export
-ssa_rename_ast.Call = function(node, builder) {
-  NextMethod()
-  ssa_rename_ast(node$fn, builder)
-  node
-}
-
-#' @export
-ssa_rename_ast.Function = function(node, builder) {
-  to_ssa(node)
+  node$ivar$ssa_number = builder$new_def(node$ivar$basename)
+  builder$register_def(node$ivar$name, node$ivar$basename, node)
 
   node
 }
 
-# NOTE:
-# ssa_rename_ast.Replacement() is now handled by ssa_rename_ast.Assign()
+
+# Uses --------------------
 
 #' @export
-ssa_rename_ast.Brace = function(node, builder) {
-  lapply(node$body, ssa_rename_ast, builder)
-
-  node
-}
-
-#' @export
-ssa_rename_ast.Symbol = function(node, builder) {
+ssa_rename_ast.Symbol = function(node, builder, record_uses) {
   node$ssa_number = builder$get_live_def(node$basename)
 
-  if (builder$register_uses) {
-    # FIXME: This should register the use on the line of code that contains the
-    # node, which might not always be the parent.
+  if (record_uses)
+    # FIXME: Register on the line, which might not be the parent.
     builder$register_use(node$name, node$parent)
-  }
 
   node
 }
 
 #' @export
-ssa_rename_ast.Literal = function(node, builder)
+ssa_rename_ast.Function = function(node, builder, record_uses) {
+  to_ssa(node)
+  node
+}
+
+
+# Other Stuff --------------------
+
+#' @export
+ssa_rename_ast.If = function(node, builder, record_uses) {
+  ssa_rename_ast(node$condition, builder, record_uses)
+  node
+}
+
+#' @export
+ssa_rename_ast.While = ssa_rename_ast.If
+
+
+#' @export
+ssa_rename_ast.Application = function(node, builder, record_uses) {
+  lapply(node$args, ssa_rename_ast, builder, record_uses)
+  node
+}
+
+#' @export
+ssa_rename_ast.Call = function(node, builder, record_uses) {
+  NextMethod()
+  ssa_rename_ast(node$fn, builder, record_uses)
+  node
+}
+
+#' @export
+ssa_rename_ast.Brace = function(node, builder, record_uses) {
+  lapply(node$body, ssa_rename_ast, builder, record_uses)
+
+  node
+}
+
+#' @export
+ssa_rename_ast.Literal = function(node, builder, record_uses)
   node
 
 #' @export
-ssa_rename_ast.list = function(node, builder) {
-  lapply(node, ssa_rename_ast, builder)
+ssa_rename_ast.list = function(node, builder, record_uses) {
+  # NOTE: So that lapply() is not needed every time `ssa_rename_ast()` is
+  # called on a list.
+  lapply(node, ssa_rename_ast, builder, record_uses)
   node
 }

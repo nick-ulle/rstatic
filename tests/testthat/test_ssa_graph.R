@@ -15,7 +15,7 @@ test_that("nodes are added for defs", {
 
 test_that("nodes are added for uses", {
   exp = quote(
-    foo(x)
+    mean(x)
   )
 
   cfg = to_cfg(exp, insert_return = FALSE)
@@ -23,6 +23,25 @@ test_that("nodes are added for uses", {
 
   # -----
   expect_is(ssa[["%1"]], "Call")
+})
+
+
+test_that("nodes are added for for-loop variables", {
+  exp = quote({
+    x = c(1, 2, 3)
+    y = 0
+    for (i in x) {
+      y = y + i
+    }
+    return (y) # should be y_3
+  })
+
+  cfg = to_cfg(exp)
+  ssa = cfg$ssa
+
+  # -----
+  expect_true(all(c("x_1", "y_1", "i_1", "y_2", "y_3") %in% names(ssa)))
+  expect_is(ssa[["i_1"]], "For")
 })
 
 
@@ -87,19 +106,19 @@ test_that("nodes and edges are added for phi-functions", {
 })
 
 
-test_that("backedges are added for phi-functions", {
-  exp = quote(
-    for (i in 1:10)
-      x = 12
-  )
-
-  cfg = to_cfg(exp, insert_return = FALSE)
-  ssa = cfg$ssa
-
-  # -----
-  expect_true(ssa$graph[from = "._counter_i_2", to = "._counter_i_3"] == 1)
-  expect_true(ssa$graph[from = "._counter_i_3", to = "._counter_i_2"] == 1)
-})
+#test_that("backedges are added for phi-functions", {
+#  exp = quote(
+#    for (i in 1:10)
+#      x = 12
+#  )
+#
+#  cfg = to_cfg(exp, insert_return = FALSE)
+#  ssa = cfg$ssa
+#
+#  # -----
+#  expect_true(ssa$graph[from = "._counter_i_2", to = "._counter_i_3"] == 1)
+#  expect_true(ssa$graph[from = "._counter_i_3", to = "._counter_i_2"] == 1)
+#})
 
 
 test_that("nodes and edges are added for parameters", {

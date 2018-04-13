@@ -16,8 +16,11 @@ test_that("SSA form for if-statement is correct", {
   rstatic:::to_ssa(node)
 
   # -----
-  true_block = node$body[[1]][[1]]$true
-  false_block = node$body[[1]][[1]]$false
+  # Get the relevant lines.
+  cfg = node$cfg
+  if_statement = cfg[[cfg$entry]]$body[[1]]
+  true_block = cfg[[if_statement$true]]
+  false_block = cfg[[if_statement$false]]
 
   y_true = true_block[[1]]$write
   expect_false(is.na(y_true$ssa_number))
@@ -25,7 +28,7 @@ test_that("SSA form for if-statement is correct", {
   y_false = false_block[[1]]$write
   expect_false(is.na(y_false$ssa_number))
 
-  phi = node$body[[2]]$phi[[1]]
+  phi = cfg[["%1"]]$phi[["y"]]
   expect_is(phi, "Phi")
   expect_is(phi$write, "Symbol")
   expect_equal(phi$write$ssa_number, 3)
@@ -50,17 +53,20 @@ test_that("Phi nodes placed for Assign in if-statement in for-loop", {
   rstatic:::to_ssa(node)
 
   # -----
-  expect_false(is.na(node$body[[1]][[1]]$write$ssa_number))
+  cfg = node$cfg
+  entry_block = cfg[[cfg$entry]]
 
-  # FIXME: Test the SSA more thoroughly.
-  loop = node$body[[1]][[2]]
-  expect_length(loop$test$phi, 2)
+  expect_false( is.na(entry_block$body[[1]]$write$ssa_number) )
 
-  counter_phi = loop$test$phi[[1]]
-  expect_length(counter_phi$read, 3)
+  # TODO: Test the SSA more thoroughly.
+  #loop = node$body[[2]]
+  #expect_length(loop$test$phi, 2)
 
-  x_phi = loop$test$phi[[2]]
-  expect_length(counter_phi$read, 3)
+  #counter_phi = loop$test$phi[[1]]
+  #expect_length(counter_phi$read, 3)
+
+  x_phi = cfg[["%1"]]$phi[["x"]]
+  expect_length(x_phi$read, 3)
 })
 
 test_that("uses of global variables are recorded", {

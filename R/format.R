@@ -28,7 +28,6 @@ format.Block = function(x, ...) {
   if (len == 0)
     return ("\n  # empty block")
 
-  body = x$body
   #last = x$body[[len]]
   #if (is(last, "If"))
   #  last = sprintf("if (%s) %s else %s",
@@ -37,12 +36,14 @@ format.Block = function(x, ...) {
   #    last$false
   #  )
 
-  #body = x$body[-len]
 
-  fmt = vapply(body, function(line) deparse_to_string(
-      to_r(line, use_inner_blocks = TRUE)), "")
+  phi = vapply(x$phi, function(phi) deparse_to_string(to_r(phi)),
+    NA_character_)
 
-  paste("\n  ", fmt, sep = "", collapse = "")
+  body = vapply(x$body, function(line) deparse_to_string(to_r(line)),
+    NA_character_)
+
+  paste("\n  ", c(phi, body), sep = "", collapse = "")
 }
 
 #' @export

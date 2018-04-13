@@ -1,6 +1,5 @@
 SSABuilder = R6::R6Class("SSABuilder",
   "public" = list(
-    register_uses = TRUE,
     defs = integer(0),
     name_counter = NULL,
     ssa = NULL,
@@ -39,6 +38,9 @@ SSABuilder = R6::R6Class("SSABuilder",
 
       # Add incoming edges.
       reads = collect_reads(at)
+      #initial = list(kill = character(0), gen = character(0))
+      #c(, reads) := live_variables_killgen(at, initial)
+
       defs = names(self$ssa)
       for (r in reads)
         self$ssa$add_edge(r, name)

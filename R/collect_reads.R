@@ -68,10 +68,11 @@ collect_reads.If = function(node) {
 }
 
 #' @export
-collect_reads.Loop = function(node) {
-  # Since an If is generated in the loop's test block, no need to collect reads
-  # here.
-  character(0)
+collect_reads.While = collect_reads.If
+
+#' @export
+collect_reads.For = function(node) {
+  collect_reads(node$iter)
 }
 
 #' @export

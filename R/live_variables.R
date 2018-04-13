@@ -38,7 +38,7 @@ live_variables_killgen = function(node, killgen) {
 }
 
 #' @export
-live_variables_killgen.Brace = function(node, killgen) {
+live_variables_killgen.Block = function(node, killgen) {
   # Kills only happen in LHS of assignment. Also `rm()`
   # Uses can be widespread.
   for (line in node$body) {

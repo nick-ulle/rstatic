@@ -4,7 +4,7 @@
 \alias{ssa_rename_ast}
 \title{Rename AST Variables with SSA Names}
 \usage{
-ssa_rename_ast(node, builder)
+ssa_rename_ast(node, builder, record_uses)
 }
 \arguments{
 \item{node}{(ASTNode) An abstract syntax tree.}
