@@ -3,7 +3,7 @@
 #' This function convert an abstract syntax tree to the corresponding R code.
 #' 
 #' @param node (ASTNode) The tree to be converted.
-#' @param use_ssa (logical) Use SSA numbering?
+#' @param keep_ssa (logical) Use SSA numbering?
 #' @param use_phi (logical) Include phi-functions?
 #' @param use_inner_blocks (logical) Include inner blocks?
 #'
@@ -142,11 +142,11 @@ function(node, ...) {
   if (node$basename == "")
     return (quote(expr = ))
 
-  use_ssa = list(...)[["use_ssa"]]
-  if (is.null(use_ssa) || use_ssa)
-    name = node$name
-  else
+  keep_ssa = list(...)[["keep_ssa"]]
+  if (is.null(keep_ssa) || !keep_ssa)
     name = node$basename
+  else
+    name = node$name
 
   if (is.na(node$namespace))
     as.name(name)

@@ -142,3 +142,31 @@ test_that("if-statement (depth 2) with early return", {
 
   expect_equal(r_str, str)
 })
+
+
+test_that("if-statement (depth 2) with early return, with SSA", {
+  r_code = quote({
+    if (x == 42) {
+      return (x)
+    } else {
+      if (x > 12) {
+        #x = sqrt(x)
+        return (x)
+      } else {
+        x = x^2
+      }
+      x = x + 1
+    }
+    x = x + 7
+    return (x)
+  })
+
+  code = to_cfg(r_code, ssa)
+  result = generate_r(code$cfg)
+
+  # -----
+  r_str = rstatic:::deparse_to_string(r_code)
+  str = rstatic:::deparse_to_string(result)
+
+  expect_equal(r_str, str)
+})

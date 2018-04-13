@@ -36,11 +36,10 @@ format.Block = function(x, ...) {
   #    last$false
   #  )
 
-
-  phi = vapply(x$phi, function(phi) deparse_to_string(to_r(phi)),
+  phi = vapply(x$phi, function(phi) deparse_to_string(to_r(phi, ...)),
     NA_character_)
 
-  body = vapply(x$body, function(line) deparse_to_string(to_r(line)),
+  body = vapply(x$body, function(line) deparse_to_string(to_r(line, ...)),
     NA_character_)
 
   paste("\n  ", c(phi, body), sep = "", collapse = "")
@@ -64,7 +63,7 @@ format.FlowGraph = function(x, tag = .format_tag(x), ...) {
   msg = if (length(x) == 1) "%i block" else "%i blocks"
   v_count = sprintf(msg, length(x))
 
-  fmt = vapply(x$blocks, format, NA_character_ , use_inner_blocks = FALSE)
+  fmt = vapply(x$blocks, format, NA_character_, keep_ssa = TRUE)
   blocks = sprintf('%s: %s', names(x), fmt)
   blocks = paste0(blocks, collapse = "\n\n")
 

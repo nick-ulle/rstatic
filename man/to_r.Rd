@@ -9,7 +9,7 @@ to_r(node, ...)
 \arguments{
 \item{node}{(ASTNode) The tree to be converted.}
 
-\item{use_ssa}{(logical) Use SSA numbering?}
+\item{keep_ssa}{(logical) Use SSA numbering?}
 
 \item{use_phi}{(logical) Include phi-functions?}
 
