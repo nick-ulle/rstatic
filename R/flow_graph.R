@@ -126,6 +126,7 @@ ControlFlowGraph = R6::R6Class("ControlFlowGraph", inherit = FlowGraph,
       #self$entry = self$add_vertex("entry")
       self$exit = self$add_vertex("%exit")
 
+      exit_block$id = "%exit"
       exit_block$parent = fn
       self$blocks[[self$exit]] = exit_block
 
