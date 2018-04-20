@@ -598,14 +598,11 @@ Missing = R6::R6Class("Missing", inherit = Symbol,
     namespace = NULL,
     namespace_fn = NULL,
 
-    initialize = function(parent = NULL...)
+    initialize = function(...)
     {
-      super$initialize(parent)
-      self$basename = "MISSING"  # Not sure on this one
-      self$ssa_number = NA_integer_
-      namespace = NA_character_
-      self$namespace_fn = NULL,
+      super$initialize("MISSING", ...)
     }
+
   )
 )
 
