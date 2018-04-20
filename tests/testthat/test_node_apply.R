@@ -3,7 +3,7 @@ context("node_apply")
 
 test_that("Missing arguments", {
 
-    node = quote_ast(x[, "column"])
+    node = quote_ast(x[1, "column"])
 
     node$args[[2]]
 

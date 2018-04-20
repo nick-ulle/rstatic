@@ -600,7 +600,7 @@ Missing = R6::R6Class("Missing", inherit = Symbol,
 
     initialize = function(...)
     {
-      super$initialize("MISSING", ...)
+      super$initialize("", ...)
     }
 
   )
