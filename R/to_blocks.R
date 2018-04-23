@@ -225,13 +225,11 @@ function(node, helper, cfg = list(), depth = 1L) {
 
   # Only the final expression affects control flow.
   len = length(node$body)
-  if (len > 0) {
+  if (len > 0)
     c(cfg, ) := create_block_list(node$body[[len]], helper, cfg, depth)
-  } else {
-    # Empty block.
-    browser()
-    #cfg$add_edge(helper[["this_block"]], helper[["sib_block"]])
-  }
+  else
+    # An empty block is equivalent to a block that ends with non-control flow.
+    c(cfg, ) := create_block_list.ASTNode(node, helper, cfg, depth)
 
   list(cfg, NA)
 }
