@@ -3,12 +3,16 @@
 #' @include code_objects_ast.R
 
 #' @export
-
 BlocksList = list(
   new = function(body) {
     structure(list(body = body), class = "BlocksList")
   }
 )
+
+#' @export
+`[[.BlocksList` = function(x, i, ...) {
+  .subset2(x, "body")[[i, ...]]
+}
 
 #R6::R6Class("BlocksList", inherit = Container,
 #  "public" = list(

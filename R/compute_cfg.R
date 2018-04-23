@@ -1,8 +1,12 @@
-compute_cfg = function(code, ...) {
+#' @export
+compute_cfg =
+function(code) {
   UseMethod("compute_cfg")
 }
 
-compute_cfg.list = function(code, ...) {
+#' @export
+compute_cfg.BlocksList =
+function(code) {
   jumps = lapply(code, function(block) {
     last = block[[length(block)]]
     get_jump(last, block$id)
@@ -11,7 +15,9 @@ compute_cfg.list = function(code, ...) {
   igraph::graph_from_edgelist(jumps)
 }
 
-compute_cfg.data.frame = function(code, ...) {
+#' @export
+compute_cfg.data.frame =
+function(code) {
   tails = block_tails(code$block)
   jumps = Map(get_jump, code[tails, "line"], code[tails, "block"])
   jumps = do.call(rbind, jumps)

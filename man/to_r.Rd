@@ -2,19 +2,15 @@
 % Please edit documentation in R/to_r.R
 \name{to_r}
 \alias{to_r}
-\title{Convert ASTNode to R Code}
+\title{Convert Intermediate Representations to R Code}
 \usage{
 to_r(node, ...)
 }
 \arguments{
-\item{node}{(ASTNode) The tree to be converted.}
+\item{node}{The intermediate representation to convert.}
 
-\item{keep_ssa}{(logical) Use SSA numbering?}
-
-\item{use_phi}{(logical) Include phi-functions?}
-
-\item{use_inner_blocks}{(logical) Include inner blocks?}
+\item{...}{Optional arguments to and from methods.}
 }
 \description{
-This function convert an abstract syntax tree to the corresponding R code.
+This function converts rstatic intermediate representations back to R code.
 }

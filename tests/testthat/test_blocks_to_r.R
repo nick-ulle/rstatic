@@ -1,4 +1,4 @@
-context("generate_r")
+context("to_r")
 
 
 test_that("no branches", {
@@ -7,8 +7,8 @@ test_that("no branches", {
     return (3)
   })
   
-  code = to_cfg(r_code, ssa = FALSE)
-  result = generate_r(code$cfg)
+  code = to_blocks(r_code, ssa = FALSE)
+  result = to_r(code)
 
   # -----
   # NOTE: Code is deparsed to a string here because `==` does not compare code
@@ -31,8 +31,8 @@ test_that("if-statement (depth 1)", {
     return (3)
   })
 
-  code = to_cfg(r_code, ssa = FALSE)
-  result = generate_r(code$cfg)
+  code = to_blocks(r_code, ssa = FALSE)
+  result = to_r(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -52,9 +52,9 @@ test_that("for-loop (depth 1)", {
     return (x)
   })
 
-  code = to_cfg(r_code, ssa = FALSE)
+  code = to_blocks(r_code, ssa = FALSE)
 
-  result = generate_r(code$cfg)
+  result = to_r(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -83,8 +83,8 @@ test_that("if-statement (depth 2)", {
     return (x)
   })
 
-  code = to_cfg(r_code, ssa = FALSE)
-  result = generate_r(code$cfg)
+  code = to_blocks(r_code, ssa = FALSE)
+  result = to_r(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -105,8 +105,8 @@ test_that("if-statement (depth 1) with early return", {
     return (x + 7)
   })
 
-  code = to_cfg(r_code, ssa = FALSE)
-  result = generate_r(code$cfg)
+  code = to_blocks(r_code, ssa = FALSE)
+  result = to_r(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -133,8 +133,8 @@ test_that("if-statement (depth 2) with early return", {
     return (x)
   })
 
-  code = to_cfg(r_code, ssa = FALSE)
-  result = generate_r(code$cfg)
+  code = to_blocks(r_code, ssa = FALSE)
+  result = to_r(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -142,6 +142,30 @@ test_that("if-statement (depth 2) with early return", {
 
   expect_equal(r_str, str)
 })
+
+test_that("if-statement in for-loop with early break", {
+  r_code = quote({
+    x = 0
+    for (i in 1:10) {
+      x = x + i
+      if (x > 10) {
+        break
+      } else {
+      }
+    }
+    return (x)
+  })
+
+  code = to_blocks(r_code, ssa = FALSE)
+  result = to_r(code)
+
+  # -----
+  r_str = rstatic:::deparse_to_string(r_code)
+  str = rstatic:::deparse_to_string(result)
+
+  expect_equal(r_str, str)
+})
+
 
 
 test_that("if-statement (depth 2) with early return, with SSA", {
@@ -161,8 +185,8 @@ test_that("if-statement (depth 2) with early return, with SSA", {
     return (x)
   })
 
-  code = to_cfg(r_code, ssa)
-  result = generate_r(code$cfg)
+  code = to_blocks(r_code, ssa)
+  result = to_r(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)

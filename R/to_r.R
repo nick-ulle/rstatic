@@ -1,11 +1,12 @@
-#' Convert ASTNode to R Code
+#' @include blocks_to_r.R
+NULL
+
+#' Convert Intermediate Representations to R Code
 #'
-#' This function convert an abstract syntax tree to the corresponding R code.
+#' This function converts rstatic intermediate representations back to R code.
 #' 
-#' @param node (ASTNode) The tree to be converted.
-#' @param keep_ssa (logical) Use SSA numbering?
-#' @param use_phi (logical) Include phi-functions?
-#' @param use_inner_blocks (logical) Include inner blocks?
+#' @param node The intermediate representation to convert.
+#' @param ... Optional arguments to and from methods.
 #'
 #' @export
 to_r =
@@ -13,19 +14,17 @@ function(node, ...) {
   UseMethod("to_r")
 }
 
+#' @export
+to_r.BlocksList = blocks_to_r.BlocksList
 
-# ---
+#' @export
+to_r.data.frame = blocks_to_r.data.frame
 
-# FIXME:
+
 to_r.Label =
 function(node, ...) {
+  # NOTE: Labels should not appear in real R code.
   as.name(node$name)
-}
-
-# FIXME:
-to_r.Branch =
-function(node, ...) {
-  call("Branch", node$target)
 }
 
 #' @export
@@ -48,15 +47,29 @@ function(node, ...) {
   call("(", to_r(node$args[[1]], ...))
 }
 
+to_r.Branch =
+function(node, ...) {
+  # NOTE: An empty list means no code.
+  list()
+}
 
 #' @export
 to_r.Next =
-function(node, ...) call("next")
-
+function(node, ...) {
+  call("next")
+}
 
 #' @export
 to_r.Break =
-function(node, ...) call("break")
+function(node, ...) {
+  call("break")
+}
+
+#' @export
+to_r.Return =
+function(node, ...) {
+  call("return", to_r(node$read, ...))
+}
 
 
 #' @export
@@ -139,12 +152,6 @@ function(node, ...) {
 }
 
 #' @export
-to_r.Return =
-function(node, ...) {
-  call("return", to_r(node$read, ...))
-}
-
-#' @export
 to_r.Symbol =
 function(node, ...) {
   # Handle empty arguments.
@@ -174,7 +181,7 @@ function(node, ...) {
       pairlist(to_r(node$default, ...))
 
   names(param) = node$name
-  return (param)
+  param
 }
 
 
