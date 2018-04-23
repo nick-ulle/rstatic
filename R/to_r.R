@@ -16,6 +16,18 @@ function(node, ...) {
 
 # ---
 
+# FIXME:
+to_r.Label =
+function(node, ...) {
+  as.name(node$name)
+}
+
+# FIXME:
+to_r.Branch =
+function(node, ...) {
+  call("Branch", node$target)
+}
+
 #' @export
 to_r.Brace =
 function(node, ...) {
@@ -29,9 +41,6 @@ function(node, ...) {
   as.call(x)
 }
 
-# FIXME: This shouldn't be here
-to_r.character = function(node, ...) node
-#to_r.Block = to_r.Brace
 
 #' @export
 to_r.Parenthesis =
@@ -63,8 +72,8 @@ function(node, ...) {
 #' @export
 to_r.For = function(node, ...) {
   body = to_r(node$body, ...)
-  variable = to_r.Symbol(node$ivar, ...)
-  iterator = to_r(node$iter, ...)
+  variable = to_r.Symbol(node$variable, ...)
+  iterator = to_r(node$iterator, ...)
 
   call("for", variable, iterator, body)
 }

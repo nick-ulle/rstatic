@@ -3,6 +3,22 @@
 #' @include code_objects_ast.R
 
 #' @export
+
+BlocksList = list(
+  new = function(body) {
+    structure(list(body = body), class = "BlocksList")
+  }
+)
+
+#R6::R6Class("BlocksList", inherit = Container,
+#  "public" = list(
+#    initialize = function(body = list(), parent = NULL) {
+#      super$initialize(body, parent)
+#    }
+#  )
+#)
+
+#' @export
 Block = R6::R6Class("Block", inherit = Container,
   "public" = list(
     id = NA_character_,
@@ -36,6 +52,16 @@ Block = R6::R6Class("Block", inherit = Container,
   )
 )
 
+#' @export
+Label = R6::R6Class("Label", inherit = ASTNode,
+  "public" = list(
+    name = NA,
+    
+    initialize = function(name, parent = NULL) {
+      self$name = name
+    }
+  )
+)
 
 #' @export
 Phi = R6::R6Class("Phi", inherit = ASTNode,
@@ -80,6 +106,3 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
     }
   )
 )
-
-
-

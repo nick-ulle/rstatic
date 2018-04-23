@@ -4,10 +4,12 @@
 \alias{live_variables_killgen}
 \title{Compute Kill and Gen Sets for Live Variables Analysis}
 \usage{
-live_variables_killgen(node, killgen)
+live_variables_killgen(node, initial)
 }
 \arguments{
 \item{node}{(ASTNode) The basic block to compute}
+
+\item{initial}{Initial}
 
 \item{result}{}
 }

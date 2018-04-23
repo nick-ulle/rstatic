@@ -53,8 +53,8 @@ node_apply_unsafe.If = function(node, fn, ...) {
 
 #' @export
 node_apply_unsafe.For = function(node, fn, ...) {
-  node$iter = node_apply_unsafe(node$iter, fn, ...)
-  node$ivar = node_apply_unsafe(node$ivar, fn, ...)
+  node$iterator = node_apply_unsafe(node$iterator, fn, ...)
+  node$variable = node_apply_unsafe(node$variable, fn, ...)
   node$body = node_apply_unsafe(node$body, fn, ...)
 
   fn(node, ...)

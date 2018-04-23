@@ -14,33 +14,62 @@ generate_r.ControlFlowGraph = function(node, ...) {
 }
 
 
+generate_r2 = function(code, ...) {
+
+  #browser()
+  #blocks = split(unclass(code$line), code$block)
+
+  generate_r.Block(code[[1]], code)
+
+  browser()
+}
+
+generate_r.Branch = function(node, cfg, ...) {
+  list(list(), node$target$name)
+}
+
+generate_r.Break = function(node, cfg, ...) {
+  list(to_r(node, ...), node$target$name)
+}
+
+generate_r.Next = generate_r.Break
+
+generate_r.Return = function(node, cfg, ...) {
+  list(to_r(node, ...), NA)
+}
+
+
 #' @export
 generate_r.Block = function(node, cfg, ...) {
   # Rebuild all but last line.
-  len = length(node$body)
-  lines = lapply(node$body[-len], to_r, ...)
-
-  last = node$body[[len]]
+  len = length(node)
+  last = node[[len]]
 
   # Rebuild last line.
-  succ = NA
-  if (is(last, "ControlFlow")) {
-    c(line, succ) := generate_r(last, cfg, ...)
+  # Return -> keep expression, succ = NA
+  # Branch -> drop expression, succ = target
+  # If/For/While -> keep expression, succ = ...
+  c(last, succ) := generate_r(last, cfg, ...)
 
-  } else if (is(last, "Return")) {
-    line = to_r.Return(last, ...)
+  #if (is(last, "ControlFlow")) {
+  #  c(line, succ) := generate_r(last, cfg, ...)
 
-  } else {
-    line = to_r(last, ...)
-    succ = successors(node$id, cfg)
-  }
+  #} else if (is(last, "Return")) {
+  #  line = to_r.Return(last, ...)
 
-  lines = append(lines, line)
+  #} else {
+  #  line = to_r(last, ...)
+  #  succ = successors(node$id, cfg)
+  #}
+
+  lines = lapply(node[-len], to_r, ...)
+  lines = append(lines, last)
   if (is.na(succ))
     return (list(exp = lines, succ = succ))
 
   # Rebuild blocks until there's a depth change.
   next_block = cfg[[succ]]
+  browser()
   if (node$depth != next_block$depth)
     return (list(exp = lines, succ = succ))
 
@@ -54,6 +83,7 @@ generate_r.Block = function(node, cfg, ...) {
 # Helper function to generate a braced expression from a Block.
 generate_r_brace = function(id, cfg, ...) {
   gen = generate_r.Block(cfg[[id]], cfg, ...)
+  browser()
   lines = append(as.symbol("{"), gen[[1]])
   gen[[1]] = as.call(lines)
 
@@ -87,8 +117,8 @@ generate_r.If = function(node, cfg, ...) {
 #' @export
 generate_r.For = function(node, cfg, ...) {
   c(body, ) := generate_r_brace(node$body, cfg, ...)
-  variable = to_r.Symbol(node$ivar, ...)
-  iterator = to_r(node$iter, ...)
+  variable = to_r.Symbol(node$variable, ...)
+  iterator = to_r(node$iterator, ...)
 
   exp = call("for", variable, iterator, body)
 
@@ -99,7 +129,8 @@ generate_r.For = function(node, cfg, ...) {
 #' @export
 generate_r.While =
 function(node, cfg, ...) {
-  c(body, ) := generate_r_brace(node$body, cfg, ...)
+  c(body, ) := generate_r_brace(node$body$name, cfg, ...)
+  browser()
 
   exp =
     if (node$is_repeat) {

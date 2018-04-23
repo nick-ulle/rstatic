@@ -4,7 +4,7 @@
 \alias{dominator_tree}
 \title{Compute Dominator Tree}
 \usage{
-dominator_tree(cfg, entry = cfg$get_index(cfg$entry))
+dominator_tree(cfg, entry = "\%entry")
 }
 \arguments{
 \item{cfg}{(ControlFlowGraph) A control-flow graph.}

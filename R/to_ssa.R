@@ -1,3 +1,58 @@
+
+to_ssa_new = function(node) {
+  # Compute liveness.
+  killgen = lapply(node$line, live_variables_killgen, list())
+  killgen = purrr::transpose(killgen)
+
+  #node$gen = killgen$gen
+  node$kill = killgen$kill
+
+  cfg = extract_cfg(node)
+
+  dom_t = dominator_tree(cfg)
+  dom_f = dominator_frontier(cfg, dom_t)
+  names(dom_f) = names(V(cfg))
+
+  # Where is each variable defined?
+  defs = node$kill # list of defs per block
+  blocks = rep(seq_along(defs), sapply(defs, length))
+  blocks = node$block[blocks]
+
+  flat_defs = unlist(defs)
+  names = unique(flat_defs) # all def'd names
+
+  phi_locations = lapply(names, function(name) {
+    # Get the defs we know about.
+    len = -1
+    phis = character(0)
+    defs = blocks[name == flat_defs]
+
+    # Loop while the phi set is changing.
+    while (length(phis) != len) {
+      len = length(phis)
+
+      # Append dominance frontiers for the defs set.
+      # Where symbol is live.
+      new_phis = unlist(dom_f[defs])
+      new_phis = names(dom_f)[new_phis]
+      # FIXME: Filter out non-live.
+      phis = union(phis, new_phis)
+
+      # The new phis are defs, so we need to visit them.
+      defs = new_phis
+    }
+
+    phis
+  })
+  names(phi_locations) = names
+
+  browser()
+
+  # Then need to actually set the phi functions...
+
+  # Finally, rename the variables
+}
+
 #' Convert CFGraph to Static Single-Assignment Form
 #'
 #' This function converts code in a control flow graph (CFG) to static
@@ -20,16 +75,15 @@ to_ssa = function(node) {
   cfg = node$cfg
 
   # Run live variables analysis to generate pruned SSA.
-  live = live_variables(cfg, full_analysis = TRUE)
-  killgen = live[["killgen"]]
-  live = live[["entry"]]
+  liveness = live_variables(cfg, full_analysis = TRUE)
+  live = liveness[["entry"]]
 
   # Get the kill set for each block to figure out where definitions are.
   # NOTE: This assumes the analysis returns blocks in the same order as their
   # indices.
   definitions = list()
-  for (b in names(killgen)) {
-    for (name in killgen[[b]][["kill"]]) {
+  for (b in rownames(liveness)) {
+    for (name in liveness[["kill"]][[b]]) {
       idx = cfg$get_index(b)
       definitions[[name]] = append(definitions[[name]], idx)
     }
@@ -187,10 +241,10 @@ ssa_rename_ast.Parameter = function(node, builder, record_uses) {
 
 #' @export
 ssa_rename_ast.For = function(node, builder, record_uses) {
-  ssa_rename_ast(node$iter, builder, record_uses = FALSE)
+  ssa_rename_ast(node$iterator, builder, record_uses = FALSE)
 
-  node$ivar$ssa_number = builder$new_def(node$ivar$basename)
-  builder$register_def(node$ivar$name, node$ivar$basename, node)
+  node$variable$ssa_number = builder$new_def(node$variable$basename)
+  builder$register_def(node$variable$name, node$variable$basename, node)
 
   node
 }

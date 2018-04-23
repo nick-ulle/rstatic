@@ -44,8 +44,8 @@ ASTNode = R6::R6Class("ASTNode",
 )
 
 
-# Containers
-# --------------------
+# Containers ----------------------------------------
+
 #' @export
 Container = R6::R6Class("Container", inherit = ASTNode,
   "public" = list(
@@ -84,17 +84,64 @@ Brace = R6::R6Class("Brace", inherit = Container,
   )
 )
 
-# Control Flow
-# --------------------
+
+# Control Flow ----------------------------------------
 
 #' @export
 ControlFlow = R6::R6Class("ControlFlow", inherit = ASTNode)
 
 #' @export
-Next = R6::R6Class("Next", inherit = ControlFlow)
+Branch = R6::R6Class("Branch", inherit = ControlFlow,
+  "public" = list(
+    target = NULL,
+
+    initialize = function(target = NA, parent = NULL) {
+      super$initialize(parent)
+
+      self$target = target
+    }
+  )
+)
 
 #' @export
-Break = R6::R6Class("Break", inherit = ControlFlow)
+Next = R6::R6Class("Next", inherit = Branch)
+
+#' @export
+Break = R6::R6Class("Break", inherit = Branch)
+
+#' @export
+Return = R6::R6Class("Return", inherit = Branch,
+  # NOTE: Return is a subclass of Assign because the CFG models returning `x`
+  # as setting the special variable `._return_ <- x` and then branching to the
+  # exit block.
+  "public" = list(
+    .write = NULL,
+    .read = NULL,
+
+    initialize = function(args, parent = NULL) {
+      super$initialize(parent)
+
+      self$write = Symbol$new("._return_")
+      self$read = args
+    }
+  ),
+
+  "active" = list(
+    write = function(value) {
+      if (missing(value))
+        return (self$.write)
+
+      self$.write = .reparent_ast(value, self)
+    },
+
+    read = function(value) {
+      if (missing(value))
+        return (self$.read)
+
+      self$.read = .reparent_ast(value, self)
+    }
+  )
+)
 
 #' @export
 If = R6::R6Class("If", inherit = ControlFlow,
@@ -171,46 +218,30 @@ Loop = R6::R6Class("Loop", inherit = ControlFlow,
 #' @export
 For = R6::R6Class("For", inherit = Loop,
   "public" = list(
-    .ivar = NULL,
-    .iter = NULL,
-    .setup = NULL,
-    .increment = NULL,
+    .variable = NULL,
+    .iterator = NULL,
 
-    initialize = function(ivar, iter, body, parent = NULL) {
+    initialize = function(variable, iterator, body, parent = NULL) {
       super$initialize(body, parent)
 
-      self$ivar = ivar
-      self$iter = iter
+      self$variable = variable
+      self$iterator = iterator
     }
   ),
 
   "active" = list(
-    ivar = function(value) {
+    variable = function(value) {
       if (missing(value))
-        return (self$.ivar)
+        return (self$.variable)
 
-      self$.ivar = .reparent_ast(value, self)
+      self$.variable = .reparent_ast(value, self)
     },
 
-    iter = function(value) {
+    iterator = function(value) {
       if (missing(value))
-        return (self$.iter)
+        return (self$.iterator)
 
-      self$.iter = .reparent_ast(value, self)
-    },
-
-    setup = function(value) {
-      if (missing(value))
-        return (self$.setup)
-
-      self$.setup = .reparent_ast(value, self)
-    },
-
-    increment = function(value) {
-      if (missing(value))
-        return (self$.increment)
-
-      self$.increment = .reparent_ast(value, self)
+      self$.iterator = .reparent_ast(value, self)
     }
   )
 )
@@ -240,8 +271,8 @@ While = R6::R6Class("While", inherit = Loop,
 )
 
 
-# Calls
-# --------------------
+# Calls ----------------------------------------
+
 #' export
 Application = R6::R6Class("Application", inherit = ASTNode,
   "public" = list(
@@ -367,22 +398,8 @@ Replacement = R6::R6Class("Replacement", inherit = Assign,
   )
 )
 
-#' @export
-Return = R6::R6Class("Return", inherit = Assign,
-  # NOTE: Return is a subclass of Assign because the CFG models returning `x`
-  # as setting the special variable `._return_ <- x` and then branching to the
-  # exit block.
-  "public" = list(
-    initialize = function(args, parent = NULL) {
-      write = Symbol$new("._return_")
-      super$initialize(write, args, parent)
-    }
-  )
-)
 
-
-# Symbols
-# --------------------
+# Symbols ----------------------------------------
 
 #' @export
 Symbol = R6::R6Class("Symbol", inherit = ASTNode,
@@ -474,8 +491,8 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
 Function = R6::R6Class("Function", inherit = Callable,
   "public" = list(
     .body = NULL,
-    cfg = NULL,
-    ssa = NULL,
+    #cfg = NULL,
+    #ssa = NULL,
 
     initialize = function(params, body, parent = NULL) {
       super$initialize(params, parent)
@@ -519,8 +536,7 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
   )
 )
 
-# Literals
-# --------------------
+# Literals ----------------------------------------
 
 #' @export
 Literal = R6::R6Class("Literal", inherit = ASTNode,
@@ -559,8 +575,8 @@ Complex = R6::R6Class("Complex", inherit = Literal)
 Character = R6::R6Class("Character", inherit = Literal)
 
 
-# Cloning Methods
-# --------------------
+# Cloning Methods ----------------------------------------
+
 .copy_ast         = function(value) UseMethod(".copy_ast")
 #' @export
 .copy_ast.ASTNode = function(value) value$copy()
@@ -570,6 +586,7 @@ Character = R6::R6Class("Character", inherit = Literal)
 .copy_ast.R6      = function(value) value$clone(deep = TRUE)
 #' @export
 .copy_ast.default = function(value) value
+
 
 .reparent_ast = function(value, parent)
   UseMethod(".reparent_ast")

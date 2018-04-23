@@ -21,7 +21,20 @@ live_variables = function(cfg, ...) {
   # Solve the analysis equations.
   live = backward_analysis(cfg, initial, killgen, ...)
 
-  list(entry = live[["update"]], exit = live[["result"]], killgen = killgen)
+  # >>>>>
+  kills = lapply(killgen, function(x) x$kill)
+  gens = lapply(killgen, function(x) x$gen)
+
+  if (length(live[["update"]]) == 0)
+    live[["update"]] = replicate(4, character(0))
+
+  data.frame(
+    kill = I(kills)
+    , gen = I(gens)
+    , entry = I(live[["update"]])
+    , exit = I(live[["result"]])
+  )
+  #list(entry = live[["update"]], exit = live[["result"]], killgen = killgen)
 }
 
 
@@ -31,78 +44,68 @@ live_variables = function(cfg, ...) {
 #' variables analysis.
 #'
 #' @param node (ASTNode) The basic block to compute
+#' @param initial Initial
 #' @param result
 #'
-live_variables_killgen = function(node, killgen) {
+live_variables_killgen = function(node, initial) {
   UseMethod("live_variables_killgen")
 }
 
 #' @export
-live_variables_killgen.Block = function(node, killgen) {
-  # Kills only happen in LHS of assignment. Also `rm()`
-  # Uses can be widespread.
-  for (line in node$body) {
-    killgen = live_variables_killgen(line, killgen)
-  }
+live_variables_killgen.Assign = function(node, initial) {
+  initial[["kill"]] = union(initial[["kill"]], node$write$name)
 
-  killgen
+  initial = live_variables_killgen(node$read, initial)
 }
 
 #' @export
-live_variables_killgen.Assign = function(node, killgen) {
-  killgen = live_variables_killgen(node$read, killgen)
-
-  # Add LHS to killed.
-  killgen[["kill"]] = union(killgen[["kill"]], node$write$name)
-
-  killgen
-}
+live_variables_killgen.Return = live_variables_killgen.Assign
 
 # live_variables_killgen.Phi
 
 #' @export
-live_variables_killgen.Application = function(node, killgen) {
+live_variables_killgen.Application = function(node, initial) {
   for (arg in node$args) {
-    killgen = live_variables_killgen(arg, killgen)
+    initial = live_variables_killgen(arg, initial)
   }
 
-  killgen
+  initial
 }
 
 #' @export
-live_variables_killgen.Call = function(node, killgen) {
-  killgen = NextMethod()
-  live_variables_killgen(node$fn, killgen)
+live_variables_killgen.Call = function(node, initial) {
+  live_variables_killgen(node$fn, NextMethod())
 }
 
 #' @export
-live_variables_killgen.If = function(node, killgen) {
-  live_variables_killgen(node$condition, killgen)
+live_variables_killgen.If = function(node, initial) {
+  live_variables_killgen(node$condition, initial)
 }
 
 #' @export
-live_variables_killgen.Symbol = function(node, killgen) {
-  used = node$name
+live_variables_killgen.While = live_variables_killgen.If
 
-  # Check whether this symbol has already been killed in this block.
-  if (used %in% killgen[["kill"]])
-    return (killgen)
+#' @export
+live_variables_killgen.For = function(node, initial) {
+  initial[["kill"]] = union(initial[["kill"]], node$variable$name)
 
-  killgen[["gen"]] = union(killgen[["gen"]], used)
-  killgen
+  live_variables_killgen(node$iterator, initial)
+}
+
+#' @export
+live_variables_killgen.Symbol = function(node, initial) {
+  initial[["gen"]] = union(initial[["gen"]], node$name)
+
+  initial
 }
 
 # live_variables_killgen.Parameter
 
 #' @export
-live_variables_killgen.Literal = function(node, killgen) killgen
-
-# Loops have an If generated in the CFG, so no need to do anything here.
-#' @export
-live_variables_killgen.Loop = function(node, killgen) killgen
+live_variables_killgen.Literal = function(node, initial) initial
 
 #' @export
-live_variables_killgen.NULL = function(node, killgen) killgen
+live_variables_killgen.Branch = live_variables_killgen.Literal
 
 #' @export
-live_variables_killgen.Function = function(node, killgen) killgen
+live_variables_killgen.Function = live_variables_killgen.Literal

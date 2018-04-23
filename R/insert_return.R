@@ -87,7 +87,12 @@ insert_return.Symbol = insert_return.Literal
 insert_return.Application = insert_return.Literal
 
 #' @export
-insert_return.Assign = insert_return.Literal
+insert_return.Assign = function(node) {
+  list(
+    node,
+    Return$new(node$write$copy())
+  )
+}
 
 #' @export
 insert_return.Return = function(node) node

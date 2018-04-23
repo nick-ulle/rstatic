@@ -54,8 +54,9 @@ preorder_dom_tree = function(dom_tree, from = 1L) {
 #' Cooper, K. D. and Torczon, L. (2012) Engineering a Compiler. Elsevier.
 #'
 #' @export
-dominator_tree = function(cfg, entry = cfg$get_index(cfg$entry)) {
-  dom_t = igraph::dominator_tree(cfg$graph, entry)[["dom"]]
+dominator_tree = function(cfg, entry = "%entry") {
+  entry = as.vector(V(cfg)[[entry]])
+  dom_t = igraph::dominator_tree(cfg, entry)[["dom"]]
   dom_t = as.vector(dom_t)
 
   # Set entry as the immediate dominator of itself to avoid off-by-one indexes.
@@ -90,11 +91,11 @@ dominator_tree = function(cfg, entry = cfg$get_index(cfg$entry)) {
 #'
 #' @export
 dominator_frontier = function(cfg, dom_tree) {
-  dom_f = vector("list", length(cfg))
+  dom_f = vector("list", length(V(cfg)))
   dom_f[] = list(integer(0))
 
-  for (i in seq_along(cfg)) {
-    preds = igraph::neighbors(cfg$graph, i, "in")
+  for (i in seq_along(V(cfg))) {
+    preds = igraph::neighbors(cfg, i, "in")
     if (length(preds) > 1) {
       # Walk up dom tree for each predecessor
       for (j in preds) {

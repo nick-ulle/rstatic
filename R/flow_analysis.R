@@ -79,3 +79,113 @@ dfa_standard_update = function(result, killgen, ...) {
 }
 
 
+# NEW --------------------------------------------------
+
+make_analysis = function(analysis) {
+  function(pc, code, result, ...) {
+    analysis(code[[pc, "line"]], result[[pc]], ...)
+  }
+}
+
+forward_traversal =
+function(code, analysis, propagate = union, cfg = extract_cfg(code), ...) {
+  # FIXME: Parameters
+
+  # Compute block locations.
+  heads = block_heads(code$block)
+  tails = block_tails(code$block)
+  names(heads) = code[heads, "block"]
+  names(tails) = code[tails, "block"]
+
+  n = nrow(code)
+  worklist = seq(1, n)
+  result = replicate(n, character(0), simplify = FALSE)
+
+  while (length(worklist) != 0) {
+    pc = worklist[[1]]
+
+    #while (pc != n+1) { # never n+1, since n is a tail with no successors
+    repeat {
+      worklist = setdiff(worklist, pc)
+
+      new = analysis(pc, code, result, ...)
+
+      # Get next line(s).
+      if (pc %in% tails) {
+        children = successors(code[pc, "block"], list(graph = cfg))
+        children = heads[children]
+      } else {
+        children = pc + 1
+      }
+
+      # Test which lines need to be revisited.
+      is_changed = !vapply(children, function(x) {
+        # FIXME: check for subset unless we really need equality
+        isTRUE(all.equal(new, result[[x]]))
+      }, NA)
+      to_visit = children[is_changed]
+
+      if (length(to_visit) == 0)
+        break
+
+      result[to_visit] = lapply(result[to_visit], propagate, new)
+
+      worklist = c(worklist, to_visit[-1])
+      pc = to_visit[[1]]
+    } # end while (pc != n)
+  }
+
+  result
+}
+
+backward_traversal = function(code, analysis, cfg = extract_cfg(code)) {
+  # FIXME: Parameters
+
+  # Compute block locations.
+  heads = block_heads(code$block)
+  tails = block_tails(code$block)
+  names(heads) = code[heads, "block"]
+  names(tails) = code[tails, "block"]
+
+  n = nrow(code)
+  worklist = seq(n, 1)
+  #result = vector("list", n)
+  result = replicate(n, character(0), simplify = FALSE)
+
+  while (length(worklist) != 0) {
+    pc = worklist[[1]]
+
+    while (pc != 0) {
+      worklist = setdiff(worklist, pc)
+      line = code[pc, "line"]
+
+      # TODO: new = analysis(line, result)
+      new = analysis(line, result[[pc]])
+
+      # Get next line(s).
+      if (pc %in% heads) {
+        children = predecessors(code[pc, "block"], list(graph = cfg))
+        children = tails[children]
+      } else {
+        children = pc - 1
+      }
+
+      # Test which lines need to be revisited.
+      is_changed = !vapply(children, function(x) {
+        isTRUE(all.equal(new, result[[x]]))
+      }, NA)
+      to_visit = children[is_changed]
+
+      if (length(to_visit) == 0)
+        break
+
+      result[to_visit] = lapply(result[to_visit], union, new)
+
+      worklist = c(worklist, to_visit[-1])
+      pc = to_visit[[1]]
+    } # end while (pc != 0)
+  }
+
+  result
+}
+
