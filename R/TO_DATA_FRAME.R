@@ -10,12 +10,12 @@ insert_after = function(code, i, line) {
 }
 
 
-`[.CodeList` = function(x, i, ...) {
-  if (length(i) == 1)
-    .subset2(x, i, ...)
-  else
-    .subset(x, i, ...)
-}
+#`[.CodeList` = function(x, i, ...) {
+#  if (length(i) == 1)
+#    .subset2(x, i, ...)
+#  else
+#    .subset(x, i, ...)
+#}
 
 
 #`[<-.CodeList` = function(x, i, ..., value) {
