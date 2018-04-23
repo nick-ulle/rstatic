@@ -295,10 +295,7 @@ function(node, helper, cfg = list(), depth = 1L) {
     warning(sprintf(w, helper[["this_block"]]))
 
   } else {
-    br = Break$new(Label$new(helper[["break_block"]]))
-
-    this_block = helper[["this_block"]]
-    cfg[[this_block]]$body = c(cfg[[this_block]]$body, br)
+    node$target = Label$new(helper[["break_block"]])
   }
 
   list(cfg, NA)
@@ -312,10 +309,7 @@ function(node, helper, cfg = list(), depth = 1L) {
     warning(sprintf(w, helper[["this_block"]]))
 
   } else {
-    br = Next$new(Label$new(helper[["next_block"]]))
-
-    this_block = helper[["this_block"]]
-    cfg[[this_block]]$body = c(cfg[[this_block]]$body, br)
+    node$target = Label$new(helper[["next_block"]])
   }
 
   list(cfg, NA)
