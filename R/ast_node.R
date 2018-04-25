@@ -590,22 +590,6 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
 )
 
 
-#' @export
-Missing = R6::R6Class("Missing", inherit = Symbol,
-  "public" = list(
-    basename = NULL,
-    ssa_number = NULL,
-    namespace = NULL,
-    namespace_fn = NULL,
-
-    initialize = function(...)
-    {
-      super$initialize("", ...)
-    }
-
-  )
-)
-
 
 # Literals
 # --------------------
