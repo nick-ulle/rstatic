@@ -21,8 +21,8 @@ collapse_namespaces = function(node, in_place = FALSE) {
 #' Collapse A Namespace Node
 #'
 #' This function will collapse a Namespace node onto the Symbol in its second
-#' argument. Typically this will be used with \code{node_apply()} or through the
-#' frontend \code{collapse_namespaces()}.
+#' argument. Typically this will be used with \code{node_apply()} or through
+#' the frontend \code{collapse_namespaces()}.
 #'
 #' @param node (ASTNode) The ASTNode to collapse.
 #' @export

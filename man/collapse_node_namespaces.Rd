@@ -11,6 +11,6 @@ collapse_node_namespaces(node, ...)
 }
 \description{
 This function will collapse a Namespace node onto the Symbol in its second
-argument. Typically this will be used with \code{node_apply()} or through the
-frontend \code{collapse_namespaces()}.
+argument. Typically this will be used with \code{node_apply()} or through
+the frontend \code{collapse_namespaces()}.
 }
