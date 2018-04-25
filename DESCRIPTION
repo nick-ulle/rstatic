@@ -38,6 +38,7 @@ Collate:
     'counter.R'
     'dominators.R'
     'equality.R'
+    'find_functions.R'
     'flow_analysis.R'
     'flow_graph.R'
     'format.R'

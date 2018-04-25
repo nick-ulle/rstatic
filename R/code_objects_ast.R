@@ -34,7 +34,7 @@ ASTNode = R6::R6Class("ASTNode",
         if (is.function(item))
           next
 
-        item = .reparent_ast(item, cloned)
+        item = set_parent(item, cloned)
         assign(name, item, envir = cloned)
       }
 
@@ -66,7 +66,7 @@ Container = R6::R6Class("Container", inherit = ASTNode,
       if (!is.list(value))
         value = list(value)
 
-      self$.body = .reparent_ast(value, self)
+      self$.body = set_parent(value, self)
     }
   )
 )
@@ -131,14 +131,14 @@ Return = R6::R6Class("Return", inherit = Branch,
       if (missing(value))
         return (self$.write)
 
-      self$.write = .reparent_ast(value, self)
+      self$.write = set_parent(value, self)
     },
 
     read = function(value) {
       if (missing(value))
         return (self$.read)
 
-      self$.read = .reparent_ast(value, self)
+      self$.read = set_parent(value, self)
     }
   )
 )
@@ -166,21 +166,21 @@ If = R6::R6Class("If", inherit = ControlFlow,
       if (missing(value))
         return (self$.condition)
 
-      self$.condition = .reparent_ast(value, self)
+      self$.condition = set_parent(value, self)
     },
 
     true = function(value) {
       if (missing(value))
         return (self$.true)
 
-      self$.true = .reparent_ast(value, self)
+      self$.true = set_parent(value, self)
     },
 
     false = function(value) {
       if (missing(value))
         return (self$.false)
 
-      self$.false = .reparent_ast(value, self)
+      self$.false = set_parent(value, self)
     }
   )
 )
@@ -203,14 +203,14 @@ Loop = R6::R6Class("Loop", inherit = ControlFlow,
       if (missing(value))
         return (self$.test)
 
-      self$.test = .reparent_ast(value, self)
+      self$.test = set_parent(value, self)
     },
 
     body = function(value) {
       if (missing(value))
         return (self$.body)
 
-      self$.body = .reparent_ast(value, self)
+      self$.body = set_parent(value, self)
     }
   )
 )
@@ -234,14 +234,14 @@ For = R6::R6Class("For", inherit = Loop,
       if (missing(value))
         return (self$.variable)
 
-      self$.variable = .reparent_ast(value, self)
+      self$.variable = set_parent(value, self)
     },
 
     iterator = function(value) {
       if (missing(value))
         return (self$.iterator)
 
-      self$.iterator = .reparent_ast(value, self)
+      self$.iterator = set_parent(value, self)
     }
   )
 )
@@ -265,7 +265,7 @@ While = R6::R6Class("While", inherit = Loop,
       if (missing(value))
         return (self$.condition)
 
-      self$.condition = .reparent_ast(value, self)
+      self$.condition = set_parent(value, self)
     }
   )
 )
@@ -292,7 +292,7 @@ Application = R6::R6Class("Application", inherit = ASTNode,
 
       if (!is.list(value))
         value = list(value)
-      self$.args = .reparent_ast(value, self)
+      self$.args = set_parent(value, self)
     }
   )
 )
@@ -318,7 +318,7 @@ Call = R6::R6Class("Call", inherit = Application,
       if (!is(value, "ASTNode"))
         value = Symbol$new(value)
 
-      self$.fn = .reparent_ast(value, self)
+      self$.fn = set_parent(value, self)
     }
   )
 )
@@ -363,14 +363,14 @@ Assign = R6::R6Class("Assign", inherit = ASTNode,
       if (missing(value))
         return (self$.write)
 
-      self$.write = .reparent_ast(value, self)
+      self$.write = set_parent(value, self)
     },
 
     read = function(value) {
       if (missing(value))
         return (self$.read)
 
-      self$.read = .reparent_ast(value, self)
+      self$.read = set_parent(value, self)
     }
   )
 )
@@ -456,7 +456,7 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
       if (missing(value))
         return (self$.default)
 
-      self$.default = .reparent_ast(value, self)
+      self$.default = set_parent(value, self)
     }
   )
 )
@@ -482,7 +482,7 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
       if (missing(value))
         return (self$.params)
 
-      self$.params = .reparent_ast(value, self)
+      self$.params = set_parent(value, self)
     }
   )
 )
@@ -506,7 +506,7 @@ Function = R6::R6Class("Function", inherit = Callable,
       if (missing(value))
         return (self$.body)
 
-      self$.body = .reparent_ast(value, self)
+      self$.body = set_parent(value, self)
     }
   )
 )
@@ -531,7 +531,7 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
       if (!is(value, "Symbol"))
         value = Symbol$new(value)
 
-      self$.fn = .reparent_ast(value, self)
+      self$.fn = set_parent(value, self)
     }
   )
 )
@@ -588,20 +588,20 @@ Character = R6::R6Class("Character", inherit = Literal)
 .copy_ast.default = function(value) value
 
 
-.reparent_ast = function(value, parent)
-  UseMethod(".reparent_ast")
+set_parent = function(node, parent)
+  UseMethod("set_parent")
 
 #' @export
-.reparent_ast.ASTNode = function(value, parent) {
-  value$parent = parent
-  value
+set_parent.ASTNode = function(node, parent) {
+  node$parent = parent
+  node
 }
 
 #' @export
-.reparent_ast.list = function(value, parent) {
-  lapply(value, .reparent_ast, parent)
+set_parent.list = function(node, parent) {
+  lapply(node, set_parent, parent)
 }
 
 #' @export
-.reparent_ast.default = function(value, parent)
-  value
+set_parent.default = function(node, parent)
+  node

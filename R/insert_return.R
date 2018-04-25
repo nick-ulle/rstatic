@@ -1,82 +1,90 @@
-
-# Checks to see if we need to enclose the final expression
-# within a call to return()
-#
-# insert_return(quote(return(x + 1))  )
-# insert_return(quote(x + 1))
-# insert_return(quote({ x = 2; x + 1} ))
-# insert_return(quote({ x = 2; return(x + 1)} ))
-# insert_return(quote(while(TRUE) {  return(x + 1) }  ))
-# insert_return(quote(while(TRUE) {  x + 1 }  ))
-# insert_return(quote(if(x < 10) 20 else 40  ))
-# insert_return(quote(if(x < 10) { x= 3; sqrt(x) } else 40  ))
-# insert_return(quote(if(x < 10) { x= 3; sqrt(x) } else { x = 100; sqrt(x)}  ))
-#
-
+#' Insert Optional Return Expressions
+#'
+#' This function transforms a function so that every expression that can be
+#' returned is explicitly marked by a \code{return()} expression.
+#'
+#' This is an in-place transformation! This function may not behave as expected
+#' if called on a non-function.
+#' 
+#' @param node (Function) The function to transform.
+#' @param ... Optional arguments to and from methods.
+#' @param recursive (logical) Should functions defined in \code{node} also be
+#' transformed?
+#'
 #' @export
-insert_return = function(node) {
+insert_return =
+function(node, ..., recursive = TRUE) {
   UseMethod("insert_return")
 }
 
 #' @export
-insert_return.Brace = function(node) {
-  # Insert Return for last statement if not already.
+insert_return.Function =
+function(node, ..., recursive = TRUE, .first = TRUE) {
+  if (recursive || .first) {
+    node$body = insert_return(node$body, ..., recursive = recursive,
+      .first = FALSE)
+  }
+
+  node
+}
+
+#' @export
+insert_return.Brace =
+function(node, ..., recursive = TRUE) {
   len = length(node$body)
-  if (len == 0) {
-    node$body[[len + 1]] = Return$new(Null$new(), parent = node)
+
+  # Empty brace.
+  if (len == 0L) {
+    node$body[[1L]] = Return$new(Null$new(), parent = node)
     return (node)
   }
-  
-  ret = insert_return(node$body[[len]])
 
-  if (is.list(ret)) {
-    node$body = append(node$body[-len], ret)
-    for (x in ret)
-      x$parent = node
-
-  } else {
-    node$body[[len]] = ret
-    ret$parent = node
+  # Check for function definitions.
+  if (recursive) {
+    fns = find_functions(node$body[-len])
+    lapply(fns, insert_return.Function, ..., recursive = recursive)
   }
 
-  node
-}
+  last = insert_return(node$body[[len]], ..., recursive = recursive)
 
-#' @export
-insert_return.Function = function(node) {
-  node$body = insert_return(node$body)
+  node$body = c(node$body[-len], last)
 
   node
 }
 
 #' @export
-insert_return.If = function(node) {
-  node$true = insert_return(node$true)
-  node$false = insert_return(node$false)
+insert_return.If =
+function(node, ...) {
+  node$true = insert_return(node$true, ...)
+  node$false = insert_return(node$false, ...)
 
   node
 }
 
 #' @export
-insert_return.While = function(node) {
+insert_return.Loop =
+function(node, ...) {
   # Need to insert a return(NULL) on following line
-  ans = list(
+  list(
     node,
     Return$new(Null$new())
   )
-
-  if (is(node$parent, "Brace"))
-    return (ans)
-
-  Brace$new(ans)
 }
 
+
 #' @export
-insert_return.For = insert_return.While
+insert_return.Assign =
+function(node, ...) {
+  list(
+    node,
+    Return$new(node$write$copy())
+  )
+}
 
 
 #' @export
-insert_return.Literal = function(node) {
+insert_return.Literal =
+function(node, ...) {
   Return$new(node)
 }
 
@@ -86,43 +94,9 @@ insert_return.Symbol = insert_return.Literal
 #' @export
 insert_return.Application = insert_return.Literal
 
-#' @export
-insert_return.Assign = function(node) {
-  list(
-    node,
-    Return$new(node$write$copy())
-  )
-}
 
 #' @export
-insert_return.Return = function(node) node
-
-#' @export
-insert_return.Break = insert_return.Return
-
-#' @export
-insert_return.Next = insert_return.Return
-
-
-isSelect =
-    # checks if the body and alternative of an if() statement are single expressions.
-    # Select corresponds to the LLVM concept of a Select, i.e.,  x ? a : b
-function(call)
-  length(call) == 4 && all(sapply(call[3:4], isSingleExpression))
-
-isSingleExpression =
-function(e)
-{
-  if(is.atomic(e))
-      return(TRUE)
-
-     # if the expression is return(expr)  then say no.
-  if(is.call(e) && as.character(e[[1]]) == "return")
-      return(FALSE)
-  
-  ( 
-    (is(e, "{") && length(e) == 2 && ( is.call(k <- e[[2]]) ) ) ||
-    (is.call(k <- e))
-  ) &&
-  !(class(k) %in% c("while", "for", "if", "=", "<-", "<<-", "{"))
+insert_return.Branch =
+function(node, ...) {
+  node
 }

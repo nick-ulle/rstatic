@@ -4,6 +4,8 @@
 
 # Data Frames ----------------------------------------
 
+#' @rdname as_data_frame
+#'
 #' @export
 as.data.frame.BlocksList =
 function(x, ...) {
@@ -34,6 +36,8 @@ as_data_frame = function(x, ...) {
   UseMethod("as_data_frame")
 }
 
+#' @rdname as_data_frame
+#'
 #' @export
 as_data_frame.BlocksList = as.data.frame.BlocksList
 
@@ -220,9 +224,6 @@ function(node, helper, cfg = list(), depth = 1L) {
   helper[["this_block"]] = node$id
   node$depth = depth
 
-  # Check for function definitions.
-  lapply(node$body, nested_functions_to_blocks)
-
   # Only the final expression affects control flow.
   len = length(node$body)
   if (len > 0)
@@ -230,6 +231,13 @@ function(node, helper, cfg = list(), depth = 1L) {
   else
     # An empty block is equivalent to a block that ends with non-control flow.
     c(cfg, ) := create_block_list.ASTNode(node, helper, cfg, depth)
+
+
+  # Check for function definitions. This must be done here, after the block has
+  # had labels inserted.
+  # FIXME: Do we need to propagate SSA here?
+  lapply(find_functions(node), to_blocks.Function, in_place = TRUE,
+    ssa = FALSE, insert_return = FALSE)
 
   list(cfg, NA)
 }
@@ -325,44 +333,10 @@ function(node, helper, cfg = list(), depth = 1L) {
 }
 
 
-
-nested_functions_to_blocks = function(node) {
-  UseMethod("nested_functions_to_blocks")
-}
-
-#' @export
-nested_functions_to_blocks.Function = function(node) {
-  to_blocks.Function(node, in_place = TRUE, ssa = FALSE, insert_return = FALSE)
-}
-
-#' @export
-nested_functions_to_blocks.Call = function(node) {
-  lapply(node$args, nested_functions_to_blocks)
-
-  nested_functions_to_blocks(node$fn)
-
-  node
-}
-
-#' @export
-nested_functions_to_blocks.Assign = function(node) {
-  nested_functions_to_blocks(node$read)
-  nested_functions_to_blocks(node$write)
-
-  node
-}
-
-#' @export
-nested_functions_to_blocks.ASTNode = function(node) {
-  # Skip over everything else. Blocks in If, For, and While are visited by
-  # create_block_list(), so don't visit them again here.
-  node
-}
-
-
+# Helper function to split a Brace into Blocks.
 split_blocks = function(node) {
   flows = vapply(node$body, function(line) {
-    c(is_control_flow(line), is_loop(line))
+    c(is(line, "ControlFlow"), is(line, "Loop"))
   }, logical(2))
   is_loop = flows[2, ]
   flows = flows[1, ]

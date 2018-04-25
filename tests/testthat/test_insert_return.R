@@ -39,8 +39,11 @@ test_that("return inserted for Assign", {
   result = insert_return(ast)
 
   # -----
-  expect_is(result, "Return")
-  expect_is(result$read, "Assign")
+  expect_is(result, "list")
+  expect_length(result, 2)
+
+  expect_is(result[[1]], "Assign")
+  expect_is(result[[2]], "Return")
 })
 
 
@@ -70,13 +73,10 @@ test_that("return inserted after While, adding Brace", {
   result = insert_return(ast)
 
   # -----
-  expect_is(result, "Brace")
+  expect_is(result, "list")
 
-  expect_is(result$body[[1]], "While")
-  expect_identical(result$body[[1]]$parent, result)
-
-  expect_is(result$body[[2]], "Return")
-  expect_identical(result$body[[2]]$parent, result)
+  expect_is(result[[1]], "While")
+  expect_is(result[[2]], "Return")
 })
 
 

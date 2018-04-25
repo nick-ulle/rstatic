@@ -40,7 +40,7 @@ Block = R6::R6Class("Block", inherit = Container,
     },
 
     set_phi = function(phi) {
-      self$.phi[[phi$write$basename]] = .reparent_ast(phi, self)
+      self$.phi[[phi$write$basename]] = set_parent(phi, self)
 
       invisible(NULL)
     }
@@ -51,7 +51,7 @@ Block = R6::R6Class("Block", inherit = Container,
       if (missing(value))
         return (self$.phi)
 
-      self$.phi = .reparent_ast(value, self)
+      self$.phi = set_parent(value, self)
     }
   )
 )
@@ -106,7 +106,7 @@ Phi = R6::R6Class("Phi", inherit = ASTNode,
       if (!is(value, "Symbol"))
         value = Symbol$new(value)
 
-      self$.write = .reparent_ast(value, self)
+      self$.write = set_parent(value, self)
     }
   )
 )
