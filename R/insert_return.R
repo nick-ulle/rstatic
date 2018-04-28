@@ -41,8 +41,9 @@ function(node, ..., recursive = TRUE) {
 
   # Check for function definitions.
   if (recursive) {
-    fns = find_functions(node$body[-len])
-    lapply(fns, insert_return.Function, ..., recursive = recursive)
+    defs = find_nodes(node$body[-len], is, "Function", recursive = FALSE)
+    for (d in defs)
+      node[[d]] = insert_return.Function(node[[d]], ...)
   }
 
   last = insert_return(node$body[[len]], ..., recursive = recursive)

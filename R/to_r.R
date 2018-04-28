@@ -15,7 +15,7 @@ function(node, ...) {
 }
 
 #' @export
-to_r.BlocksList = blocks_to_r.BlocksList
+to_r.FunctionBlocks = blocks_to_r.FunctionBlocks
 
 #' @export
 to_r.data.frame = blocks_to_r.data.frame
@@ -174,14 +174,13 @@ function(node, ...) {
 #' @export
 to_r.Parameter =
 function(node, ...) {
-  param =
-    if (is.null(node$default))
-      pairlist(quote(expr = ))
-    else
-      pairlist(to_r(node$default, ...))
+  if (is.null(node$default))
+    default = pairlist(quote(expr = ))
+  else
+    default = pairlist(to_r(node$default, ...))
 
-  names(param) = node$name
-  param
+  names(default) = node$name
+  default
 }
 
 

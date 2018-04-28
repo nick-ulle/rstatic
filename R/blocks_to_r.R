@@ -15,15 +15,22 @@ blocks_to_r = function(node, ...) {
 #' @export
 blocks_to_r.data.frame =
 function(node, ...) {
-  blocks_to_r.BlocksList(as_blocks(node, ...), ...)
+  blocks_to_r.FunctionBlocks(as_blocks(node, ...), ...)
 }
 
 #' @export
-blocks_to_r.BlocksList =
+blocks_to_r.FunctionBlocks =
 function(node, ...) {
-  c(exp, ) := blocks_to_r.Block(node[[1]], blocks = node, ...)
+  # FIXME: Is there really no better way to set up the parameter pairlist?
+  params = pairlist()
+  for (param in node$params)
+    params = append(params, to_r.Parameter(param, ...))
+  params = as.pairlist(params)
 
-  as.call(append(as.symbol("{"), exp))
+  c(exp, ) := blocks_to_r.Block(node$blocks[[1]], blocks = node$blocks, ...)
+  exp = as.call(append(as.symbol("{"), exp))
+
+  call("function", params, exp)
 }
 
 

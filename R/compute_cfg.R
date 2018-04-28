@@ -5,9 +5,9 @@ function(code) {
 }
 
 #' @export
-compute_cfg.BlocksList =
+compute_cfg.FunctionBlocks =
 function(code) {
-  jumps = lapply(code, function(block) {
+  jumps = lapply(code$blocks, function(block) {
     last = block[[length(block)]]
     get_jump(last, block$id)
   })

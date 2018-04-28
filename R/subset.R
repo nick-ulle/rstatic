@@ -1,31 +1,50 @@
+# To see the fields, use `ls(..., all = T)`
 
-fieldname = function(i, x) UseMethod("fieldname", x)
+#' @export
+names.Branch   = function(x) c("target")
+#' @export
+  names.Return = function(x) c("target", "read")
 
-fieldname.Branch   = function(i, x) c("target")[[i]]
-  fieldname.Return = function(i, x) c("target", "read")[[i]]
+#' @export
+names.If      = function(x) c("true", "false", "condition")
+#' @export
+names.Loop    = function(x) c("body", "exit")
+#' @export
+  names.While = function(x) c("body", "exit", "condition")
+#' @export
+  names.For   = function(x) c("body", "exit", "variable", "iterator")
 
-fieldname.If      = function(i, x) c("true", "false", "condition")[[i]]
-fieldname.Loop    = function(i, x) c("body", "exit")[[i]]
-  fieldname.While = function(i, x) c("body", "exit", "condition")[[i]]
-  fieldname.For   = function(i, x) c("body", "exit", "variable", "iterator")[[i]]
+#' @export
+names.Application = function(x) c("args")
+#' @export
+  names.Call      = function(x) c("fn", "args")
 
-fieldname.Application = function(i, x) c("args")[[i]]
-  fieldname.Call      = function(i, x) c("fn", "args")[[i]]
+#' @export
+names.Assign    = function(x) c("write", "read")
+#' @export
+names.Parameter = function(x) c("default")
+#' @export
+names.Function  = function(x) c("body", "params")
 
-fieldname.Assign    = function(i, x) c("read", "write")[[i]]
-fieldname.Parameter = function(i, x) c("default")[[i]]
-fieldname.Function  = function(i, x) c("body", "params")[[i]]
+#' @export
+names.ASTNode = function(x) character(0)
 
-fieldname.default = function(i, x) {
-  msg = sprintf("No field mapping defined for '%s'.", toString(class(x)))
-  stop(msg)
-}
 
 # Length ----------------------------------------
 
 #' @export
+length.ASTNode = function(x) {
+  length(names(x))
+}
+
+#' @export
 length.Container = function(x) {
   length(x$body)
+}
+
+#' @export
+length.FunctionBlocks = function(x) {
+  length(x$blocks)
 }
 
 
@@ -44,7 +63,7 @@ length.Container = function(x) {
   if (!is.numeric(i))
     return (NextMethod())
 
-  x = .subset2(x, fieldname(i[[1L]], x), ...)
+  x = .subset2(x, names(x)[[ i[[1L]] ]], ...)
 
   if (length(i) > 1)
     x[[ i[-1L], ... ]]
@@ -87,7 +106,7 @@ length.Container = function(x) {
   if (!is.numeric(i))
     return (NextMethod())
 
-  f = fieldname(i[[1L]], x)
+  f = names(x)[[ i[[1L]] ]]
 
   if (length(i) > 1)
     # Call the replacement method for the child node.

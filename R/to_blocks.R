@@ -7,9 +7,9 @@
 #' @rdname as_data_frame
 #'
 #' @export
-as.data.frame.BlocksList =
+as.data.frame.FunctionBlocks =
 function(x, ...) {
-  x = x$body
+  x = x$blocks
   lens = vapply(x, length, 0L)
   ids = rep(seq_along(x), lens)
 
@@ -28,7 +28,7 @@ function(x, ...) {
 #' This function converts basic blocks to a data frame where each row is one
 #' ``line'' of code.
 #'
-#' @param x (BlocksList) The basic blocks to convert.
+#' @param x (FunctionBlocks) The basic blocks to convert.
 #' @param ... Additional arguments to be passed to or from methods.
 #'
 #' @export
@@ -39,7 +39,7 @@ as_data_frame = function(x, ...) {
 #' @rdname as_data_frame
 #'
 #' @export
-as_data_frame.BlocksList = as.data.frame.BlocksList
+as_data_frame.FunctionBlocks = as.data.frame.FunctionBlocks
 
 
 #' Convert Code Data Frame to Basic Blocks
@@ -127,8 +127,6 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
   if (insert_return)
     node = insert_return(node)
 
-  # TODO: Do something about default arguments.
-
   helper = c(
     this_block = NA, sib_block = -1, #"%exit", #cfg$exit,
     next_block = NA, break_block = NA)
@@ -139,12 +137,15 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
   #ordering = rev(postorder(cfg))
   #cfg$reorder(ordering)
 
-  code = BlocksList$new(code)
+  # TODO: Optionally insert default argument evaluation points into generated
+  # code.
+
+  node = FunctionBlocks$new(node$params, code)
 
   if (ssa)
-    to_ssa(code)
+    to_ssa(node)
 
-  code
+  node #code
 }
 
 
@@ -232,12 +233,14 @@ function(node, helper, cfg = list(), depth = 1L) {
     # An empty block is equivalent to a block that ends with non-control flow.
     c(cfg, ) := create_block_list.ASTNode(node, helper, cfg, depth)
 
-
   # Check for function definitions. This must be done here, after the block has
   # had labels inserted.
-  # FIXME: Do we need to propagate SSA here?
-  lapply(find_functions(node), to_blocks.Function, in_place = TRUE,
-    ssa = FALSE, insert_return = FALSE)
+  defs = find_nodes(node, is, "Function")
+  for (d in defs) {
+    fn = to_blocks.Function(node[[d]], in_place = TRUE, ssa = FALSE,
+      insert_return = FALSE)
+    node[[d]] = fn
+  }
 
   list(cfg, NA)
 }
@@ -256,7 +259,7 @@ function(node, helper, cfg = list(), depth = 1L) {
 }
 
 #' @export
-create_block_list.While =
+create_block_list.Loop =
 function(node, helper, cfg = list(), depth = 1L) {
   # break_block = sib_block  (the original sibling is the exit block)
   # next_block  = this_block (this block is the test block)
@@ -273,9 +276,6 @@ function(node, helper, cfg = list(), depth = 1L) {
 
   list(cfg, NA)
 }
-
-#' @export
-create_block_list.For = create_block_list.While
 
 
 # Edge-adding Cases ----------------------------------------

@@ -144,9 +144,7 @@ format.ASTNode = function(x, ...) {
 #' @export
 print.ASTNode = .print
 
-
-# REMOVE ----------------------------------------
-
+#' @export
 format.Block =
 function(x, ..., short = TRUE) {
   len = length(x$body)
@@ -162,10 +160,8 @@ function(x, ..., short = TRUE) {
 #' @export
 print.Block = .print
 
-print.BlocksList =
-function(x, ...) {
-  print(x$body)
-}
+
+# REMOVE ----------------------------------------
 
 #' @export
 #format.FlowGraph = function(x, tag = .format_tag(x), ...) {
