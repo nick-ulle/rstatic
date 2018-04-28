@@ -39,13 +39,44 @@ function(x, ...) {
 toString.Branch =
 function(x, ...) {
   classname = tolower(class(x)[[1]])
-  paste(classname, toString.Label(x$target))
+  paste(classname, toString.Label(x$target, ...))
 }
 
 #' @export
 toString.Return =
 function(x, ...) {
   sprintf("return (%s)", toString(x$read))
+}
+
+toString.Assign =
+function(x, ..., short = TRUE) {
+  write = toString(x$write, ..., short = short)
+  read = toString(x$read, ..., short = short)
+  sprintf("%s = %s", write, read)
+}
+
+
+toString.FunctionBlocks =
+function(x, ..., short = FALSE) {
+  if (short)
+    return ("function #...")
+
+  # A list of blocks.
+  code = vapply(x$blocks, format.Block, NA_character_, ..., short = TRUE)
+  paste0("[[", seq_along(code), "]]\n", code, collapse = "\n\n")
+}
+
+toString.Function =
+function(x, ..., short = FALSE) {
+  if (short) {
+    "function #..."
+
+  } else if (is(x$body, "list")) {
+    toString.FunctionBlocks(x, ..., short = short)
+
+  } else {
+    NextMethod()
+  }
 }
 
 #' @export
@@ -95,13 +126,19 @@ function(x, ..., block_prefix = "%") {
 #' @export
 format.ASTNode = function(x, ...) {
   members = setdiff(ls(x), c("initialize", "clone"))
-  is_method = vapply(members, function(f) is.function(x[[f]]), NA)
+  is_method = vapply(members, function(f) is.function(.subset2(x, f)), NA)
 
   members[is_method] = paste(members[is_method], "()", sep = "")
   members = members[order(is_method, members)]
   members = paste("$", members, sep = "", collapse = " ")
 
-  sprintf("%s %s\n%s", class_tag(x), members, toString(x, ...))
+  #if (is(x, "Function") && is(x$body, "list")) {
+  #  code = vapply(x$body, format, NA_character_)
+  #  code = paste0("[[", seq_along(code), "]]\n", code, collapse = "\n")
+  #} else
+    code = toString(x, ...)
+
+  sprintf("%s %s\n%s", class_tag(x), members, code)
 }
 
 #' @export
@@ -111,21 +148,13 @@ print.ASTNode = .print
 # REMOVE ----------------------------------------
 
 format.Block =
-function(x, ...) {
+function(x, ..., short = TRUE) {
   len = length(x$body)
   if (len == 0)
     return ("\n  # empty block")
 
-  #last = x$body[[len]]
-  #if (is(last, "If"))
-  #  last = sprintf("if (%s) %s else %s",
-  #    deparse_to_string(to_r(last$condition, ...)),
-  #    last$true,
-  #    last$false
-  #  )
-
-  phi = vapply(x$phi, toString, NA_character_)
-  body = vapply(x$body, toString, NA_character_)
+  phi = vapply(x$phi, toString, NA_character_, ...)
+  body = vapply(x$body, toString, NA_character_, ..., short = short)
 
   paste("\n  ", c(phi, body), sep = "", collapse = "")
 }

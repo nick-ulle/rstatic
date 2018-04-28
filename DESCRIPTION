@@ -26,7 +26,6 @@ RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 Collate: 
     'TO_DATA_FRAME.R'
-    'ast_node_methods.R'
     'ast_traverse.R'
     'blocks_to_r.R'
     'cfg_analysis.R'
@@ -49,6 +48,7 @@ Collate:
     'rstatic.R'
     'ssa_builder.R'
     'stack.R'
+    'subset.R'
     'to_ast.R'
     'to_blocks.R'
     'to_r.R'

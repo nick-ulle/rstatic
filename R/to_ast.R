@@ -209,3 +209,17 @@ to_ast.numeric   = function(expr) Numeric$new(expr)
 to_ast.complex   = function(expr) Complex$new(expr)
 #' @export
 to_ast.character = function(expr) Character$new(expr)
+
+
+
+#' Wrap ASTNode With Brace
+#'
+#' This function wraps an ASTNode in a Brace if it isn't one already.
+#'
+#' @export
+wrap_brace = function(node) {
+  if (is(node, "Brace"))
+    node
+  else
+    Brace$new(node, parent = node$parent)
+}

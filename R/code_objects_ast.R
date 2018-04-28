@@ -491,8 +491,6 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
 Function = R6::R6Class("Function", inherit = Callable,
   "public" = list(
     .body = NULL,
-    #cfg = NULL,
-    #ssa = NULL,
 
     initialize = function(params, body, parent = NULL) {
       super$initialize(params, parent)
@@ -510,6 +508,28 @@ Function = R6::R6Class("Function", inherit = Callable,
     }
   )
 )
+
+FunctionBlocks = R6::R6Class("FunctionBlocks", inherit = Callable,
+  "public" = list(
+    .blocks = NULL,
+
+    initialize = function(params, blocks = list(), parent = NULL) {
+      super$initialize(params, parent)
+
+      self$blocks = blocks
+    }
+  ),
+
+  "active" = list(
+    blocks = function(value) {
+      if (missing(value))
+        return (self$.blocks)
+
+      self$.blocks = set_parent(value, self)
+    }
+  )
+)
+
 
 #' @export
 Primitive = R6::R6Class("Primitive", inherit = Callable,
