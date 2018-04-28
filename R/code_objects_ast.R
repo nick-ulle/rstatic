@@ -40,7 +40,8 @@ ASTNode = R6::R6Class("ASTNode",
       cloned = self$clone(deep = TRUE)
 
       # Reparent ASTNode objects that aren't in the "parent" field.
-      names = setdiff(names(cloned), c("parent", ".__enclos_env__"))
+      names = ls(cloned, all.names = TRUE)
+      names = setdiff(names, c("parent", ".__enclos_env__"))
       for (name in names) {
         if (bindingIsActive(name, cloned))
           next
