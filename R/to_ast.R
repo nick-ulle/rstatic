@@ -28,7 +28,7 @@ to_ast = function(expr) {
 
 #' @export
 to_ast.expression = function(expr) {
-  Brace$new(lapply(expr, to_ast))
+  Brace$new(lapply(expr, to_ast), is_hidden = TRUE)
 }
 
 
@@ -85,7 +85,7 @@ to_ast.if = function(expr) {
     false = to_ast(expr[[4]])
     false = wrap_brace(false)
   } else
-    false = Brace$new()
+    false = Brace$new(is_hidden = TRUE)
 
   If$new(to_ast(expr[[2]]), wrap_brace(true), false)
 }
@@ -104,20 +104,19 @@ to_ast.while = function(expr) {
 
 #' @export
 `to_ast.=` = function(expr) {
-  read = expr[[3]]
+  read = to_ast(expr[[3]])
   write = expr[[2]]
 
-  if (is(write, "call")) {
-    # FIXME: the read argument is for the "value" parameter.
-    args = append(lapply(write[-1], to_ast), to_ast(read))
-    node = Replacement$new(write = args[[1]]$copy(), fn = write[[1]], args)
+  if (is.call(write)) {
+    fn = Symbol$new(paste0(write[[1]], "<-"))
+    # NOTE: `read` is the `value` argument to the replacement function.
+    args = c(lapply(write[-1], to_ast), read)
+
+    Replacement$new(args[[1]]$copy(), Call$new(fn, args))
 
   } else {
-    # FIXME: Eval read before write?
-    node = Assign$new(to_ast(write), to_ast(read))
+    Assign$new(to_r(write), read)
   }
-
-  return (node)
 }
 
 #' @export
@@ -218,8 +217,8 @@ to_ast.character = function(expr) Character$new(expr)
 #'
 #' @export
 wrap_brace = function(node) {
-  if (is(node, "Brace"))
+  if (is(node, "Container"))
     node
   else
-    Brace$new(node, parent = node$parent)
+    Brace$new(node, is_hidden = TRUE)
 }

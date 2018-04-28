@@ -1,4 +1,19 @@
-# Classes that represent AST nodes.
+# Factory function to create bindings.
+binding_factory = function(field) {
+  binding = function(value) {}
+
+  # Substitute the field name into the function since the function's
+  # environment will be reset by R6.
+  body(binding) = substitute({
+    if (missing(value))
+      return (self$field)
+
+    self$field = set_parent(value, self)
+  }, list(field = field))
+
+  binding
+}
+
 
 #' @export
 ASTNode = R6::R6Class("ASTNode",
@@ -79,7 +94,7 @@ Brace = R6::R6Class("Brace", inherit = Container,
     initialize = function(body = list(), is_hidden = FALSE, parent = NULL) {
       super$initialize(body, parent)
 
-      self$is_hidden = FALSE
+      self$is_hidden = is_hidden
     }
   )
 )
@@ -95,7 +110,7 @@ Branch = R6::R6Class("Branch", inherit = ControlFlow,
   "public" = list(
     target = NULL,
 
-    initialize = function(target = NA, parent = NULL) {
+    initialize = function(target = NULL, parent = NULL) {
       super$initialize(parent)
 
       self$target = target
@@ -111,9 +126,8 @@ Break = R6::R6Class("Break", inherit = Branch)
 
 #' @export
 Return = R6::R6Class("Return", inherit = Branch,
-  # NOTE: Return is a subclass of Assign because the CFG models returning `x`
-  # as setting the special variable `._return_ <- x` and then branching to the
-  # exit block.
+  # NOTE: We model Return as an assignment to the special variable `._return_`
+  # followed by a branch to the exit block.
   "public" = list(
     .write = NULL,
     .read = NULL,
@@ -127,28 +141,35 @@ Return = R6::R6Class("Return", inherit = Branch,
   ),
 
   "active" = list(
-    write = function(value) {
-      if (missing(value))
-        return (self$.write)
-
-      self$.write = set_parent(value, self)
-    },
-
-    read = function(value) {
-      if (missing(value))
-        return (self$.read)
-
-      self$.read = set_parent(value, self)
-    }
+    write = binding_factory(".write"),
+    read  = binding_factory(".read")
   )
 )
 
 #' @export
-If = R6::R6Class("If", inherit = ControlFlow,
+ConditionalBranch = R6::R6Class("ConditionalBranch", inherit = ControlFlow,
+  "public" = list(
+    .body = NULL,
+    .exit = NULL,
+
+    initialize = function(body, exit = NULL, parent = NULL) {
+      super$initialize(parent)
+
+      self$body = body
+      self$exit = exit
+    }
+  ),
+
+  "active" = list(
+    body = binding_factory(".body"),
+    exit = binding_factory(".exit")
+  )
+)
+
+#' @export
+If = R6::R6Class("If", inherit = ConditionalBranch,
   "public" = list(
     .condition = NULL,
-    .true = NULL,
-    .false = NULL,
 
     initialize = function(condition, true, false = Brace$new(),
       parent = NULL)
@@ -162,58 +183,15 @@ If = R6::R6Class("If", inherit = ControlFlow,
   ),
 
   "active" = list(
-    condition = function(value) {
-      if (missing(value))
-        return (self$.condition)
-
-      self$.condition = set_parent(value, self)
-    },
-
-    true = function(value) {
-      if (missing(value))
-        return (self$.true)
-
-      self$.true = set_parent(value, self)
-    },
-
-    false = function(value) {
-      if (missing(value))
-        return (self$.false)
-
-      self$.false = set_parent(value, self)
-    }
+    condition = binding_factory(".condition"),
+    # Keep old true/false bindings for interactive use.
+    true      = binding_factory(".body"),
+    false     = binding_factory(".exit")
   )
 )
 
 #' @export
-Loop = R6::R6Class("Loop", inherit = ControlFlow,
-  "public" = list(
-    .body = NULL,
-    exit = NULL,
-
-    initialize = function(body, parent = NULL) {
-      super$initialize(parent)
-
-      self$body = body
-    }
-  ),
-
-  "active" = list(
-    test = function(value) {
-      if (missing(value))
-        return (self$.test)
-
-      self$.test = set_parent(value, self)
-    },
-
-    body = function(value) {
-      if (missing(value))
-        return (self$.body)
-
-      self$.body = set_parent(value, self)
-    }
-  )
-)
+Loop = R6::R6Class("Loop", inherit = ConditionalBranch)
 
 #' @export
 For = R6::R6Class("For", inherit = Loop,
@@ -230,19 +208,8 @@ For = R6::R6Class("For", inherit = Loop,
   ),
 
   "active" = list(
-    variable = function(value) {
-      if (missing(value))
-        return (self$.variable)
-
-      self$.variable = set_parent(value, self)
-    },
-
-    iterator = function(value) {
-      if (missing(value))
-        return (self$.iterator)
-
-      self$.iterator = set_parent(value, self)
-    }
+    variable = binding_factory(".variable"),
+    iterator = binding_factory(".iterator")
   )
 )
 
@@ -261,12 +228,7 @@ While = R6::R6Class("While", inherit = Loop,
   ),
 
   "active" = list(
-    condition = function(value) {
-      if (missing(value))
-        return (self$.condition)
-
-      self$.condition = set_parent(value, self)
-    }
+    condition = binding_factory(".condition")
   )
 )
 
@@ -286,14 +248,7 @@ Application = R6::R6Class("Application", inherit = ASTNode,
   ),
 
   "active" = list(
-    args = function(value) {
-      if (missing(value))
-        return (self$.args)
-
-      if (!is.list(value))
-        value = list(value)
-      self$.args = set_parent(value, self)
-    }
+    args = binding_factory(".args")
   )
 )
 
@@ -305,21 +260,16 @@ Call = R6::R6Class("Call", inherit = Application,
     initialize = function(fn, args = list(), parent = NULL) {
       super$initialize(args, parent)
 
+      # NOTE: fn could be a Symbol, Function, Primitive, or Call.
+      if (!is(value, "ASTNode"))
+        value = Symbol$new(value)
+
       self$fn = fn
     }
   ),
 
   "active" = list(
-    fn = function(value) {
-      if (missing(value))
-        return (self$.fn)
-
-      # NOTE: fn could be a Symbol, Function, Primitive, or Call.
-      if (!is(value, "ASTNode"))
-        value = Symbol$new(value)
-
-      self$.fn = set_parent(value, self)
-    }
+    fn = binding_factory(".fn")
   )
 )
 
@@ -359,19 +309,8 @@ Assign = R6::R6Class("Assign", inherit = ASTNode,
   ),
 
   "active" = list(
-    write = function(value) {
-      if (missing(value))
-        return (self$.write)
-
-      self$.write = set_parent(value, self)
-    },
-
-    read = function(value) {
-      if (missing(value))
-        return (self$.read)
-
-      self$.read = set_parent(value, self)
-    }
+    write = binding_factory(".write"),
+    read  = binding_factory(".read")
   )
 )
 
@@ -379,24 +318,7 @@ Assign = R6::R6Class("Assign", inherit = ASTNode,
 SuperAssign = R6::R6Class("SuperAssign", inherit = Assign)
 
 #' @export
-Replacement = R6::R6Class("Replacement", inherit = Assign,
-  "public" = list(
-    initialize = function(write, fn, args, parent = NULL) {
-      if (!is(fn, "ASTNode")) {
-        fn = as.character(fn)
-
-        if (!endsWith(fn, "<-"))
-          fn = paste0(fn, "<-")
-
-        fn = Symbol$new(fn)
-      }
-
-      read = Call$new(fn, args)
-
-      super$initialize(write, read, parent)
-    }
-  )
-)
+Replacement = R6::R6Class("Replacement", inherit = Assign)
 
 
 # Symbols ----------------------------------------
@@ -452,12 +374,7 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
   ),
 
   "active" = list(
-    default = function(value) {
-      if (missing(value))
-        return (self$.default)
-
-      self$.default = set_parent(value, self)
-    }
+    default = binding_factory(".default")
   )
 )
 
@@ -478,12 +395,7 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
   ),
 
   "active" = list(
-    params = function(value) {
-      if (missing(value))
-        return (self$.params)
-
-      self$.params = set_parent(value, self)
-    }
+    params = binding_factory(".params")
   )
 )
 
@@ -500,33 +412,26 @@ Function = R6::R6Class("Function", inherit = Callable,
   ),
 
   "active" = list(
-    body = function(value) {
-      if (missing(value))
-        return (self$.body)
-
-      self$.body = set_parent(value, self)
-    }
+    body = binding_factory(".body")
   )
 )
 
 FunctionBlocks = R6::R6Class("FunctionBlocks", inherit = Callable,
   "public" = list(
     .blocks = NULL,
+    is_hidden = FALSE,
 
-    initialize = function(params, blocks = list(), parent = NULL) {
+    initialize =
+    function(params, blocks = list(), is_hidden = FALSE, parent = NULL) {
       super$initialize(params, parent)
 
       self$blocks = blocks
+      self$is_hidden = is_hidden
     }
   ),
 
   "active" = list(
-    blocks = function(value) {
-      if (missing(value))
-        return (self$.blocks)
-
-      self$.blocks = set_parent(value, self)
-    }
+    blocks = binding_factory(".blocks")
   )
 )
 
@@ -539,20 +444,15 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
     initialize = function(params, fn, parent = NULL) {
       super$initialize(params, parent)
 
+      if (!is(value, "Symbol"))
+        value = Symbol$new(value)
+
       self$fn = fn
     }
   ),
 
   "active" = list(
-    fn = function(value) {
-      if (missing(value))
-        return (self$.fn)
-
-      if (!is(value, "Symbol"))
-        value = Symbol$new(value)
-
-      self$.fn = set_parent(value, self)
-    }
+    fn = binding_factory(".fn")
   )
 )
 
