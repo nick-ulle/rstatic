@@ -3,6 +3,9 @@
 #' This function returns a list of addresses for all children of an ASTNode
 #' object that satisfy the given check function.
 #'
+#' Note that all adresses are relative to \code{node}, and \code{node} itself
+#' is not checked.
+#'
 #' @param node (ASTNode) The code object to search.
 #' @param check (function) The check function, which should take the ASTNode
 #' object to check as its first argument and return a scalar logical.

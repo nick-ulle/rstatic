@@ -23,6 +23,10 @@ A list of addresses for matching nodes.
 This function returns a list of addresses for all children of an ASTNode
 object that satisfy the given check function.
 }
+\details{
+Note that all adresses are relative to \code{node}, and \code{node} itself
+is not checked.
+}
 \examples{
 ast = quote_ast(
   function(x, y) {
