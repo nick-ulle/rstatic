@@ -261,8 +261,8 @@ Call = R6::R6Class("Call", inherit = Application,
       super$initialize(args, parent)
 
       # NOTE: fn could be a Symbol, Function, Primitive, or Call.
-      if (!is(value, "ASTNode"))
-        value = Symbol$new(value)
+      if (!is(fn, "ASTNode"))
+        fn = Symbol$new(fn)
 
       self$fn = fn
     }
@@ -444,8 +444,8 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
     initialize = function(params, fn, parent = NULL) {
       super$initialize(params, parent)
 
-      if (!is(value, "Symbol"))
-        value = Symbol$new(value)
+      if (!is(fn, "Symbol"))
+        fn = Symbol$new(fn)
 
       self$fn = fn
     }
