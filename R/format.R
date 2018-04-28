@@ -39,15 +39,19 @@ function(x, ...) {
 toString.Branch =
 function(x, ...) {
   classname = tolower(class(x)[[1]])
-  paste(classname, toString.Label(x$target, ...))
+  if (is.null(x$target))
+    classname
+  else
+    paste(classname, toString.Label(x$target, ...))
 }
 
 #' @export
 toString.Return =
 function(x, ...) {
-  sprintf("return (%s)", toString(x$read))
+  sprintf("return (%s)", toString(x$read, ...))
 }
 
+#' @export
 toString.Assign =
 function(x, ..., short = TRUE) {
   write = toString(x$write, ..., short = short)
@@ -55,7 +59,7 @@ function(x, ..., short = TRUE) {
   sprintf("%s = %s", write, read)
 }
 
-
+#' @export
 toString.FunctionBlocks =
 function(x, ..., short = FALSE) {
   if (short)
@@ -66,17 +70,13 @@ function(x, ..., short = FALSE) {
   paste0("[[", seq_along(code), "]]\n", code, collapse = "\n\n")
 }
 
+#' @export
 toString.Function =
 function(x, ..., short = FALSE) {
-  if (short) {
+  if (short)
     "function #..."
-
-  } else if (is(x$body, "list")) {
-    toString.FunctionBlocks(x, ..., short = short)
-
-  } else {
+  else
     NextMethod()
-  }
 }
 
 #' @export
