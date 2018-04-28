@@ -115,7 +115,7 @@ to_ast.while = function(expr) {
     Replacement$new(args[[1]]$copy(), Call$new(fn, args))
 
   } else {
-    Assign$new(to_r(write), read)
+    Assign$new(to_ast(write), read)
   }
 }
 
