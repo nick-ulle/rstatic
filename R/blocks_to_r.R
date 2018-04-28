@@ -20,15 +20,15 @@ function(node, ...) {
 
 #' @export
 blocks_to_r.FunctionBlocks =
-function(node, ...) {
-  # FIXME: Is there really no better way to set up the parameter pairlist?
-  params = pairlist()
-  for (param in node$params)
-    params = append(params, to_r.Parameter(param, ...))
-  params = as.pairlist(params)
+function(node, ..., keep_functions = FALSE) {
 
   c(exp, ) := blocks_to_r.Block(node$blocks[[1]], blocks = node$blocks, ...)
   exp = as.call(append(as.symbol("{"), exp))
+
+  if (!keep_functions && node$is_hidden)
+    return (exp)
+
+  params = to_r_params(node$params, ...)
 
   call("function", params, exp)
 }
@@ -94,7 +94,10 @@ blocks_to_r.If = function(node, blocks, ...) {
 
   # Return successor that's not caused by return/break/next.
   succ = setdiff(c(succ_t, succ_f), NA)
-  if (length(succ) != 1)
+  len = length(succ)
+  if (len == 0)
+    succ = NA
+  else if (len > 1)
     stop("if-statement has successor conflict.")
 
   condition = to_r(node$condition, ...)

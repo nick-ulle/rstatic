@@ -118,9 +118,8 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
 }
 
 #' @export
-to_blocks.Function =
-function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
-{
+to_blocks.ASTNode =
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   if (!in_place)
     node = node$copy()
 
@@ -130,45 +129,48 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
   helper = c(
     this_block = NA, sib_block = -1, #"%exit", #cfg$exit,
     next_block = NA, break_block = NA)
-  c(code, ) := create_block_list(node$body, helper)
+
+  if (!is(node, "Brace"))
+    node = Brace$new(node, is_hidden = TRUE)
+
+  c(blocks, ) := create_block_list(node, helper)
 
   # Sort the blocks in reverse postorder to make them easier to read and ensure
   # SSA numbers will increase monotonically.
   #ordering = rev(postorder(cfg))
   #cfg$reorder(ordering)
 
-  # TODO: Optionally insert default argument evaluation points into generated
-  # code.
-
-  node = FunctionBlocks$new(node$params, code)
+  node = FunctionBlocks$new(list(), blocks, is_hidden = TRUE)
 
   if (ssa)
     to_ssa(node)
 
-  node #code
+  node
 }
 
 
 #' @export
-to_blocks.ASTNode =
-function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
-{
-  if (!in_place)
-    node = node$copy()
+to_blocks.Function =
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+  params = node$params
 
-  if (!is(node, "Brace"))
-    node = Brace$new(node)
+  node = to_blocks.ASTNode(node$body, in_place, ssa = FALSE, insert_return)
 
-  # This node isn't a Function, so wrap it up in one.
-  node = Function$new(params = list(), body = node)
+  node$params = params
+  node$is_hidden = FALSE
 
-  to_blocks.Function(node, in_place = TRUE, ssa, insert_return)
+  # TODO: Optionally insert default argument evaluation points into generated
+  # code.
+
+  if (ssa)
+    to_ssa(node)
+
+  node
 }
 
 #' @export
 to_blocks.default =
-function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
-{
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   node = to_ast(node)
   to_blocks(node, in_place = TRUE, ssa, insert_return)
 }

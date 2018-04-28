@@ -29,15 +29,13 @@ function(node, ...) {
 
 #' @export
 to_r.Brace =
-function(node, ...) {
-  #use_phi = list(...)[["use_phi"]]
-  #if (is.null(use_phi) || use_phi)
-  #  phi = lapply(node$phi, to_r, ...)
-  #else
-  #  phi = list()
+function(node, ..., keep_braces = FALSE) {
+  body = lapply(node$body, to_r, ...)
 
-  x = c(as.name("{"), lapply(node$body, to_r, ...))
-  as.call(x)
+  if (!keep_braces && node$is_hidden && length(body) == 1L)
+    body[[1L]]
+  else
+    as.call(c(as.name("{"), body))
 }
 
 
@@ -153,16 +151,15 @@ function(node, ...) {
 
 #' @export
 to_r.Symbol =
-function(node, ...) {
+function(node, ..., keep_ssa = FALSE) {
   # Handle empty arguments.
   if (node$basename == "")
     return (quote(expr = ))
 
-  keep_ssa = list(...)[["keep_ssa"]]
-  if (is.null(keep_ssa) || !keep_ssa)
-    name = node$basename
-  else
+  if (keep_ssa)
     name = node$name
+  else
+    name = node$basename
 
   if (is.na(node$namespace))
     as.name(name)
@@ -183,18 +180,19 @@ function(node, ...) {
   default
 }
 
+to_r_params =
+function(params_list, ...) {
+  params = pairlist()
+  for (param in params_list)
+    params = append(params, to_r(param, ...))
+
+  as.pairlist(params)
+}
 
 #' @export
 to_r.Function =
 function(node, ...) {
-  params = pairlist()
-  for (param in node$params)
-    params = append(params, to_r(param, ...))
-
-  if (is.null(node$body))
-    call("function", as.pairlist(params), as.symbol(".."))
-  else
-    call("function", as.pairlist(params), to_r(node$body, ...))
+  call("function", to_r_params(node$params, ...), to_r(node$body, ...))
 }
 
 
