@@ -118,7 +118,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
 }
 
 #' @export
-to_blocks.ASTNode =
+to_blocks.Brace =
 function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   if (!in_place)
     node = node$copy()
@@ -127,13 +127,11 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
     node = insert_return(node)
 
   helper = c(
-    this_block = NA, sib_block = -1, #"%exit", #cfg$exit,
+    this_block = NA, sib_block = 1, #"%exit", #cfg$exit,
     next_block = NA, break_block = NA)
 
-  if (!is(node, "Brace"))
-    node = Brace$new(node, is_hidden = TRUE)
-
-  c(blocks, ) := create_block_list(node, helper)
+  cfg = list(Block$new(Symbol$new("._return_")))
+  c(blocks, ) := create_block_list(node, helper, cfg)
 
   # Sort the blocks in reverse postorder to make them easier to read and ensure
   # SSA numbers will increase monotonically.
@@ -154,7 +152,7 @@ to_blocks.Function =
 function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   params = node$params
 
-  node = to_blocks.ASTNode(node$body, in_place, ssa = FALSE, insert_return)
+  node = to_blocks.Brace(node$body, in_place, ssa = FALSE, insert_return)
 
   node$params = params
   node$is_hidden = FALSE
@@ -166,6 +164,14 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
     to_ssa(node)
 
   node
+}
+
+to_blocks.ASTNode =
+function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
+  if (!in_place)
+    node = node$copy()
+
+  to_blocks.Brace(Brace$new(node), in_place = TRUE, ssa, insert_return)
 }
 
 #' @export
@@ -197,7 +203,7 @@ create_block_list = function(node, helper, cfg = list(), depth = 1L) {
 
 create_block_list.Brace = function(node, helper, cfg = list(), depth = 1L) {
   # Split into blocks and add them to the graph.
-  blocks = split_blocks(node)
+  blocks = split_blocks(node$body)
 
   # Set block IDs.
   siblings = length(cfg) + seq_along(blocks)
@@ -335,9 +341,9 @@ function(node, helper, cfg = list(), depth = 1L) {
 }
 
 
-# Helper function to split a Brace into Blocks.
-split_blocks = function(node) {
-  flows = vapply(node$body, function(line) {
+# Helper function to split a list of lines into Blocks.
+split_blocks = function(lines) {
+  flows = vapply(lines, function(line) {
     c(is(line, "ControlFlow"), is(line, "Loop"))
   }, logical(2))
   is_loop = flows[2, ]
@@ -349,7 +355,7 @@ split_blocks = function(node) {
   # Put each loop in its own block.
   flows[is_loop] = TRUE
 
-  blocks = split(node$body, cumsum(flows))
+  blocks = split(lines, cumsum(flows))
   blocks = lapply(blocks, Block$new)
 
   names(blocks) = NULL

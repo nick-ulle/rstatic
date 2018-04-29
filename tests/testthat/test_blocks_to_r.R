@@ -1,4 +1,4 @@
-context("to_r")
+context("blocks_to_r")
 
 
 test_that("no branches", {

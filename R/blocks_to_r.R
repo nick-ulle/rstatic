@@ -22,7 +22,7 @@ function(node, ...) {
 blocks_to_r.FunctionBlocks =
 function(node, ..., keep_functions = FALSE) {
 
-  c(exp, ) := blocks_to_r.Block(node$blocks[[1]], blocks = node$blocks, ...)
+  c(exp, ) := blocks_to_r.Block(node[[2]], blocks = node$blocks, ...)
   exp = as.call(append(as.symbol("{"), exp))
 
   if (!keep_functions && node$is_hidden)
