@@ -17,7 +17,6 @@
 #' @param in_place (logical) Whether the AST should be copied before
 #' transformation.
 #'
-#' @export
 node_apply = function(node, fn, ..., in_place = FALSE) {
   if (!in_place)
     node = node$copy()
@@ -27,6 +26,10 @@ node_apply = function(node, fn, ..., in_place = FALSE) {
 
 node_apply_unsafe = function(node, fn, ...) {
   UseMethod("node_apply_unsafe")
+}
+
+node_apply_unsafe.Branch = function(node, fn, ...) {
+  fn(node)
 }
 
 #' @export

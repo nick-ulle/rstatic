@@ -42,7 +42,7 @@ Label = R6::R6Class("Label", inherit = ASTNode,
   "public" = list(
     name = NA,
     
-    initialize = function(name, parent = NULL) {
+    initialize = function(name = NA, parent = NULL) {
       self$name = name
     }
   )

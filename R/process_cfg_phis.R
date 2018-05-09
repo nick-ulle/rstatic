@@ -1,4 +1,3 @@
-#' @export
 findPhiAssignVarNames =
 function(cfg, ssa.graph = cfg$ssa$graph)
 {
