@@ -7,20 +7,29 @@
 #' @rdname as_data_frame
 #'
 #' @export
-as.data.frame.FunctionBlocks =
+as.data.frame.BlockList =
 function(x, ...) {
-  x = x$blocks
-  lens = vapply(x, length, 0L)
-  ids = rep(seq_along(x), lens)
+  blocks = x$contents
+  lens = vapply(blocks, length, 0L)
+  ids = rep(seq_along(blocks), lens)
 
-  depths = vapply(x, function(b) b$depth, 0L)
+  depths = vapply(blocks, function(b) b$depth, 0L)
   depths = rep(depths, lens)
 
-  lines = lapply(x, function(block) block$body)
+  lines = lapply(blocks, function(block) block$body)
   lines = unlist(lines, recursive = FALSE, use.names = FALSE)
   class(lines) = "CodeList"
 
   data.frame(line = I(lines), block = ids, depth = depths)
+}
+
+#' @rdname as_data_frame
+#'
+#' @export
+as.data.frame.Function =
+function(x, ...) {
+  x = x$body
+  NextMethod()
 }
 
 #' Convert Basic Blocks to a Code Data Frame
@@ -28,18 +37,11 @@ function(x, ...) {
 #' This function converts basic blocks to a data frame where each row is one
 #' ``line'' of code.
 #'
-#' @param x (FunctionBlocks) The basic blocks to convert.
+#' @param x (BlockList) The basic blocks to convert.
 #' @param ... Additional arguments to be passed to or from methods.
 #'
 #' @export
-as_data_frame = function(x, ...) {
-  UseMethod("as_data_frame")
-}
-
-#' @rdname as_data_frame
-#'
-#' @export
-as_data_frame.FunctionBlocks = as.data.frame.FunctionBlocks
+as_data_frame = as.data.frame
 
 
 #' Convert Code Data Frame to Basic Blocks
@@ -138,7 +140,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   #ordering = rev(postorder(cfg))
   #cfg$reorder(ordering)
 
-  node = FunctionBlocks$new(list(), blocks, is_hidden = TRUE)
+  node = BlockList$new(blocks)
 
   if (ssa)
     to_ssa(node)
@@ -150,12 +152,13 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
 #' @export
 to_blocks.Function =
 function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
-  params = node$params
+  if (!in_place)
+    node = node$copy()
 
-  node = to_blocks.Brace(node$body, in_place, ssa = FALSE, insert_return)
+  blocks = to_blocks.Brace(node$body, in_place = FALSE, ssa = FALSE,
+    insert_return)
 
-  node$params = params
-  node$is_hidden = FALSE
+  node$body = blocks
 
   # TODO: Optionally insert default argument evaluation points into generated
   # code.

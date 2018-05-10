@@ -15,22 +15,19 @@ blocks_to_r = function(node, ...) {
 #' @export
 blocks_to_r.data.frame =
 function(node, ...) {
-  blocks_to_r.FunctionBlocks(as_blocks(node, ...), ...)
+  blocks_to_r.BlockList(as_blocks(node, ...), ...)
 }
 
 #' @export
-blocks_to_r.FunctionBlocks =
-function(node, ..., keep_functions = FALSE) {
+blocks_to_r.BlockList =
+function(node, ...) {
+  # FIXME: Don't hardcode 2 here.
+  c(exp, ) := blocks_to_r.Block(node[[2]], blocks = node$contents, ...)
+  as.call(append(as.symbol("{"), exp))
 
-  c(exp, ) := blocks_to_r.Block(node[[2]], blocks = node$blocks, ...)
-  exp = as.call(append(as.symbol("{"), exp))
+  #params = to_r_params(node$params, ...)
 
-  if (!keep_functions && node$is_hidden)
-    return (exp)
-
-  params = to_r_params(node$params, ...)
-
-  call("function", params, exp)
+  #call("function", params, exp)
 }
 
 

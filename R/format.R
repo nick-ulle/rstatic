@@ -60,21 +60,21 @@ function(x, ..., short = TRUE) {
 }
 
 #' @export
-toString.FunctionBlocks =
-function(x, ..., short = FALSE) {
-  if (short)
-    return ("function #...")
-
+toString.BlockList =
+function(x, ...) {
   # A list of blocks.
-  code = vapply(x$blocks, format.Block, NA_character_, ..., short = TRUE)
+  code = vapply(x$contents, format.Block, NA_character_, ..., short = TRUE)
   paste0("[[", seq_along(code), "]]\n", code, collapse = "\n\n")
 }
 
 #' @export
 toString.Function =
 function(x, ..., short = FALSE) {
+  # FIXME: Get code for function signature, but delegate body to other methods.
   if (short)
     "function #..."
+  else if (is(x$body, "BlockList"))
+    toString.BlockList(x$body)
   else
     NextMethod()
 }
@@ -136,7 +136,7 @@ format.ASTNode = function(x, ...) {
   #  code = vapply(x$body, format, NA_character_)
   #  code = paste0("[[", seq_along(code), "]]\n", code, collapse = "\n")
   #} else
-    code = toString(x, ...)
+  code = toString(x, ...)
 
   sprintf("%s %s\n%s", class_tag(x), members, code)
 }

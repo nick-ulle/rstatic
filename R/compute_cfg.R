@@ -5,14 +5,21 @@ function(code) {
 }
 
 #' @export
-compute_cfg.FunctionBlocks =
+compute_cfg.BlockList =
 function(code) {
-  jumps = lapply(code$blocks, function(block) {
+  jumps = lapply(code$contents, function(block) {
     last = block[[length(block)]]
     get_jump(last, block$id)
   })
   jumps = do.call(rbind, jumps)
   igraph::graph_from_edgelist(jumps)
+}
+
+#' @export
+compute_cfg.Function =
+function(code) {
+  code = code$body
+  NextMethod()
 }
 
 #' @export

@@ -420,26 +420,6 @@ Function = R6::R6Class("Function", inherit = Callable,
   )
 )
 
-FunctionBlocks = R6::R6Class("FunctionBlocks", inherit = Callable,
-  "public" = list(
-    .blocks = NULL,
-    is_hidden = FALSE,
-
-    initialize =
-    function(params, blocks = list(), is_hidden = FALSE, parent = NULL) {
-      super$initialize(params = params, parent = parent)
-
-      self$blocks = blocks
-      self$is_hidden = is_hidden
-    }
-  ),
-
-  "active" = list(
-    blocks = binding_factory(".blocks")
-  )
-)
-
-
 #' @export
 Primitive = R6::R6Class("Primitive", inherit = Callable,
   "public" = list(

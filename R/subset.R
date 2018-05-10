@@ -42,11 +42,6 @@ length.Container = function(x) {
   length(x$body)
 }
 
-#' @export
-length.FunctionBlocks = function(x) {
-  length(x$blocks)
-}
-
 
 # Subset ----------------------------------------
 
@@ -84,20 +79,6 @@ length.FunctionBlocks = function(x) {
     x
 }
 
-#' @export
-`[[.FunctionBlocks` = function(x, i, ...) {
-  if (!is.numeric(i))
-    return (NextMethod())
-
-  x = x$blocks[[ i[[1L]], ... ]]
-
-  if (length(i) > 1)
-    x[[ i[-1], ... ]]
-  else
-    x
-}
-
-
 
 # Replacement2 ----------------------------------------
 
@@ -129,20 +110,5 @@ length.FunctionBlocks = function(x) {
 
   # Replace the list element.
   x$body[[f, ...]] = value
-  x
-}
-
-#' @export
-`[[<-.FunctionBlocks` = function(x, i, ..., value) {
-  if (!is.numeric(i))
-    return (NextMethod())
-
-  f = i[[1L]]
-
-  if (length(i) > 1)
-    value = `[[<-`(x$blocks[[f]], i[-1L], ..., value = value)
-
-  # Replace the list element.
-  x$blocks[[f, ...]] = value
   x
 }

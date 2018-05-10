@@ -9,13 +9,13 @@ test_that("linear code has exit block", {
   result = to_blocks(node, insert_return = FALSE, ssa = FALSE)
 
   # -----
-  # Check body block.
-  body = result[[2]]
-  expect_equal(length(body), 3)
+  # Check entry block (#2).
+  entry = result$body[[2]]
+  expect_equal(length(entry), 3)
 
-  # Check exit block.
-  exit = result[[1]]
-  expect_identical(exit$parent, result)
+  # Check exit block (#1).
+  exit = result$body[[1]]
+  expect_identical(exit$parent, result$body)
   expect_equal(length(exit), 1)
   expect_is(exit[[1]], "Symbol")
   expect_equal(exit[[1]]$basename, "._return_")
@@ -75,6 +75,6 @@ test_that("nested functions have CFG generated", {
   result = to_blocks(ast, ssa = FALSE)
 
   # -----
-  fn = result[[2]][[2]]$read
-  expect_is(fn, "FunctionBlocks")
+  fn = result$body[[2]][[2]]$read$body
+  expect_is(fn, "BlockList")
 })

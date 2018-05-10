@@ -15,7 +15,7 @@ function(node, ...) {
 }
 
 #' @export
-to_r.FunctionBlocks = blocks_to_r.FunctionBlocks
+to_r.BlockList = blocks_to_r.BlockList
 
 #' @export
 to_r.data.frame = blocks_to_r.data.frame
