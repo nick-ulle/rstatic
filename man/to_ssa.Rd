@@ -2,23 +2,27 @@
 % Please edit documentation in R/to_ssa.R
 \name{to_ssa}
 \alias{to_ssa}
-\title{Convert CFGraph to Static Single-Assignment Form}
+\title{Convert Blocks to Static Single-Assignment Form}
 \usage{
-to_ssa(node)
+to_ssa(node, cfg = compute_cfg(node), dom_t = dominator_tree(cfg, 2),
+  in_place = FALSE, ...)
 }
 \arguments{
-\item{node}{(Function) A function with CFG attached.}
+\item{node}{A Function or BlocksList object.}
+
+\item{cfg}{(igraph) The control flow graph for the code.}
+
+\item{dom_t}{(igraph) The dominator tree for the code.}
+
+\item{in_place}{(logical) Modify the node in-place? If \code{FALSE}, the
+node is copied.}
 }
 \value{
-The function with its control flow graph converted to static
-single-assignment form.
+NULL, because this function modifies the blocks in place.
 }
 \description{
-This function converts code in a control flow graph (CFG) to static
-single-assignment form.
+This function converts code blocks to static single-assignment form.
 }
 \details{
-This function has side effects. A CFG holds references to abstract syntax
-tree (AST) nodes. As a result, there is no simple way to copy a CFG without
-breaking the AST. This function always modifies CFGs in place.
+This function modifies the blocks in place.
 }

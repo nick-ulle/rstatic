@@ -64,7 +64,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   node = BlockList$new(blocks)
 
   if (ssa)
-    to_ssa(node)
+    to_ssa(node, in_place = TRUE)
 
   node
 }
@@ -83,7 +83,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   # code.
 
   if (ssa)
-    to_ssa(node)
+    to_ssa(node, in_place = TRUE)
 
   node
 }

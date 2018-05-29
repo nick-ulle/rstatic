@@ -46,7 +46,6 @@ Collate:
     'node_apply.R'
     'process_cfg_phis.R'
     'rstatic.R'
-    'ssa_builder.R'
     'stack.R'
     'subset.R'
     'to_ast.R'
