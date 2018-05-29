@@ -32,7 +32,16 @@ deparse_to_string = function(expr, ...) {
 #' @export
 toString.ASTNode =
 function(x, ...) {
-  deparse_to_string(to_r(x, ...))
+  deparse_to_string(to_r(x, ..., keep_ssa = TRUE))
+}
+
+#' @export
+toString.Phi =
+function(x, ...) {
+  contents = vapply(x$contents, toString, NA_character_)
+  contents = paste(x$ids, contents, sep = " => ", collapse = ", ")
+
+  sprintf("%s = Phi(%s)", toString(x$write), contents)
 }
 
 #' @export
@@ -147,14 +156,14 @@ print.ASTNode = .print
 #' @export
 format.Block =
 function(x, ..., short = TRUE) {
-  len = length(x$body)
+  len = length(x$contents)
   if (len == 0)
     return ("\n  # empty block")
 
   phi = vapply(x$phi, toString, NA_character_, ...)
-  body = vapply(x$body, toString, NA_character_, ..., short = short)
+  contents = vapply(x$contents, toString, NA_character_, ..., short = short)
 
-  paste("\n  ", c(phi, body), sep = "", collapse = "")
+  paste("\n  ", c(phi, contents), sep = "", collapse = "")
 }
 
 #' @export
