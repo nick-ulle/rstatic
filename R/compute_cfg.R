@@ -12,14 +12,18 @@ function(code) {
     get_jump(last, block$id)
   })
   jumps = do.call(rbind, jumps)
+  # Use integer matrix so that igraph preserves numbering.
+  jumps = apply(jumps, 2, as.integer)
+  if (!is.matrix(jumps))
+    jumps = matrix(jumps, ncol = 2)
+
   igraph::graph_from_edgelist(jumps)
 }
 
 #' @export
 compute_cfg.Function =
 function(code) {
-  code = code$body
-  NextMethod()
+  compute_cfg(code$body)
 }
 
 #' @export
