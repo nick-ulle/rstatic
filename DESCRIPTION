@@ -25,7 +25,6 @@ LazyData: true
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 Collate: 
-    'TO_DATA_FRAME.R'
     'blocks_to_r.R'
     'code_objects_ast.R'
     'code_objects_cfg.R'
@@ -34,6 +33,7 @@ Collate:
     'compute_cfg.R'
     'constant_propagation.R'
     'counter.R'
+    'data_frame.R'
     'def_use_sets.R'
     'equality.R'
     'find_nodes.R'
