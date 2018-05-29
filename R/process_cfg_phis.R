@@ -1,3 +1,6 @@
+# NOTE: It looks like Duncan's intent here was to find which definitions
+# propagate to each phi-function.
+
 findPhiAssignVarNames =
 function(cfg, ssa.graph = cfg$ssa$graph)
 {
