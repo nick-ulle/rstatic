@@ -1,18 +1,18 @@
 context("Brace")
 
 
-test_that("$new() sets parents on body nodes", {
-  x = Brace$new(body = list(
+test_that("$new() sets parents on contents", {
+  x = Brace$new(contents = list(
     Assign$new(Symbol$new("x"), Integer$new(3L))
   ))
 
   # -----
-  expect_identical(x, x$body[[1]]$parent)
+  expect_identical(x, x$contents[[1]]$parent)
 })
 
 
-test_that("copying sets parents on body nodes", {
-  x = Brace$new(body = list(
+test_that("copying sets parents on contents", {
+  x = Brace$new(list(
     Assign$new(Symbol$new("x"), Integer$new(3L))
     , Assign$new(Symbol$new("x"), Symbol$new("y"))
   ))
@@ -20,11 +20,11 @@ test_that("copying sets parents on body nodes", {
   y = x$copy()
 
   # -----
-  expect_identical(y, y$body[[1]]$parent)
-  expect_identical(y, y$body[[2]]$parent)
+  expect_identical(y, y$contents[[1]]$parent)
+  expect_identical(y, y$contents[[2]]$parent)
 
-  expect_false(identical(x, y$body[[1]]$parent))
-  expect_false(identical(y, x$body[[1]]$parent))
+  expect_false(identical(x, y$contents[[1]]$parent))
+  expect_false(identical(y, x$contents[[1]]$parent))
 })
 
 

@@ -45,13 +45,13 @@ test_that("copying a Brace sets correct parents", {
   y = x$copy()
 
   # -----
-  expect_identical(x, x$body[[1]]$parent)
-  expect_identical(x, x$body[[2]]$parent)
-  expect_identical(y, y$body[[1]]$parent)
-  expect_identical(y, y$body[[2]]$parent)
+  expect_identical(x, x$contents[[1]]$parent)
+  expect_identical(x, x$contents[[2]]$parent)
+  expect_identical(y, y$contents[[1]]$parent)
+  expect_identical(y, y$contents[[2]]$parent)
 
-  expect_false(identical(x, y$body[[1]]$parent))
-  expect_false(identical(y, x$body[[1]]$parent))
+  expect_false(identical(x, y$contents[[1]]$parent))
+  expect_false(identical(y, x$contents[[1]]$parent))
 })
 
 

@@ -57,11 +57,11 @@ test_that("return inserted after While, without duplicate Brace", {
   # -----
   expect_is(result, "Brace")
 
-  expect_is(result$body[[1]], "While")
-  expect_identical(result$body[[1]]$parent, result)
+  expect_is(result$contents[[1]], "While")
+  expect_identical(result$contents[[1]]$parent, result)
 
-  expect_is(result$body[[2]], "Return")
-  expect_identical(result$body[[2]]$parent, result)
+  expect_is(result$contents[[2]], "Return")
+  expect_identical(result$contents[[2]]$parent, result)
 })
 
 
@@ -89,6 +89,7 @@ test_that("return inserted for Function", {
 
   # -----
   expect_is(result, "Function")
-  expect_is(result$body[[1]], "Return")
-  expect_identical(result$body[[1]]$parent, result$body)
+  brace = result$body
+  expect_is(brace$contents[[1]], "Return")
+  expect_identical(brace$contents[[1]]$parent, brace)
 })

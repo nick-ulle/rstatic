@@ -30,12 +30,12 @@ function(node, ...) {
 #' @export
 to_r.Brace =
 function(node, ..., keep_braces = FALSE) {
-  body = lapply(node$body, to_r, ...)
+  contents = lapply(node$contents, to_r, ...)
 
-  if (!keep_braces && node$is_hidden && length(body) == 1L)
-    body[[1L]]
+  if (!keep_braces && node$is_hidden && length(contents) == 1L)
+    contents[[1L]]
   else
-    as.call(c(as.name("{"), body))
+    as.call(c(as.name("{"), contents))
 }
 
 

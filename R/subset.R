@@ -39,7 +39,7 @@ length.ASTNode = function(x) {
 
 #' @export
 length.Container = function(x) {
-  length(x$body)
+  length(x$contents)
 }
 
 
@@ -47,7 +47,7 @@ length.Container = function(x) {
 
 #' @export
 `[.Container` = function(x, i, ...) {
-  x$body[i, ...]
+  x$contents[i, ...]
 }
 
 
@@ -60,10 +60,10 @@ length.Container = function(x) {
 
   x = .subset2(x, names(x)[[ i[[1L]] ]], ...)
 
-  if (length(i) > 1)
-    x[[ i[-1L], ... ]]
-  else
-    x
+  if (length(i) <= 1)
+    return (x)
+
+  x[[ i[-1L], ... ]]
 }
 
 #' @export
@@ -71,12 +71,12 @@ length.Container = function(x) {
   if (!is.numeric(i))
     return (NextMethod())
 
-  x = x$body[[ i[[1L]], ... ]]
+  x = x$contents[[ i[[1L]], ... ]]
 
-  if (length(i) > 1)
-    x[[ i[-1], ... ]]
-  else
-    x
+  if (length(i) <= 1)
+    return (x)
+
+  x[[ i[-1], ... ]]
 }
 
 
@@ -87,13 +87,13 @@ length.Container = function(x) {
   if (!is.numeric(i))
     return (NextMethod())
 
-  f = names(x)[[ i[[1L]] ]]
+  field = names(x)[[ i[[1L]] ]]
 
   if (length(i) > 1)
     # Call the replacement method for the child node.
-    value = `[[<-`(x[[f]], i[-1L], ..., value = value)
+    value = `[[<-`(x[[field]], i[-1L], ..., value = value)
 
-  i = f
+  i = field
   # Replace, ignoring the ASTNode class.
   NextMethod()
 }
@@ -103,12 +103,12 @@ length.Container = function(x) {
   if (!is.numeric(i))
     return (NextMethod())
 
-  f = i[[1L]]
+  i1 = i[[1L]]
 
   if (length(i) > 1)
-    value = `[[<-`(x$body[[f]], i[-1L], ..., value = value)
+    value = `[[<-`(x$contents[[i1]], i[-1L], ..., value = value)
 
   # Replace the list element.
-  x$body[[f, ...]] = value
+  x$contents[[i1, ...]] = value
   x
 }

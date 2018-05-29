@@ -206,7 +206,7 @@ create_block_list = function(node, helper, cfg = list(), depth = 1L) {
 
 create_block_list.Brace = function(node, helper, cfg = list(), depth = 1L) {
   # Split into blocks and add them to the graph.
-  blocks = split_blocks(node$body)
+  blocks = split_blocks(node$contents)
 
   # Set block IDs.
   siblings = length(cfg) + seq_along(blocks)
@@ -237,9 +237,9 @@ function(node, helper, cfg = list(), depth = 1L) {
   node$depth = depth
 
   # Only the final expression affects control flow.
-  len = length(node$body)
+  len = length(node$contents)
   if (len > 0)
-    c(cfg, ) := create_block_list(node$body[[len]], helper, cfg, depth)
+    c(cfg, ) := create_block_list(node$contents[[len]], helper, cfg, depth)
   else
     # An empty block is equivalent to a block that ends with non-control flow.
     c(cfg, ) := create_block_list.ASTNode(node, helper, cfg, depth)
@@ -301,7 +301,7 @@ function(node, helper, cfg = list(), depth = 1L) {
   br = Branch$new(Label$new(helper[["sib_block"]])) # TODO:
 
   this_block = helper[["this_block"]]
-  cfg[[this_block]]$body = c(cfg[[this_block]]$body, br)
+  cfg[[this_block]]$contents = c(cfg[[this_block]]$contents, br)
 
   list(cfg, NA)
 }

@@ -34,7 +34,7 @@ node_apply_unsafe.Branch = function(node, fn, ...) {
 
 #' @export
 node_apply_unsafe.Brace = function(node, fn, ...) {
-  node$body = lapply(node$body, node_apply_unsafe, fn, ...)
+  node$contents = lapply(node$contents, node_apply_unsafe, fn, ...)
 
   fn(node)
 }
@@ -86,7 +86,7 @@ node_apply_unsafe.Call = function(node, fn, ...) {
 }
 
 #' @export
-node_apply_unsafe.Callable = function(node, fn, ...) {
+node_apply_unsafe.Function = function(node, fn, ...) {
   node$body = node_apply_unsafe(node$body, fn, ...)
 
   fn(node, ...)

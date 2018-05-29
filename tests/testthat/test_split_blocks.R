@@ -6,7 +6,7 @@ test_that("linear blocks are not changed", {
     x = 3
   })
 
-  result = split_blocks(node$body)
+  result = split_blocks(node$contents)
 
   # -----
   expect_identical(node[[1]], result[[1]][[1]])
@@ -21,7 +21,7 @@ test_that("linear blocks that end with a flow are not changed", {
     }
   })
 
-  result = split_blocks(node$body)
+  result = split_blocks(node$contents)
 
   # -----
   expect_identical(node[[1]], result[[1]][[1]])
@@ -39,7 +39,7 @@ test_that("non-linear blocks are split (depth 1)", {
     z = y
   })
 
-  result = split_blocks(node$body)
+  result = split_blocks(node$contents)
 
   # -----
   expect_true(length(result) == 3)
@@ -47,6 +47,6 @@ test_that("non-linear blocks are split (depth 1)", {
   expect_is(result[[2]], "Block")
   expect_is(result[[3]], "Block")
 
-  expect_is(result[[1]]$body[[2]], "If")
-  expect_is(result[[2]]$body[[2]], "Next")
+  expect_is(result[[1]]$contents[[2]], "If")
+  expect_is(result[[2]]$contents[[2]], "Next")
 })

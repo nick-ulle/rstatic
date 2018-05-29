@@ -31,24 +31,24 @@ function(node, ..., recursive = TRUE, .first = TRUE) {
 #' @export
 insert_return.Brace =
 function(node, ..., recursive = TRUE) {
-  len = length(node$body)
+  len = length(node$contents)
 
   # Empty brace.
   if (len == 0L) {
-    node$body[[1L]] = Return$new(Null$new(), parent = node)
+    node$contents[[1L]] = Return$new(Null$new(), parent = node)
     return (node)
   }
 
   # Check for function definitions.
   if (recursive) {
-    defs = find_nodes(node$body[-len], is, "Function", recursive = FALSE)
+    defs = find_nodes(node$contents[-len], is, "Function", recursive = FALSE)
     for (d in defs)
       node[[d]] = insert_return.Function(node[[d]], ...)
   }
 
-  last = insert_return(node$body[[len]], ..., recursive = recursive)
+  last = insert_return(node$contents[[len]], ..., recursive = recursive)
 
-  node$body = c(node$body[-len], last)
+  node$contents = c(node$contents[-len], last)
 
   node
 }
