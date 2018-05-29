@@ -28,7 +28,6 @@ binding_factory = function(field, container = FALSE) {
 }
 
 
-#' @export
 ASTNode = R6::R6Class("ASTNode",
   "private" = list(
     deep_clone = function(name, value) {
@@ -75,7 +74,7 @@ ASTNode = R6::R6Class("ASTNode",
 
 # Containers ----------------------------------------
 
-CodeList = R6::R6Class("CodeList", inherit = ASTNode,
+Container = R6::R6Class("Container", inherit = ASTNode,
   "public" = list(
     .contents = NULL,
 
@@ -92,19 +91,13 @@ CodeList = R6::R6Class("CodeList", inherit = ASTNode,
 )
 
 #' @export
-Container = R6::R6Class("Container", inherit = CodeList,
-  "active" = list(
-    body = binding_factory(".contents", container = TRUE)
-  )
-)
-
-#' @export
 Brace = R6::R6Class("Brace", inherit = Container,
   "public" = list(
     is_hidden = FALSE,
 
-    initialize = function(body = list(), is_hidden = FALSE, parent = NULL) {
-      super$initialize(contents = body, parent = parent)
+    initialize = function(contents = list(), is_hidden = FALSE, parent = NULL)
+    {
+      super$initialize(contents = contents, parent = parent)
 
       self$is_hidden = is_hidden
     }
@@ -114,7 +107,6 @@ Brace = R6::R6Class("Brace", inherit = Container,
 
 # Control Flow ----------------------------------------
 
-#' @export
 ControlFlow = R6::R6Class("ControlFlow", inherit = ASTNode)
 
 #' @export
@@ -158,7 +150,7 @@ Return = R6::R6Class("Return", inherit = Branch,
   )
 )
 
-#' @export
+
 ConditionalBranch = R6::R6Class("ConditionalBranch", inherit = ControlFlow,
   "public" = list(
     .body = NULL,
@@ -200,7 +192,7 @@ If = R6::R6Class("If", inherit = ConditionalBranch,
   )
 )
 
-#' @export
+
 Loop = R6::R6Class("Loop", inherit = ConditionalBranch)
 
 #' @export
@@ -245,16 +237,19 @@ While = R6::R6Class("While", inherit = Loop,
 
 # Calls ----------------------------------------
 
-#' export
-Application = R6::R6Class("Application", inherit = CodeList,
+Application = R6::R6Class("Application", inherit = ASTNode,
   "public" = list(
+    .args = NULL,
+
     initialize = function(args = list(), parent = NULL) {
-      super$initialize(contents = args, parent = parent)
+      super$initialize(parent = parent)
+
+      self$args = args
     }
   ),
 
   "active" = list(
-    args = binding_factory(".contents", container = TRUE)
+    args = binding_factory(".args")
   )
 )
 
@@ -390,16 +385,20 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
 
 # Functions
 # --------------------
-#' @export
-Callable = R6::R6Class("Callable", inherit = CodeList,
+
+Callable = R6::R6Class("Callable", inherit = ASTNode,
   "public" = list(
+    .params = NULL,
+
     initialize = function(params, parent = NULL) {
-      super$initialize(contents = params, parent = parent)
+      super$initialize(parent = parent)
+
+      self$params = params
     }
   ),
 
   "active" = list(
-    params = binding_factory(".contents", container = TRUE)
+    params = binding_factory(".params")
   )
 )
 
@@ -442,7 +441,6 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
 
 # Literals ----------------------------------------
 
-#' @export
 Literal = R6::R6Class("Literal", inherit = ASTNode,
   "public" = list(
     value = NULL,

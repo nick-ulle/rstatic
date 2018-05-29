@@ -20,10 +20,17 @@ Block = R6::R6Class("Block", inherit = Container,
       self$phi = phi
     },
 
-    set_phi = function(phi) {
-      self$.phi[[phi$write$basename]] = set_parent(phi, self)
+    #has_phi = function(basenames) {
+    #  basenames %in% names(self$.phi)
+    #},
 
-      invisible(NULL)
+    insert_phi = function(basenames) {
+      is_new = match(basenames, names(self$.phi), 0L) == 0L
+
+      for (name in basenames[is_new])
+        self$.phi[[name]] = Phi$new(Symbol$new(name))
+
+      is_new
     }
   ),
 
@@ -51,46 +58,79 @@ Label = R6::R6Class("Label", inherit = ASTNode,
   )
 )
 
+
+# FIXME: This probably shouldn't be a container.
 #' @export
-Phi = R6::R6Class("Phi", inherit = ASTNode,
-  # FIXME: Phi and Assign should probably have a common superclass for
-  # variable-changing instructions. The Replacement class is also related.
+Phi = R6::R6Class("Phi", inherit = Container,
   "public" = list(
     .write = NULL,
-    blocks = integer(0),
-    read = list(),
+    ids = integer(0),
 
     initialize = function(write, parent = NULL) {
-      super$initialize(parent)
+      super$initialize(parent = parent)
 
       self$write = write
     },
 
-    set_read = function(block, value) {
-      idx = match(block, self$blocks)
-      if (is.na(idx)) {
-        idx = length(self$blocks) + 1L
-        self$blocks[[idx]] = block
-      }
-      self$read[[idx]] = value
-      names(self$read)[[idx]] = block
+    set = function(id, value) {
+      idx = match(id, self$ids, length(self$ids) + 1L)
+
+      self$ids[[idx]] = id
+      self$contents[[idx]] = value
+
+      NULL
     },
 
-    get_read = function(block) {
-      idx = match(block, self$blocks)
-      self$read[[idx]]
+    get = function(block) {
+      self$contents[match(block, self$blocks)]
     }
   ),
 
   "active" = list(
-    write = function(value) {
-      if (missing(value))
-        return (self$.write)
-
-      if (!is(value, "Symbol"))
-        value = Symbol$new(value)
-
-      self$.write = set_parent(value, self)
-    }
+    write = binding_factory(".write")
   )
 )
+
+##' @export
+#Phi = R6::R6Class("Phi", inherit = ASTNode,
+#  # FIXME: Phi and Assign should probably have a common superclass for
+#  # variable-changing instructions. The Replacement class is also related.
+#  "public" = list(
+#    .write = NULL,
+#    blocks = integer(0),
+#    read = list(),
+#
+#    initialize = function(write, parent = NULL) {
+#      super$initialize(parent)
+#
+#      self$write = write
+#    },
+#
+#    set_read = function(block, value) {
+#      idx = match(block, self$blocks)
+#      if (is.na(idx)) {
+#        idx = length(self$blocks) + 1L
+#        self$blocks[[idx]] = block
+#      }
+#      self$read[[idx]] = value
+#      names(self$read)[[idx]] = block
+#    },
+#
+#    get_read = function(block) {
+#      idx = match(block, self$blocks)
+#      self$read[[idx]]
+#    }
+#  ),
+#
+#  "active" = list(
+#    write = function(value) {
+#      if (missing(value))
+#        return (self$.write)
+#
+#      if (!is(value, "Symbol"))
+#        value = Symbol$new(value)
+#
+#      self$.write = set_parent(value, self)
+#    }
+#  )
+#)
