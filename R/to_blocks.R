@@ -48,12 +48,13 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   if (insert_return)
     node = insert_return(node)
 
+  # FIXME: Include a return_block so that return isn't hard-coded to 1.
   helper = c(
-    this_block = NA, sib_block = 1, #"%exit", #cfg$exit,
+    this_block = NA, sib_block = 1L,
     next_block = NA, break_block = NA)
 
-  cfg = list(Block$new(Symbol$new("._return_")))
-  c(blocks, ) := create_block_list(node, helper, cfg)
+  blocks = list(Block$new(Symbol$new("._return_"), id = 1L, depth = 1L))
+  c(blocks, ) := create_block_list(node, helper, blocks)
 
   # Sort the blocks in reverse postorder to make them easier to read and ensure
   # SSA numbers will increase monotonically.
@@ -75,10 +76,8 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   if (!in_place)
     node = node$copy()
 
-  blocks = to_blocks.Brace(node$body, in_place = FALSE, ssa = FALSE,
+  node$body = to_blocks.Brace(node$body, in_place = FALSE, ssa = FALSE,
     insert_return)
-
-  node$body = blocks
 
   # TODO: Optionally insert default argument evaluation points into generated
   # code.
@@ -258,7 +257,7 @@ function(node, helper, cfg = list(), depth = 1L) {
 create_block_list.Return =
 function(node, helper, cfg = list(), depth = 1L) {
   # Link to exit block.
-  node$target = Label$new("exit")
+  node$target = Label$new(1)
 
   list(cfg, NA)
 }
