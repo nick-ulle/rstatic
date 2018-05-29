@@ -3,7 +3,7 @@
 #' This function solves for the maximal fixed point in a backward analysis.
 #'
 #' @param cfg (ControlFlowGraph) The CFG to compute the analysis for.
-#' @param initial Initial guess for result set for each block.
+#' @param initial Initial guess of solution for each block.
 #' @param killgen Kill and gen sets for each block.
 #' @param update A function to compute the update set for a block.
 #' @param ... Additional arguments to the update function.
@@ -11,22 +11,25 @@
 #' @param full_analysis (logical) If \code{TRUE}, the update sets are computed
 #' in addition to the result sets.
 #'
-#' @param (list) A list that contains the result sets and (in a full analysis)
-#' the update sets.
+#' @return A two-element list. The first element, "entry", is \code{NULL}, or
+#' for a full analysis, a list of solution sets at the entry to each block. The
+#' second element, "exit", is a list of solution sets at the exit from each
+#' block.
 #'
 #' @export
 backward_analysis =
-function(cfg, initial, killgen, confluence = union,
-  update = dfa_standard_update, ...,
-  full_analysis = FALSE, max_iter = 1000L)
+function(cfg, initial, gen, kill
+  , confluence = union
+  , update = dfa_standard_update
+  , ..., full_analysis = FALSE, max_iter = 1000L)
 {
-  # Step 1: Initialize worklist.
+  # Step 1: Initialize worklist of edges.
   # TODO: Sort worklist so blocks are bottom to top.
-  worklist = igraph::ends(cfg$graph, igraph::E(cfg$graph))
+  worklist = igraph::ends(cfg, igraph::E(cfg))
 
   # Step 2: Iterate until worklist is empty.
-  i = 0L
-  while (nrow(worklist) > 0 && i < max_iter) {
+  iter = 0L
+  while (nrow(worklist) > 0 && iter < max_iter) {
     # For backward analysis, destination vertex comes first.
     b      = worklist[1, 2]
     b_next = worklist[1, 1]
@@ -34,33 +37,27 @@ function(cfg, initial, killgen, confluence = union,
 
     # Update result set for the next block.
     old = initial[[b_next]]
-    update_set = update(initial[[b]], killgen[[b]], ...)
+    update_set = update(initial[[b]], gen[[b]], kill[[b]], ...)
     new = confluence(old, update_set)
 
     if (length(old) != length(new)) {
       initial[[b_next]] = new
 
       # Add edges from b_next to ancestors.
-      in_edges = igraph::incident(cfg$graph, b_next, "in")
-      to_bind = igraph::ends(cfg$graph, in_edges)
+      in_edges = igraph::incident(cfg, b_next, "in")
+      to_bind = igraph::ends(cfg, in_edges)
       worklist = rbind(to_bind, worklist)
     }
 
-    i = i + 1L
+    iter = iter + 1L
   }
 
-  # Step 3: If needed, the entry sets can be computed by calling analysis() on
-  # each block.
-  if (full_analysis) {
-    update_sets = lapply(names(initial), function(name) {
-      update(initial[[name]], killgen[[name]])
-    })
-    names(update_sets) = names(initial)
-  } else {
-    update_sets = NULL
+  # Step 3: The entry sets can be computed by an update() on each exit set.
+  entry = if (full_analysis) {
+    Map(update, initial, gen, kill)
   }
 
-  list(result = initial, update = update_sets)
+  list(entry = entry, exit = initial)
 }
 
 
@@ -74,8 +71,8 @@ function(cfg, initial, killgen, confluence = union,
 #' @param killgen The kill and gen sets for the current block.
 #'
 #' @return The update set for the next block.
-dfa_standard_update = function(result, killgen, ...) {
-  union(setdiff(result, killgen[["kill"]]), killgen[["gen"]])
+dfa_standard_update = function(result, gen, kill, ...) {
+  union(setdiff(result, kill), gen)
 }
 
 

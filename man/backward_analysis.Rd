@@ -4,16 +4,14 @@
 \alias{backward_analysis}
 \title{Compute Fixed Point Solution for Backward Analysis}
 \usage{
-backward_analysis(cfg, initial, killgen, confluence = union,
+backward_analysis(cfg, initial, gen, kill, confluence = union,
   update = dfa_standard_update, ..., full_analysis = FALSE,
   max_iter = 1000L)
 }
 \arguments{
 \item{cfg}{(ControlFlowGraph) The CFG to compute the analysis for.}
 
-\item{initial}{Initial guess for result set for each block.}
-
-\item{killgen}{Kill and gen sets for each block.}
+\item{initial}{Initial guess of solution for each block.}
 
 \item{update}{A function to compute the update set for a block.}
 
@@ -24,8 +22,13 @@ in addition to the result sets.}
 
 \item{max_iter}{(integer) Maximum number of iterations to run.}
 
-\item{(list)}{A list that contains the result sets and (in a full analysis)
-the update sets.}
+\item{killgen}{Kill and gen sets for each block.}
+}
+\value{
+A two-element list. The first element, "entry", is \code{NULL}, or
+for a full analysis, a list of solution sets at the entry to each block. The
+second element, "exit", is a list of solution sets at the exit from each
+block.
 }
 \description{
 This function solves for the maximal fixed point in a backward analysis.

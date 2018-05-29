@@ -4,7 +4,7 @@
 \alias{dfa_standard_update}
 \title{Standard Update for Data Flow Analyses}
 \usage{
-dfa_standard_update(result, killgen, ...)
+dfa_standard_update(result, gen, kill, ...)
 }
 \arguments{
 \item{result}{The result set for the current block.}

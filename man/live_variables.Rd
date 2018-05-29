@@ -4,16 +4,27 @@
 \alias{live_variables}
 \title{Live Variables Analysis}
 \usage{
-live_variables(cfg, ...)
+live_variables(node, cfg = compute_cfg(node), du = def_use_sets(node,
+  by_block = TRUE, only_undefined_uses = TRUE), ...)
 }
 \arguments{
-\item{cfg}{(ControlFlowGraph) The control flow graph to compute the live
-variables analysis for.}
+\item{node}{The Function or BlockList to analyze.}
+
+\item{cfg}{(igraph) The control flow graph for the given code.}
+
+\item{du}{(list) Definition and use sets for each block, as computed by
+\code{def_use_sets()}.}
 
 \item{...}{Additional arguments to \code{backward_analysis()}.}
 }
+\value{
+The solution returned by \code{backward_analysis()}.
+}
 \description{
-This function computes the live variables at the exit of each basic block. A
-variable is live if it has already been defined and it will be used in some
-subsequent block.
+Given code in basic blocks, this function computes the live variables at the
+exit (and optionally, the entry) of each block.
+}
+\details{
+A variable is live if it has already been defined and it will be used in
+some subsequent block.
 }

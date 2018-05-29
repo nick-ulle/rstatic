@@ -34,6 +34,7 @@ Collate:
     'compute_cfg.R'
     'constant_propagation.R'
     'counter.R'
+    'def_use_sets.R'
     'equality.R'
     'find_nodes.R'
     'flow_analysis.R'
