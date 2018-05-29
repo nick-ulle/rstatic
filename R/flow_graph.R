@@ -184,20 +184,3 @@ DataFlowGraph = R6::R6Class("DataFlowGraph", inherit = FlowGraph,
     }
   )
 )
-
-
-# FIXME: Functions for succ/preds need consistent parameters.
-successors = function(block, cfg) {
-  if (is(block, "Block"))
-    block = block$id
-
-  names(igraph::neighbors(cfg$graph, block, "out"))
-}
-
-predecessors = function(block, cfg) {
-  if (is(block, "Block"))
-    block = block$id
-
-  names(igraph::neighbors(cfg$graph, block, "in"))
-}
-
