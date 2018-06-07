@@ -58,10 +58,11 @@ function(ast, fun, ...)
 }
 
 #' @export
-astTraverse.Return =
+astTraverse.Return = astTraverse.Application =
 function(ast, fun, ...)
 {
-  astTraverse(ast$args, fun, ...)
+#  astTraverse(ast$args, fun, ...)
+  astTraverse(ast$read, fun, ...)
 }
 
 #' @export
