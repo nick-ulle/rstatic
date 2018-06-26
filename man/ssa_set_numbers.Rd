@@ -13,6 +13,8 @@ ssa_set_numbers(node, cfg, dom_t, blocks, active, counter, ...)
 
 \item{dom_t}{(igraph) The dominator tree for the CFG.}
 
+\item{blocks}{(list) The blocks in the control flow graph.}
+
 \item{active}{(integer) A vector of active SSA numbers, set by previous
 blocks.}
 

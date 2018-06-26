@@ -13,6 +13,12 @@ backward_analysis(cfg, initial, gen, kill, confluence = union,
 
 \item{initial}{Initial guess of solution for each block.}
 
+\item{gen}{Gen sets for each block.}
+
+\item{kill}{Kill sets for each block.}
+
+\item{confluence}{A function to combine old set and update set for a block.}
+
 \item{update}{A function to compute the update set for a block.}
 
 \item{...}{Additional arguments to the update function.}
@@ -21,8 +27,6 @@ backward_analysis(cfg, initial, gen, kill, confluence = union,
 in addition to the result sets.}
 
 \item{max_iter}{(integer) Maximum number of iterations to run.}
-
-\item{killgen}{Kill and gen sets for each block.}
 }
 \value{
 A two-element list. The first element, "entry", is \code{NULL}, or

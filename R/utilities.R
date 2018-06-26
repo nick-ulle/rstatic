@@ -15,8 +15,8 @@
     stop(sprintf("cannot unpack %i elements into %i variables.", len_y, len_x))
 
   keep = x != ""
-  dots = list(x[keep], y[keep])
-  .Internal(mapply(assign, dots, list(envir = parent.frame())))
+  mapply(assign, x[keep], y[keep], MoreArgs = list(envir = parent.frame()),
+    SIMPLIFY = FALSE, USE.NAMES = FALSE)
 
   invisible(NULL)
 }

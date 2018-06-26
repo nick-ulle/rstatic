@@ -210,10 +210,10 @@ markov2 = function(n, p, init = 0) {
 ```
 
 We can convert the `markov2` function to a control flow graph with the
-`to_cfg()` method. When given a function as input, `to_cfg()` will
+`to_blocks()` method. When given a function as input, `to_blocks()` will
 automatically convert it to an AST and then convert the AST to a CFG.
 ```{r}
-markov2 = to_cfg(markov2)
+markov2 = to_blocks(markov2)
 
 cfg = markov2$cfg
 class(cfg)
@@ -221,7 +221,7 @@ class(cfg)
 
 As you might expect, the `ControlFlowGraph` class represents a control flow
 graph. In __rstatic__, each control flow graph corresponds to one function;
-`to_cfg()` automatically wraps code in a function definition as needed.
+`to_blocks()` automatically wraps code in a function definition as needed.
 `ControlFlowGraph` is an __R6__ class, so the `cfg` variable is a reference, as
 discussed in the previous section.
 

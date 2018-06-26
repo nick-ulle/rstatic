@@ -9,7 +9,11 @@ dfa_standard_update(result, gen, kill, ...)
 \arguments{
 \item{result}{The result set for the current block.}
 
-\item{killgen}{The kill and gen sets for the current block.}
+\item{gen}{The gen set for the current block.}
+
+\item{kill}{The kill set for the current block.}
+
+\item{...}{Additional optional arguments to the update function.}
 }
 \value{
 The update set for the next block.

@@ -58,6 +58,7 @@ function(node, check, ..., recursive = TRUE, .address = integer(0))
 #' Nodes are replaced from the bottom up, so the given node is replaced last.
 #'
 #' @param node (ASTNode) The code object to modify.
+#' @param fn (function) The function to call on each node.
 #' @examples
 #' rename_symbols = function(node, name, newname)
 #' { # Rename symbols to something else.

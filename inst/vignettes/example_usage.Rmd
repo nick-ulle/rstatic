@@ -1,0 +1,32 @@
+---
+title: "Example Usage"
+author: "Nick Ulle"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{rstatic Reference}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Suppose we have some code for an analysis:
+```{r}
+example1 = function() {
+  x = 3
+  y = x
+  z = x
+
+  # ...
+  bar(y)
+}
+```
+
+We'd like to analyze this code to identify and mark where variables are no
+longer needed, so that they can be garbage collected.
+
+To do this, we first use the `to_blocks()` function to get information about
+control flow in the sample code.
+```{r}
+blocks = to_blocks(example1)
+```
+

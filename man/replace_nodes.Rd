@@ -8,6 +8,8 @@ replace_nodes(node, fn, ...)
 }
 \arguments{
 \item{node}{(ASTNode) The code object to modify.}
+
+\item{fn}{(function) The function to call on each node.}
 }
 \description{
 This function replaces each node of an ASTNode object (including the object

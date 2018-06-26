@@ -16,6 +16,8 @@ to_ssa(node, cfg = compute_cfg(node), dom_t = dominator_tree(cfg, 2),
 
 \item{in_place}{(logical) Modify the node in-place? If \code{FALSE}, the
 node is copied.}
+
+\item{...}{Additional arguments to methods.}
 }
 \value{
 NULL, because this function modifies the blocks in place.

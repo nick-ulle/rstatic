@@ -9,6 +9,7 @@
 #' @param dom_t (igraph) The dominator tree for the code.
 #' @param in_place (logical) Modify the node in-place? If \code{FALSE}, the
 #' node is copied.
+#' @param ... Additional arguments to methods.
 #' 
 #' @return NULL, because this function modifies the blocks in place.
 #'
@@ -85,6 +86,7 @@ function(node, defs_by_block, dominators, live)
 #' @param node (Function) The code object to number.
 #' @param cfg (igraph) The control flow graph.
 #' @param dom_t (igraph) The dominator tree for the CFG.
+#' @param blocks (list) The blocks in the control flow graph.
 #' @param active (integer) A vector of active SSA numbers, set by previous
 #' blocks.
 #' @param counter (Counter) A counter to generate unique SSA numbers.
