@@ -541,7 +541,11 @@ Symbol = R6::R6Class("Symbol", inherit = ASTNode,
       basename, ssa_number = NA_integer_,
       namespace = NA_character_, namespace_fn = NULL,
       parent = NULL
-    ) {
+      ) {
+        
+      if (is(basename, "Character"))
+        basename = basename$value
+        
       if ( !(is.character(basename) || is.symbol(basename)) )
         stop("Symbol basename must be a character or a name.", call. = FALSE)
 
