@@ -10,8 +10,12 @@
 #' @export
 format.ASTNode = function(x, indent = 0, ...) {
   members = setdiff(ls(x), c("initialize", "clone"))
-  is_method = vapply(members, function(f) is.function(x[[f]]), TRUE)
-
+  oclass = class(x)
+  class(x) = c("ASTNode", "R6")
+  #  is_method = vapply(members, function(f) is.function(base::`[[`(x, f)), TRUE)
+  is_method = vapply(members, function(f) is.function(x[[f]]), TRUE)  
+  class(x) = oclass
+  
   members[is_method] = paste(members[is_method], "()", sep = "")
   members = members[order(is_method, members)]
   members = paste("$", members, sep = "", collapse = " ")
