@@ -145,8 +145,11 @@ to_ast.call = function(expr) {
         return (Break$new())
       , "next" =
         return (Next$new())
-      , "return" = {
-        arg = to_ast(expr[[2]])
+    , "return" = {
+          if(length(expr) > 1)
+              arg = to_ast(expr[[2]])
+          else
+              arg = NULL        
         return (Return$new(arg))
       }
       , "<<-" = {
