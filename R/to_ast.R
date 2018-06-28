@@ -33,13 +33,42 @@ to_ast.expression = function(expr) {
 
 
 #' @export
+to_ast.default = function(expr) {
+  if (is.function(expr)) {
+    to_ast.function(expr)
+
+  } else {
+    msg = sprintf(
+      "no applicable method for 'to_ast' applied to an object of class %s"
+      , paste0("'", class(expr), "'", collpase = ", "))
+    stop(msg)
+  }
+}
+
+
+#' @export
 to_ast.function = function(expr)
 {
   name = as.character(substitute(expr))
-    
-  # FIXME: Save the parent environment of the function.
-  fn = list(name, formals(args(expr)), body(expr))
+  arg_list = args(expr)
 
+  # FIXME: The following primitives have no named parameters, so `args()`
+  # returns `NULL`.
+  #
+  #  [1] ":"        "("        "["        "[["       "[[<-"     "[<-"
+  #  [7] "{"        "@"        "@<-"      "&&"       "<-"       "<<-"
+  # [13] "="        "||"       "~"        "$"        "$<-"      "break"
+  # [19] "for"      "function" "if"       "next"     "repeat"   "return"
+  # [25] "while"
+  #
+  # For now, treat these like they do not have any parameters.
+  if (is.null(arg_list))
+    arg_list = list()
+  else
+    arg_list = formals(arg_list)
+
+  # FIXME: Save the parent environment of the function.
+  fn = list(name, arg_list, body(expr))
   to_ast_callable(fn, is.primitive(expr))
 }
 
@@ -54,8 +83,6 @@ to_ast.function = function(expr)
 #' @param is_primitive (logical) Whether or not the expression is a primitive.
 #'
 to_ast_callable = function(expr, is_primitive = FALSE) {
-  # TODO: If this is a function definition, the environment it will exist in
-  # hasn't been created yet, so what should happen?
   params = Map(function(name, default) {
     if (is(default, "name") && default == "")
       default = NULL
