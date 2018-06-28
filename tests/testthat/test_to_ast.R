@@ -77,3 +77,63 @@ test_that("function definitions are converted to Functions", {
   expect_is(p2, "Parameter")
   expect_equal(p2$default$value, 3)
 })
+
+
+test_that("all functions in package:base", {
+  skip_on_cran()
+
+  package = "package:base"
+  names = ls(package)
+  failed = vapply(names, function(name) {
+    fn = get(name, package)
+    is.function(fn) && is(try(to_ast(fn), silent = TRUE), "try-error")
+  }, NA)
+  names = names[failed]
+
+  expect_equal(length(names), 0, info = paste(names, collapse = ", "))
+})
+
+
+test_that("all functions in package:utils", {
+  skip_on_cran()
+
+  package = "package:utils"
+  names = ls(package)
+  failed = vapply(names, function(name) {
+    fn = get(name, package)
+    is.function(fn) && is(try(to_ast(fn), silent = TRUE), "try-error")
+  }, NA)
+  names = names[failed]
+
+  expect_equal(length(names), 0, info = paste(names, collapse = ", "))
+})
+
+
+test_that("all functions in package:stats", {
+  skip_on_cran()
+
+  package = "package:stats"
+  names = ls(package)
+  failed = vapply(names, function(name) {
+    fn = get(name, package)
+    is.function(fn) && is(try(to_ast(fn), silent = TRUE), "try-error")
+  }, NA)
+  names = names[failed]
+
+  expect_equal(length(names), 0, info = paste(names, collapse = ", "))
+})
+
+
+test_that("all functions in package:tools", {
+  skip_on_cran()
+
+  package = "package:tools"
+  names = ls(package)
+  failed = vapply(names, function(name) {
+    fn = get(name, package)
+    is.function(fn) && is(try(to_ast(fn), silent = TRUE), "try-error")
+  }, NA)
+  names = names[failed]
+
+  expect_equal(length(names), 0, info = paste(names, collapse = ", "))
+})

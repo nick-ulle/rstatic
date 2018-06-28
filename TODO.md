@@ -1,18 +1,22 @@
 
 # TODO
 
-to_ast() can't handle  "Adobe_glyphs" (data.frame), 
-"charset_to_Unicode" (noquote, hexmode) in package:tools
-```
-zz = lapply(ls("package:tools"), function(x) try(to_ast(get(x, "package:tools"))))
-ls("package:tools")[(sapply(zz, is, 'try-error'))]
-```
-For package:base, "R.home"    "Vectorize"  (simple.list)
+Built-ins where `to_ast()` fails:
 
-package:stats - selfStart objects
- [1] "SSasymp"     "SSasympOff"  "SSasympOrig" "SSbiexp"    
- [5] "SSfol"       "SSfpl"       "SSgompertz"  "SSlogis"    
- [9] "SSmicmen"    "SSweibull"  
+*   [?] `Adobe_glyphs` -- This is not a function; unclear how/what rstatic
+    should do with this or how it relates to code analysis.
+*   [?] `tools::charset_to_Unicode` -- This is not a function.
+*   [ ] package:stats - selfStart objects
+    ```
+    [1] "SSasymp"     "SSasympOff"  "SSasympOrig" "SSbiexp"    
+    [5] "SSfol"       "SSfpl"       "SSgompertz"  "SSlogis"    
+    [9] "SSmicmen"    "SSweibull"  
+    ```
+    These are functions that have unusual classes.
+
+*   [ ] Warnings about `formals(args(fn))` on primitives that do not have named
+    parameters.
+
 
 * Code Normalization
   * [ ] pull out if-statements nested in other expressions
