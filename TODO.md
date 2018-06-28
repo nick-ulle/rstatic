@@ -1,6 +1,19 @@
 
 # TODO
 
+to_ast() can't handle  "Adobe_glyphs" (data.frame), 
+"charset_to_Unicode" (noquote, hexmode) in package:tools
+```
+zz = lapply(ls("package:tools"), function(x) try(to_ast(get(x, "package:tools"))))
+ls("package:tools")[(sapply(zz, is, 'try-error'))]
+```
+For package:base, "R.home"    "Vectorize"  (simple.list)
+
+package:stats - selfStart objects
+ [1] "SSasymp"     "SSasympOff"  "SSasympOrig" "SSbiexp"    
+ [5] "SSfol"       "SSfpl"       "SSgompertz"  "SSlogis"    
+ [9] "SSmicmen"    "SSweibull"  
+
 * Code Normalization
   * [ ] pull out if-statements nested in other expressions
   * [ ] pull out loops nested in other expressions
