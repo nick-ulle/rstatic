@@ -137,21 +137,26 @@ to_ast.call = function(expr) {
       # are actually keywords.
       "function" =
         return (to_ast_callable(expr))
+
       , "repeat" = {
-          body = to_ast(expr[[2]])
-          return (While$new(Logical$new(TRUE), body, is_repeat = TRUE))
-        }
+        body = to_ast(expr[[2]])
+        return (While$new(Logical$new(TRUE), body, is_repeat = TRUE))
+      }
+
       , "break" =
         return (Break$new())
+
       , "next" =
         return (Next$new())
-    , "return" = {
+
+      , "return" = {
           if(length(expr) > 1)
               arg = to_ast(expr[[2]])
           else
-              arg = NULL        
+              arg = Null$new()
         return (Return$new(arg))
       }
+
       , "<<-" = {
         read = to_ast(expr[[3]])
         write = to_ast(expr[[2]])
