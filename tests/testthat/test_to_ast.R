@@ -127,6 +127,7 @@ test_that("all functions in package:stats", {
 test_that("all functions in package:tools", {
   skip_on_cran()
 
+  require("tools")
   package = "package:tools"
   names = ls(package)
   failed = vapply(names, function(name) {
