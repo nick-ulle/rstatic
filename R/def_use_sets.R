@@ -122,7 +122,7 @@ function(node
 # FIXME: def_use_sets_line.Phi
 
 #' @export
-def_use_sets_line.Application =
+def_use_sets_line.Invocation =
 function(node
   , initial = list(def = character(0), use = character(0))
   , ...)

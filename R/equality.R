@@ -15,9 +15,9 @@ are_equal = function(e1, e2) {
 }
 
 
-# Applications
+# Invocations
 # --------------------
-are_equal.Application = function(e1, e2) {
+are_equal.Invocation = function(e1, e2) {
   if (length(e1$args) != length(e2$args))
     return (FALSE)
 

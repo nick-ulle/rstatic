@@ -15,9 +15,9 @@ names.Loop    = function(x) c("body", "exit")
   names.For   = function(x) c("body", "exit", "variable", "iterator")
 
 #' @export
-names.Application = function(x) c("args")
+names.Invocation = function(x) c("args")
 #' @export
-  names.Call      = function(x) c("fn", "args")
+  names.Call     = function(x) c("fn", "args")
 
 #' @export
 names.Assign    = function(x) c("write", "read")

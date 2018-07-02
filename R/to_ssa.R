@@ -241,7 +241,7 @@ function(node, active, counter, ...)
 }
 
 #' @export
-ssa_set_numbers_line.Application =
+ssa_set_numbers_line.Invocation =
 function(node, active, counter, ...)
 {
   # NOTE: This assumes there are no assignments in the arguments.

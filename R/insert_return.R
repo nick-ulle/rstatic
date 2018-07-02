@@ -93,7 +93,7 @@ function(node, ...) {
 insert_return.Symbol = insert_return.Literal
 
 #' @export
-insert_return.Application = insert_return.Literal
+insert_return.Invocation = insert_return.Literal
 
 
 #' @export

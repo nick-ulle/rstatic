@@ -237,7 +237,7 @@ While = R6::R6Class("While", inherit = Loop,
 
 # Calls ----------------------------------------
 
-Application = R6::R6Class("Application", inherit = ASTNode,
+Invocation = R6::R6Class("Invocation", inherit = ASTNode,
   "public" = list(
     .args = NULL,
 
@@ -254,7 +254,7 @@ Application = R6::R6Class("Application", inherit = ASTNode,
 )
 
 #' @export
-Call = R6::R6Class("Call", inherit = Application,
+Call = R6::R6Class("Call", inherit = Invocation,
   "public" = list(
     .fn = NULL,
 
@@ -284,7 +284,7 @@ Internal = R6::R6Class("Internal", inherit = Call,
 )
 
 #' @export
-Parenthesis = R6::R6Class("Parenthesis", inherit = Application)
+Parenthesis = R6::R6Class("Parenthesis", inherit = Invocation)
 
 #' @export
 Namespace = R6::R6Class("Namespace", inherit = Call)

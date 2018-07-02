@@ -72,7 +72,7 @@ node_apply_unsafe.While = function(node, fn, ...) {
 }
 
 #' @export
-node_apply_unsafe.Application = function(node, fn, ...) {
+node_apply_unsafe.Invocation = function(node, fn, ...) {
   node$args = lapply(node$args, node_apply_unsafe, fn, ...)
   
   fn(node)
