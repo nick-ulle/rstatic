@@ -26,6 +26,7 @@ RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 Collate: 
     'blocks_to_r.R'
+    'as_language.R'
     'code_objects_ast.R'
     'code_objects_cfg.R'
     'collapse_namespaces.R'
@@ -48,6 +49,5 @@ Collate:
     'subset.R'
     'to_ast.R'
     'to_blocks.R'
-    'to_r.R'
     'to_ssa.R'
     'utilities.R'

@@ -34,12 +34,12 @@ function(node, ...) {
 
 #' @export
 blocks_to_r.Branch = function(node, blocks, ...) {
-  list(to_r.Branch(node, ...), node$target$name)
+  list(as_language.Branch(node, ...), node$target$name)
 }
 
 #' @export
 blocks_to_r.Break = function(node, blocks, ...) {
-  list(to_r(node, ...), NA)
+  list(as_language(node, ...), NA)
 }
 
 #' @export
@@ -55,7 +55,7 @@ blocks_to_r.Block = function(node, blocks, ...) {
   repeat {
     len = length(node)
 
-    lines = lapply(node[-len], to_r, ...)
+    lines = lapply(node[-len], as_language, ...)
     c(last, succ) := blocks_to_r(node[[len]], blocks, ...)
     all_lines = c(all_lines, lines, last)
 
@@ -97,7 +97,7 @@ blocks_to_r.If = function(node, blocks, ...) {
   else if (len > 1)
     stop("if-statement has successor conflict.")
 
-  condition = to_r(node$condition, ...)
+  condition = as_language(node$condition, ...)
 
   # Assemble into an if-statement.
   exp = call("if", condition, true, false)
@@ -109,8 +109,8 @@ blocks_to_r.If = function(node, blocks, ...) {
 #' @export
 blocks_to_r.For = function(node, blocks, ...) {
   c(body, ) := blocks_to_r_brace(node$body$name, blocks, ...)
-  variable = to_r.Symbol(node$variable, ...)
-  iterator = to_r(node$iterator, ...)
+  variable = as_language.Symbol(node$variable, ...)
+  iterator = as_language(node$iterator, ...)
 
   exp = call("for", variable, iterator, body)
 
@@ -127,7 +127,7 @@ function(node, blocks, ...) {
     if (node$is_repeat) {
       call("repeat", body)
     } else {
-      condition = to_r(node$condition, ...)
+      condition = as_language(node$condition, ...)
       call("while", condition, body)
     }
 

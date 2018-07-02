@@ -32,7 +32,7 @@ deparse_to_string = function(expr, ...) {
 #' @export
 toString.ASTNode =
 function(x, ...) {
-  deparse_to_string(to_r(x, ..., keep_ssa = TRUE))
+  deparse_to_string(as_language(x, ..., keep_ssa = TRUE))
 }
 
 #' @export

@@ -8,7 +8,7 @@ test_that("no branches", {
   })
   
   code = to_blocks(r_code, ssa = FALSE)
-  result = to_r(code)
+  result = as_language(code)
 
   # -----
   # NOTE: Code is deparsed to a string here because `==` does not compare code
@@ -32,7 +32,7 @@ test_that("if-statement (depth 1)", {
   })
 
   code = to_blocks(r_code, ssa = FALSE)
-  result = to_r(code)
+  result = as_language(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -54,7 +54,7 @@ test_that("for-loop (depth 1)", {
 
   code = to_blocks(r_code, ssa = FALSE)
 
-  result = to_r(code)
+  result = as_language(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -84,7 +84,7 @@ test_that("if-statement (depth 2)", {
   })
 
   code = to_blocks(r_code, ssa = FALSE)
-  result = to_r(code)
+  result = as_language(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -106,7 +106,7 @@ test_that("if-statement (depth 1) with early return", {
   })
 
   code = to_blocks(r_code, ssa = FALSE)
-  result = to_r(code)
+  result = as_language(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -134,7 +134,7 @@ test_that("if-statement (depth 2) with early return", {
   })
 
   code = to_blocks(r_code, ssa = FALSE)
-  result = to_r(code)
+  result = as_language(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -157,7 +157,7 @@ test_that("if-statement in for-loop with early break", {
   })
 
   code = to_blocks(r_code, ssa = FALSE)
-  result = to_r(code)
+  result = as_language(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)
@@ -186,7 +186,7 @@ test_that("if-statement (depth 2) with early return, with SSA", {
   })
 
   code = to_blocks(r_code, ssa)
-  result = to_r(code)
+  result = as_language(code)
 
   # -----
   r_str = rstatic:::deparse_to_string(r_code)

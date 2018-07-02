@@ -1,36 +1,47 @@
 #' @include blocks_to_r.R
 NULL
 
-#' Convert Intermediate Representations to R Code
+#' @rdname as_language
+#' @usage NULL
+#' @export
+to_r =
+function(node, ...)
+{
+  .Deprecated("as_language")
+  UseMethod("as_language")
+}
+
+#' Convert to R Language Objects
 #'
-#' This function converts rstatic intermediate representations back to R code.
+#' This function converts rstatic intermediate representations back to R
+#' language objects.
 #' 
 #' @param node The intermediate representation to convert.
 #' @param ... Optional arguments to and from methods.
 #'
 #' @export
-to_r =
+as_language =
 function(node, ...) {
-  UseMethod("to_r")
+  UseMethod("as_language")
 }
 
 #' @export
-to_r.BlockList = blocks_to_r.BlockList
+as_language.BlockList = blocks_to_r.BlockList
 
 #' @export
-to_r.data.frame = blocks_to_r.data.frame
+as_language.data.frame = blocks_to_r.data.frame
 
 
-to_r.Label =
+as_language.Label =
 function(node, ...) {
   # NOTE: Labels should not appear in real R code.
   as.name(node$name)
 }
 
 #' @export
-to_r.Brace =
+as_language.Brace =
 function(node, ..., keep_braces = FALSE) {
-  contents = lapply(node$contents, to_r, ...)
+  contents = lapply(node$contents, as_language, ...)
 
   if (!keep_braces && node$is_hidden && length(contents) == 1L)
     contents[[1L]]
@@ -40,101 +51,101 @@ function(node, ..., keep_braces = FALSE) {
 
 
 #' @export
-to_r.Parenthesis =
+as_language.Parenthesis =
 function(node, ...) {
-  call("(", to_r(node$args[[1]], ...))
+  call("(", as_language(node$args[[1]], ...))
 }
 
-to_r.Branch =
+as_language.Branch =
 function(node, ...) {
   # NOTE: An empty list means no code.
   list()
 }
 
 #' @export
-to_r.Next =
+as_language.Next =
 function(node, ...) {
   call("next")
 }
 
 #' @export
-to_r.Break =
+as_language.Break =
 function(node, ...) {
   call("break")
 }
 
 #' @export
-to_r.Return =
+as_language.Return =
 function(node, ...) {
-  call("return", to_r(node$read, ...))
+  call("return", as_language(node$read, ...))
 }
 
 
 #' @export
-to_r.If =
+as_language.If =
 function(node, ...) {
-  true = to_r(node$true, ...)
-  false = to_r(node$false, ...)
-  condition = to_r(node$condition, ...)
+  true = as_language(node$true, ...)
+  false = as_language(node$false, ...)
+  condition = as_language(node$condition, ...)
 
   call("if", condition, true, false)
 }
 
 #' @export
-to_r.For = function(node, ...) {
-  body = to_r(node$body, ...)
-  variable = to_r.Symbol(node$variable, ...)
-  iterator = to_r(node$iterator, ...)
+as_language.For = function(node, ...) {
+  body = as_language(node$body, ...)
+  variable = as_language.Symbol(node$variable, ...)
+  iterator = as_language(node$iterator, ...)
 
   call("for", variable, iterator, body)
 }
 
 
 #' @export
-to_r.While =
+as_language.While =
 function(node, ...) {
-  body = to_r.Brace(node$body)
+  body = as_language.Brace(node$body)
 
   if (node$is_repeat) {
     call("repeat", body)
   } else {
-    condition = to_r(node$condition, ...)
+    condition = as_language(node$condition, ...)
     call("while", condition, body)
   }
 }
 
 
 #' @export
-to_r.Assign =
+as_language.Assign =
 function(node, ...) {
-  read = to_r(node$read, ...)
-  write = to_r(node$write, ...)
+  read = as_language(node$read, ...)
+  write = as_language(node$write, ...)
 
   call("=", write, read)
 }
 
 
 #' @export
-to_r.Call =
+as_language.Call =
 function(node, ...) {
-  fn = to_r(node$fn, ...)
-  args = lapply(node$args, to_r, ...)
+  fn = as_language(node$fn, ...)
+  args = lapply(node$args, as_language, ...)
 
   as.call(append(fn, args))
 }
 
 #' @export
-to_r.Phi =
+as_language.Phi =
 function(node, ...) {
-  reads = lapply(node$read, to_r, ...)
+  reads = lapply(node$read, as_language, ...)
   phi = as.call(append(as.name("Phi"), reads))
-  call("=", to_r(node$write, ...), phi)
+  call("=", as_language(node$write, ...), phi)
 }
 
 #' @export
-to_r.Replacement =
+as_language.Replacement =
 function(node, ...) {
-  lhs = to_r(node$read, ...)
+  lhs = as_language(node$read, ...)
 
   # Delete the <- in the function name.
   fn = as.character(lhs[[1]])
@@ -142,7 +153,7 @@ function(node, ...) {
   lhs[[1]] = as.symbol(fn)
 
   # Set the write variable.
-  lhs[[2]] = to_r(node$write, ...)
+  lhs[[2]] = as_language(node$write, ...)
 
   len = length(lhs)
 
@@ -150,7 +161,7 @@ function(node, ...) {
 }
 
 #' @export
-to_r.Symbol =
+as_language.Symbol =
 function(node, ..., keep_ssa = FALSE) {
   # Handle empty arguments.
   if (node$basename == "")
@@ -169,42 +180,43 @@ function(node, ..., keep_ssa = FALSE) {
 
 
 #' @export
-to_r.Parameter =
+as_language.Parameter =
 function(node, ...) {
   if (is.null(node$default))
     default = pairlist(quote(expr = ))
   else
-    default = pairlist(to_r(node$default, ...))
+    default = pairlist(as_language(node$default, ...))
 
   names(default) = node$name
   default
 }
 
-to_r_params =
+as_language_params =
 function(params_list, ...) {
   params = pairlist()
   for (param in params_list)
-    params = append(params, to_r(param, ...))
+    params = append(params, as_language(param, ...))
 
   as.pairlist(params)
 }
 
 #' @export
-to_r.Function =
+as_language.Function =
 function(node, ...) {
-  call("function", to_r_params(node$params, ...), to_r(node$body, ...))
+  call("function", as_language_params(node$params, ...),
+    as_language(node$body, ...))
 }
 
 
 #' @export
-to_r.Primitive =
+as_language.Primitive =
 function(node, ...) {
   .Primitive(node$fn$name)
 }
 
 
 #' @export
-to_r.Literal =
+as_language.Literal =
 function(node, ...) {
   node$value
 }
