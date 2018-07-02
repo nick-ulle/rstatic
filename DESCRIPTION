@@ -25,6 +25,7 @@ LazyData: true
 RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 Collate: 
+    'as.R'
     'blocks_to_r.R'
     'as_language.R'
     'code_objects_ast.R'
