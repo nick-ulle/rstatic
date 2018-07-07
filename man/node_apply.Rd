@@ -18,14 +18,15 @@ to the function should be the node itself.}
 transformation.}
 }
 \description{
-This function applies a function to all elements of an AST. The result is
-then stored back into the same position in the AST.
+This function modifies an AST by applying a function to all nodes. The
+result is then stored back into the same position in the AST.
 }
 \details{
 The typical use-case is to apply simple transformations to the AST without
 having to write a method to traverse every class. The tradeoff is that this
 function is always slower to run than a hand-written method.
-
-If you want to collect and return data about nodes without modifying them,
-then see \code{node_collect()}.
+}
+\seealso{
+\code{\link{astTraverse}} to collect and return data about
+nodes without modifying them.
 }
