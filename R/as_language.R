@@ -182,20 +182,18 @@ function(node, ..., keep_ssa = FALSE) {
 #' @export
 as_language.Parameter =
 function(node, ...) {
-  if (is.null(node$default))
-    default = pairlist(quote(expr = ))
-  else
-    default = pairlist(as_language(node$default, ...))
-
+  default = pairlist(as_language(node$default, ...))
   names(default) = node$name
+
   default
 }
 
 as_language_params =
 function(params_list, ...) {
-  params = pairlist()
+  # NOTE: Can't use lapply() here because it breaks the pairlist.
+  params = NULL
   for (param in params_list)
-    params = append(params, as_language(param, ...))
+    params = c(params, as_language(param, ...))
 
   as.pairlist(params)
 }

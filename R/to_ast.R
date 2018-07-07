@@ -84,12 +84,7 @@ to_ast.function = function(expr)
 #'
 to_ast_callable = function(expr, is_primitive = FALSE) {
   params = Map(function(name, default) {
-    if (is(default, "name") && default == "")
-      default = NULL
-    else
-      default = to_ast(default)
-
-    Parameter$new(name, default)
+    Parameter$new(name, to_ast(default))
   }, names(expr[[2]]), expr[[2]])
 
   if (is_primitive) {
@@ -215,8 +210,10 @@ to_ast.call = function(expr) {
 
 #' @export
 to_ast.name = function(expr) {
-  name = as.character(expr)
-  if(nchar(name) == 0) Missing$new() else Symbol$new(name)
+  if(nzchar(expr))
+    Symbol$new(name)
+  else
+    Missing$new()
 }
 
 
