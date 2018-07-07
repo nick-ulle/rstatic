@@ -210,7 +210,8 @@ to_ast.call = function(expr) {
 
 #' @export
 to_ast.name = function(expr) {
-  if(nzchar(expr))
+  name = as.character(expr)
+  if(nzchar(name))
     Symbol$new(name)
   else
     Missing$new()
