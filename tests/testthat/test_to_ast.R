@@ -21,7 +21,7 @@ test_that("primitives are converted to Primitives", {
 
   p1 = result$params[[1]]
   expect_is(p1, "Parameter")
-  expect_equal(p1$default, NULL)
+  expect_is(p1$default, "Missing")
 
   p2 = result$params[[2]]
   expect_is(p2, "Parameter")
@@ -39,15 +39,15 @@ test_that("functions are converted to Functions", {
   
   p1 = result$params[[1]]
   expect_is(p1, "Parameter")
-  expect_equal(p1$default, NULL)
+  expect_is(p1$default, "Missing")
 
   p2 = result$params[[2]]
   expect_is(p2, "Parameter")
-  expect_equal(p2$default, NULL)
+  expect_is(p2$default, "Missing")
 
   p3 = result$params[[3]]
   expect_is(p3, "Parameter")
-  expect_equal(p3$default, NULL)
+  expect_is(p3$default, "Missing")
 })
 
 
@@ -71,7 +71,7 @@ test_that("function definitions are converted to Functions", {
 
   p1 = result$params[[1]]
   expect_is(p1, "Parameter")
-  expect_equal(p1$default, NULL)
+  expect_is(p1$default, "Missing")
 
   p2 = result$params[[2]]
   expect_is(p2, "Parameter")
