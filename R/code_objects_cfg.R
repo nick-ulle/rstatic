@@ -13,7 +13,7 @@ Block = R6::R6Class("Block", inherit = Container,
     initialize = function(body = list(), id = NA_character_,
       depth = NA_integer_, phi = list(), parent = NULL)
     {
-      super$initialize(body, parent)
+      super$initialize(body, parent = parent)
 
       self$id = id
       self$depth = depth
