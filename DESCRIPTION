@@ -44,7 +44,6 @@ Collate:
     'igraph.R'
     'insert_return.R'
     'live_variables.R'
-    'node_apply.R'
     'process_cfg_phis.R'
     'rstatic.R'
     'stack.R'
