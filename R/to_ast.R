@@ -75,6 +75,13 @@ function(expr)
   to_ast_callable(fn, is.primitive(expr))
 }
 
+#' @export
+to_ast.ASTNode =
+function(expr)
+{
+  expr
+}
+
 
 #' Convert a Callable Object to an ASTNode
 #'
