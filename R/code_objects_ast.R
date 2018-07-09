@@ -452,7 +452,7 @@ Literal = R6::R6Class("Literal", inherit = ASTNode,
 )
 
 #' @export
-Missing = R6::R6Class("Missing", inherit = Literal,
+EmptyArgument = R6::R6Class("EmptyArgument", inherit = Literal,
   "public" = list(
     initialize = function(parent = NULL) {
       super$initialize(quote(expr = ), parent = parent)

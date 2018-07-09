@@ -6,7 +6,7 @@ test_that("call args have correct parent", {
   # -----
   expect_is(result, "Call")
   expect_is(result$args[[1]], "Integer")
-  expect_identical(result, result$args[[1]]$parent)
+  expect_identical(result, result$args$parent)
 })
 
 
@@ -21,7 +21,7 @@ test_that("primitives are converted to Primitives", {
 
   p1 = result$params[[1]]
   expect_is(p1, "Parameter")
-  expect_is(p1$default, "Missing")
+  expect_is(p1$default, "EmptyArgument")
 
   p2 = result$params[[2]]
   expect_is(p2, "Parameter")
@@ -39,15 +39,15 @@ test_that("functions are converted to Functions", {
   
   p1 = result$params[[1]]
   expect_is(p1, "Parameter")
-  expect_is(p1$default, "Missing")
+  expect_is(p1$default, "EmptyArgument")
 
   p2 = result$params[[2]]
   expect_is(p2, "Parameter")
-  expect_is(p2$default, "Missing")
+  expect_is(p2$default, "EmptyArgument")
 
   p3 = result$params[[3]]
   expect_is(p3, "Parameter")
-  expect_is(p3$default, "Missing")
+  expect_is(p3$default, "EmptyArgument")
 })
 
 
@@ -71,7 +71,7 @@ test_that("function definitions are converted to Functions", {
 
   p1 = result$params[[1]]
   expect_is(p1, "Parameter")
-  expect_is(p1$default, "Missing")
+  expect_is(p1$default, "EmptyArgument")
 
   p2 = result$params[[2]]
   expect_is(p2, "Parameter")

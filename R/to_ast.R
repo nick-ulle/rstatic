@@ -33,7 +33,9 @@ to_ast.expression = function(expr) {
 
 
 #' @export
-to_ast.default = function(expr) {
+to_ast.default =
+function(expr)
+{
   if (is.function(expr)) {
     to_ast.function(expr)
 
@@ -47,7 +49,8 @@ to_ast.default = function(expr) {
 
 
 #' @export
-to_ast.function = function(expr)
+to_ast.function =
+function(expr)
 {
   name = as.character(substitute(expr))
   arg_list = args(expr)
@@ -83,9 +86,9 @@ to_ast.function = function(expr)
 #' @param is_primitive (logical) Whether or not the expression is a primitive.
 #'
 to_ast_callable = function(expr, is_primitive = FALSE) {
-  params = Map(function(name, default) {
+  params = mapply(function(name, default) {
     Parameter$new(name, to_ast(default))
-  }, names(expr[[2]]), expr[[2]])
+  }, names(expr[[2]]), expr[[2]], SIMPLIFY = FALSE, USE.NAMES = FALSE)
 
   if (is_primitive) {
     # Construct primitive with params and name.
@@ -214,7 +217,7 @@ to_ast.name = function(expr) {
   if(nzchar(name))
     Symbol$new(name)
   else
-    Missing$new()
+    EmptyArgument$new()
 }
 
 
