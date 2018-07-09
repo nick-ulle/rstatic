@@ -13,13 +13,15 @@
 #'
 #' @export
 insert_return =
-function(node, ..., recursive = TRUE) {
+function(node, ..., recursive = TRUE)
+{
   UseMethod("insert_return")
 }
 
 #' @export
 insert_return.Function =
-function(node, ..., recursive = TRUE, .first = TRUE) {
+function(node, ..., recursive = TRUE, .first = TRUE)
+{
   if (recursive || .first) {
     node$body = insert_return(node$body, ..., recursive = recursive,
       .first = FALSE)
@@ -30,7 +32,8 @@ function(node, ..., recursive = TRUE, .first = TRUE) {
 
 #' @export
 insert_return.Brace =
-function(node, ..., recursive = TRUE) {
+function(node, ..., recursive = TRUE)
+{
   len = length(node$contents)
 
   # Empty brace.
@@ -41,9 +44,13 @@ function(node, ..., recursive = TRUE) {
 
   # Check for function definitions.
   if (recursive) {
-    defs = find_nodes(node$contents[-len], is, "Function", recursive = FALSE)
-    for (d in defs)
-      node[[d]] = insert_return.Function(node[[d]], ...)
+    indices = find_nodes(node$contents[-len], is, "Function"
+      , recursive = FALSE)
+
+    for (i in indices) {
+      def = child(node, i)
+      child(node, i) = insert_return.Function(def, ...)
+    }
   }
 
   last = insert_return(node$contents[[len]], ..., recursive = recursive)
@@ -55,7 +62,8 @@ function(node, ..., recursive = TRUE) {
 
 #' @export
 insert_return.If =
-function(node, ...) {
+function(node, ...)
+{
   node$true = insert_return(node$true, ...)
   node$false = insert_return(node$false, ...)
 
@@ -64,8 +72,9 @@ function(node, ...) {
 
 #' @export
 insert_return.Loop =
-function(node, ...) {
-  # Need to insert a return(NULL) on following line
+function(node, ...)
+{
+  # Insert `return(NULL)` after the loop.
   list(
     node,
     Return$new(Null$new())
@@ -75,7 +84,8 @@ function(node, ...) {
 
 #' @export
 insert_return.Assign =
-function(node, ...) {
+function(node, ...)
+{
   list(
     node,
     Return$new(node$write$copy())
@@ -85,7 +95,8 @@ function(node, ...) {
 
 #' @export
 insert_return.Literal =
-function(node, ...) {
+function(node, ...)
+{
   Return$new(node)
 }
 
@@ -98,6 +109,7 @@ insert_return.Invocation = insert_return.Literal
 
 #' @export
 insert_return.Branch =
-function(node, ...) {
+function(node, ...)
+{
   node
 }
