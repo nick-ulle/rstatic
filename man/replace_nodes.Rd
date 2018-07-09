@@ -2,21 +2,25 @@
 % Please edit documentation in R/find_nodes.R
 \name{replace_nodes}
 \alias{replace_nodes}
-\title{Replace Nodes in an ASTNode Object}
+\title{Replace Nodes in an RStatic Object}
 \usage{
-replace_nodes(node, fn, ...)
+replace_nodes(node, replace, ..., in_place = FALSE)
 }
 \arguments{
-\item{node}{(ASTNode) The code object to modify.}
+\item{node}{(ASTNode) The RStatic object to traverse.}
 
-\item{fn}{(function) The function to call on each node.}
+\item{replace}{(function) The function to call on each node.}
+
+\item{...}{Additional arguments to the replace function.}
+
+\item{in_place}{(logical) Copy \code{node} before replacement?}
 }
 \description{
-This function replaces each node of an ASTNode object (including the object
-itself) with the result of calling the given function on the node.
+This function traverses the given RStatic object, calls the given replace
+function on each node, and replaces each node with the result of the call.
 }
 \details{
-Nodes are replaced from the bottom up, so the given node is replaced last.
+Replacement happens from the bottom up, so \code{node} is replaced last.
 }
 \examples{
 rename_symbols = function(node, name, newname)

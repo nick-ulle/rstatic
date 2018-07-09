@@ -2,30 +2,36 @@
 % Please edit documentation in R/find_nodes.R
 \name{find_nodes}
 \alias{find_nodes}
-\title{Find Nodes in an ASTNode Object}
+\title{Find Nodes in an RStatic Object}
 \usage{
-find_nodes(node, check, ..., recursive = TRUE, .address = integer(0))
+find_nodes(node, test, ..., recursive = TRUE, initial = list(),
+  index = integer(0))
 }
 \arguments{
-\item{node}{(ASTNode) The code object to search.}
+\item{node}{(ASTNode) The RStatic object to search.}
 
-\item{check}{(function) The check function, which should take the ASTNode
+\item{test}{(function) The test function, which should accept an rstatic
 object to check as its first argument and return a scalar logical.}
 
-\item{...}{Additional arguments to the check function.}
+\item{...}{Additional arguments to the test function.}
 
 \item{recursive}{(logical) Search recursively in matching nodes?}
+
+\item{initial}{(list) Initial list of match indices.}
+
+\item{index}{(integer) The index of \code{node}.}
 }
 \value{
-A list of addresses for matching nodes.
+A list of indices for matching nodes.
 }
 \description{
-This function returns a list of addresses for all children of an ASTNode
-object that satisfy the given check function.
+This function traverses the given RStatic object and returns a list of
+indices for all descendants that satisfy the given test function.
 }
 \details{
-Note that all adresses are relative to \code{node}, and \code{node} itself
-is not checked.
+All indices are relative to \code{node}, unless \code{index} is supplied.
+
+Note that \code{node} itself is not tested.
 }
 \examples{
 ast = quote_ast(

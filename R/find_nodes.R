@@ -1,18 +1,21 @@
-#' Find Nodes in an ASTNode Object
+#' Find Nodes in an RStatic Object
 #'
-#' This function returns a list of addresses for all children of an ASTNode
-#' object that satisfy the given check function.
+#' This function traverses the given RStatic object and returns a list of
+#' indices for all descendants that satisfy the given test function.
 #'
-#' Note that all adresses are relative to \code{node}, and \code{node} itself
-#' is not checked.
+#' All indices are relative to \code{node}, unless \code{index} is supplied.
 #'
-#' @param node (ASTNode) The code object to search.
-#' @param check (function) The check function, which should take the ASTNode
+#' Note that \code{node} itself is not tested.
+#'
+#' @param node (ASTNode) The RStatic object to search.
+#' @param test (function) The test function, which should accept an rstatic
 #' object to check as its first argument and return a scalar logical.
-#' @param ... Additional arguments to the check function.
+#' @param ... Additional arguments to the test function.
 #' @param recursive (logical) Search recursively in matching nodes?
+#' @param initial (list) Initial list of match indices.
+#' @param index (integer) The index of \code{node}.
 #'
-#' @return A list of addresses for matching nodes.
+#' @return A list of indices for matching nodes.
 #' @examples
 #' ast = quote_ast(
 #'   function(x, y) {
@@ -25,40 +28,43 @@
 #' find_nodes(ast, function(node) is(node, "Symbol") && node$name == "x")
 #' @export
 find_nodes =
-function(node, check, ..., recursive = TRUE, .address = integer(0))
+function(
+  node
+  , test
+  , ..., recursive = TRUE, initial = list()
+  , index = integer(0)
+  )
 {
-  # NOTE: It is a tiny bit faster to have this function take an initial set of
-  # matches as an argument and return a modified version.
-
-  matches = list()
-
-  # Add node address to results
-  if (length(.address) && check(node, ...)) {
-    matches = c(matches, list(.address))
+  if (length(index) && test(node, ...)) {
+    initial = c(initial, list(index))
 
     if (!recursive)
-      return (matches)
+      return (initial)
   }
 
-  for (i in seq_along(node)) {
-    new_matches = find_nodes(node[[i]], check, ..., recursive = recursive,
-      .address = c(.address, i))
-    matches = c(matches, new_matches)
+  children = children(node)
+
+  for (i in seq_along(children)) {
+    initial = find_nodes(children[[i]], test, ..., recursive = recursive
+      , initial = initial, index = c(index, i))
   }
 
-  matches
+  initial
 }
 
 
-#' Replace Nodes in an ASTNode Object
+#' Replace Nodes in an RStatic Object
 #'
-#' This function replaces each node of an ASTNode object (including the object
-#' itself) with the result of calling the given function on the node.
+#' This function traverses the given RStatic object, calls the given replace
+#' function on each node, and replaces each node with the result of the call.
 #'
-#' Nodes are replaced from the bottom up, so the given node is replaced last.
+#' Replacement happens from the bottom up, so \code{node} is replaced last.
 #'
-#' @param node (ASTNode) The code object to modify.
-#' @param fn (function) The function to call on each node.
+#' @param node (ASTNode) The RStatic object to traverse.
+#' @param replace (function) The function to call on each node.
+#' @param ... Additional arguments to the replace function.
+#' @param in_place (logical) Copy \code{node} before replacement?
+#'
 #' @examples
 #' rename_symbols = function(node, name, newname)
 #' { # Rename symbols to something else.
@@ -73,13 +79,52 @@ function(node, check, ..., recursive = TRUE, .address = integer(0))
 #' replace_nodes(ast, rename_symbols, "x", "newx")
 #' @export
 replace_nodes =
-function(node, fn, ...)
+function(node, replace, ..., in_place = FALSE)
 {
-  for (i in seq_along(node)) {
-    node[[i]] = replace_nodes(node[[i]], fn, ...)
+  if (!in_place)
+    node = node$copy()
+
+  children(node) = lapply(children(node), replace_nodes, replace, ...
+    , in_place = TRUE)
+  replace(node, ...)
+}
+
+
+#' Get Index of RStatic Object
+#'
+#' This function gets the index of the given RStatic object relative to its
+#' ancestor nodes.
+#'
+#' @param node (ASTNode) The RStatic object to traverse.
+#' @param index (integer) Initial index. The value of this parameter is
+#' appended to the end of the computed index.
+#'
+#' @return An integer vector which can be used as an index in the \code{child}
+#' function.
+#'
+#' @examples
+#' ast = quote_ast(x <- y + z)
+#' node = child(ast, c(2, 2, 1))
+#'
+#' get_index(node)
+#' @export
+get_index =
+function(node, index = integer(0))
+{
+  parent = node$parent
+  if (is.null(parent))
+    return (index)
+
+  children = children(parent)
+  for (i in seq_along(children)) {
+    child = children[[i]]
+    if (identical(node, child)) {
+      index = get_index(parent, index = c(i, index))
+      return (index)
+    }
   }
 
-  fn(node, ...)
+  NA_integer_
 }
 
 
