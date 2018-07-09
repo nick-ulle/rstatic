@@ -45,6 +45,7 @@ Collate:
     'insert_return.R'
     'live_variables.R'
     'process_cfg_phis.R'
+    'rlanguge.R'
     'rstatic.R'
     'stack.R'
     'subset.R'
