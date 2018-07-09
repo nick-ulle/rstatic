@@ -31,7 +31,7 @@ Collate:
     'child.R'
     'code_objects_ast.R'
     'code_objects_cfg.R'
-    'collapse_namespaces.R'
+    'collapse_namespace.R'
     'compute_cfg.R'
     'constant_propagation.R'
     'counter.R'

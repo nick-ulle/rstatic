@@ -4,7 +4,7 @@ context("collapse_namespaces")
 test_that("namespaces are collapsed (in_place = FALSE)", {
   node = quote_ast( rstatic::foo )
 
-  result = collapse_namespaces(node)
+  result = replace_nodes(node, collapse_namespace)
 
   # -----
   expect_is(result, "Symbol")
@@ -19,7 +19,7 @@ test_that("namespaces are collapsed (in_place = FALSE)", {
 test_that("namespaces are collapsed (in_place = TRUE)", {
   node = quote_ast( x <- rstatic::foo )
 
-  result = collapse_namespaces(node, in_place = TRUE)
+  result = replace_nodes(node, collapse_namespace, in_place = TRUE)
 
   # -----
   expect_true(identical(node$read, result$read))
