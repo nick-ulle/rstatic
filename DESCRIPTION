@@ -37,7 +37,7 @@ Collate:
     'counter.R'
     'data_frame.R'
     'def_use_sets.R'
-    'equality.R'
+    'equal.R'
     'find_nodes.R'
     'flow_analysis.R'
     'format.R'

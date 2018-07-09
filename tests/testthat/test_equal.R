@@ -1,4 +1,4 @@
-context("equality")
+context("equal")
 
 
 test_that("Literals", {
@@ -38,14 +38,15 @@ test_that("Symbols", {
 
 test_that("Assignments", {
   # TRUE -----
-  result = Assign$new("y", "hello") == Assign$new("y", "hello")
+  result = Assign$new(Symbol$new("y"), Symbol$new("hello")) ==
+    Assign$new(Symbol$new("y"), Symbol$new("hello"))
   expect_true(result)
 
   # FALSE -----
-  result = Assign$new("x", 3) == Assign$new("x", 4)
+  result = Assign$new(Symbol$new("x"), 3) == Assign$new(Symbol$new("x"), 4)
   expect_false(result)
 
-  result = Assign$new("z", 3) == Assign$new("x", 3)
+  result = Assign$new(Symbol$new("z"), 3) == Assign$new(Symbol$new("x"), 3)
   expect_false(result)
 })
 
@@ -57,19 +58,19 @@ test_that("Calls", {
   result = c1 == c2
   expect_true(result)
 
-  c1 = Call$new("f", list(Symbol$new("x")))
-  c2 = Call$new("f", list(Symbol$new("x")))
+  c1 = Call$new("f", Symbol$new("x"))
+  c2 = Call$new("f", Symbol$new("x"))
   result = c1 == c2
   expect_true(result)
 
   # FALSE -----
-  c1 = Call$new("f", list(Symbol$new("x")))
-  c2 = Call$new("f", list(Integer$new(3)))
+  c1 = Call$new("f", Symbol$new("x"))
+  c2 = Call$new("f", 3)
   result = c1 == c2
   expect_false(result)
 
-  c1 = Call$new("g", list(Symbol$new("x")))
-  c2 = Call$new("f", list(Symbol$new("x")))
+  c1 = Call$new("g", Symbol$new("x"))
+  c2 = Call$new("f", Symbol$new("x"))
   result = c1 == c2
   expect_false(result)
 })
