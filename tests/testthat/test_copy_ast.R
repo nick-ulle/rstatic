@@ -26,13 +26,13 @@ test_that("copying sets correct parents on grandchildren", {
   y = copy(x)
 
   # -----
-  expect_identical(x$read, x$read$args[[1]]$parent)
-  expect_identical(x$read, x$read$args[[2]]$parent)
-  expect_identical(y$read, y$read$args[[1]]$parent)
-  expect_identical(y$read, y$read$args[[2]]$parent)
+  expect_identical(x$read$args, x$read$args[[1]]$parent)
+  expect_identical(x$read$args, x$read$args[[2]]$parent)
+  expect_identical(y$read$args, y$read$args[[1]]$parent)
+  expect_identical(y$read$args, y$read$args[[2]]$parent)
 
-  expect_false(identical(x$read, y$read$args[[1]]$parent))
-  expect_false(identical(y$read, x$read$args[[1]]$parent))
+  expect_false(identical(x$read$args, y$read$args[[1]]$parent))
+  expect_false(identical(y$read$args, x$read$args[[1]]$parent))
 })
 
 
@@ -61,13 +61,15 @@ test_that("copying an Invocation sets correct parents", {
   y = copy(x)
 
   # -----
-  expect_identical(x, x$args[[1]]$parent)
-  expect_identical(x, x$args[[2]]$parent)
-  expect_identical(y, y$args[[1]]$parent)
-  expect_identical(y, y$args[[2]]$parent)
+  expect_identical(x, x$args$parent)
+  expect_identical(x$args, x$args[[1]]$parent)
+  expect_identical(x$args, x$args[[2]]$parent)
+  expect_identical(y, y$args$parent)
+  expect_identical(y$args, y$args[[1]]$parent)
+  expect_identical(y$args, y$args[[2]]$parent)
 
-  expect_false(identical(x, y$args[[1]]$parent))
-  expect_false(identical(y, x$args[[1]]$parent))
+  expect_false(identical(x$args, y$args[[1]]$parent))
+  expect_false(identical(y$args, x$args[[1]]$parent))
 })
 
 

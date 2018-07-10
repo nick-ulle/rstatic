@@ -93,6 +93,9 @@ Brace = R6::R6Class("Brace", inherit = Container,
   )
 )
 
+#' @export
+ArgumentList = R6::R6Class("ArgumentList", inherit = Container)
+
 
 # Control Flow ----------------------------------------
 
@@ -230,10 +233,10 @@ Invocation = R6::R6Class("Invocation", inherit = ASTNode,
   "public" = list(
     .args = NULL,
 
-    initialize = function(args = list(), parent = NULL) {
+    initialize = function(..., parent = NULL) {
       super$initialize(parent = parent)
 
-      self$args = args
+      self$args = ArgumentList$new(...)
     }
   ),
 
@@ -247,8 +250,8 @@ Call = R6::R6Class("Call", inherit = Invocation,
   "public" = list(
     .fn = NULL,
 
-    initialize = function(fn, args = list(), parent = NULL) {
-      super$initialize(args = args, parent = parent)
+    initialize = function(fn, ..., parent = NULL) {
+      super$initialize(..., parent = parent)
 
       # NOTE: fn could be a Symbol, Function, Primitive, or Call.
       if (!is(fn, "ASTNode"))

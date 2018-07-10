@@ -213,7 +213,7 @@ to_ast.call = function(expr) {
     node = Call$new(to_ast(func))
   }
 
-  node$args = lapply(expr[-1], to_ast)
+  node$args = ArgumentList$new(lapply(expr[-1], to_ast))
   return (node)
 }
 

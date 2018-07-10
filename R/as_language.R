@@ -129,9 +129,15 @@ function(node, ...) {
 as_language.Call =
 function(node, ...) {
   fn = as_language(node$fn, ...)
-  args = lapply(node$args, as_language, ...)
+  args = as_language(node$args, ...)
 
   as.call(append(fn, args))
+}
+
+#' @export
+as_language.ArgumentList =
+function(node, ...) {
+  lapply(node$contents, as_language, ...)
 }
 
 #' @export

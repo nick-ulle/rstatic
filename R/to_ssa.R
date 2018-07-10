@@ -245,6 +245,13 @@ ssa_set_numbers_line.Invocation =
 function(node, active, counter, ...)
 {
   # NOTE: This assumes there are no assignments in the arguments.
+  ssa_set_numbers_line(node$args, active, counter, ...)
+}
+
+#' @export
+ssa_set_numbers_line.ArgumentList =
+function(node, active, counter, ...)
+{
   lapply(node$args, ssa_set_numbers_line, active, counter, ...)
   active
 }
