@@ -88,7 +88,7 @@ function(expr)
 to_ast_callable = function(expr, is_primitive = FALSE) {
   params = mapply(function(name, default) {
     Parameter$new(name, to_ast(default))
-  }, names(expr[[2]]), expr[[2]], SIMPLIFY = FALSE, USE.NAMES = FALSE)
+  }, names(expr[[2]]), expr[[2]], SIMPLIFY = FALSE)
 
   if (is_primitive) {
     # Construct primitive with params and name.
