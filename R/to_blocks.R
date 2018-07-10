@@ -43,7 +43,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE)
 to_blocks.Brace =
 function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   if (!in_place)
-    node = node$copy()
+    node = copy(node)
 
   if (insert_return)
     node = insert_return(node)
@@ -74,7 +74,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
 to_blocks.Function =
 function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   if (!in_place)
-    node = node$copy()
+    node = copy(node)
 
   node$body = to_blocks.Brace(node$body, in_place = FALSE, ssa = FALSE,
     insert_return)
@@ -91,7 +91,7 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
 to_blocks.ASTNode =
 function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   if (!in_place)
-    node = node$copy()
+    node = copy(node)
 
   to_blocks.Brace(Brace$new(node), in_place = TRUE, ssa, insert_return)
 }

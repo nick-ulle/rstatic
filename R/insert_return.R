@@ -88,7 +88,7 @@ function(node, ...)
 {
   list(
     node,
-    Return$new(node$write$copy())
+    Return$new(copy(node$write))
   )
 }
 

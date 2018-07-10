@@ -17,7 +17,7 @@ test_that("copying sets parents on contents", {
     , Assign$new(Symbol$new("x"), Symbol$new("y"))
   ))
 
-  y = x$copy()
+  y = copy(x)
 
   # -----
   expect_identical(y, y$contents[[1]]$parent)
@@ -41,7 +41,7 @@ test_that("copying sets parents on contents", {
 #  x = Brace$new()
 #  x$set_phi(Phi$new("x"))
 #
-#  y = x$copy()
+#  y = copy(x)
 #
 #  # -----
 #  expect_identical(y, y$phi[[1]]$parent)

@@ -31,13 +31,13 @@ binding_factory = function(field, container = FALSE) {
 ASTNode = R6::R6Class("ASTNode",
   "private" = list(
     deep_clone = function(name, value) {
-      # Cloning a parent node could result in an infinite cloning loop.
-      # Instead, each object's $copy() method is responsible for setting
-      # $parent on immediate children after the object has been cloned.
+      # Cloning a parent node causes an infinite cloning loop.
+      # Instead, set NULL here and rely on copy() to set the parent field AFTER
+      # the object has been cloned.
       if (name == "parent")
         NULL
       else
-        .copy_ast(value)
+        copy(value)
     }
   ),
 
@@ -48,25 +48,9 @@ ASTNode = R6::R6Class("ASTNode",
       self$parent = parent
     },
 
-    copy = function(...) {
-      cloned = self$clone(deep = TRUE)
-
-      # Reparent ASTNode objects that aren't in the "parent" field.
-      names = ls(cloned, all.names = TRUE)
-      names = setdiff(names, c("parent", ".__enclos_env__"))
-      for (name in names) {
-        if (bindingIsActive(name, cloned))
-          next
-
-        item = get(name, cloned)
-        if (is.function(item))
-          next
-
-        item = set_parent(item, cloned)
-        assign(name, item, envir = cloned)
-      }
-
-      cloned
+    copy = function() {
+      .Deprecated("copy", msg = "Use 'copy(x)' instead of 'x$copy()'.")
+      copy(self)
     }
   )
 )
@@ -488,35 +472,3 @@ Complex = R6::R6Class("Complex", inherit = Literal)
 
 #' @export
 Character = R6::R6Class("Character", inherit = Literal)
-
-
-# Cloning Methods ----------------------------------------
-
-.copy_ast         = function(value) UseMethod(".copy_ast")
-#' @export
-.copy_ast.ASTNode = function(value) value$copy()
-#' @export
-.copy_ast.list    = function(value) lapply(value, .copy_ast)
-#' @export
-.copy_ast.R6      = function(value) value$clone(deep = TRUE)
-#' @export
-.copy_ast.default = function(value) value
-
-
-set_parent = function(node, parent)
-  UseMethod("set_parent")
-
-#' @export
-set_parent.ASTNode = function(node, parent) {
-  node$parent = parent
-  node
-}
-
-#' @export
-set_parent.list = function(node, parent) {
-  lapply(node, set_parent, parent)
-}
-
-#' @export
-set_parent.default = function(node, parent)
-  node

@@ -144,7 +144,7 @@ to_ast.while = function(expr) {
     # NOTE: `read` is the `value` argument to the replacement function.
     args = c(lapply(write[-1], to_ast), read)
 
-    Replacement$new(args[[1]]$copy(), Call$new(fn, args))
+    Replacement$new(copy(args[[1]]), Call$new(fn, args))
 
   } else {
     Assign$new(to_ast(write), read)

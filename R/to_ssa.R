@@ -31,7 +31,7 @@ function(node
   live = live_variables(node, cfg, du, full_analysis = TRUE)[["entry"]]
 
   if (!in_place)
-    node = node$copy()
+    node = copy(node)
 
   ssa_insert_phis(node, du[["def"]], dominators, live)
 

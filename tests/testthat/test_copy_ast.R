@@ -1,10 +1,10 @@
-context("ASTNode$copy")
+context("copy")
 
 
 test_that("copying with inherited copy method sets correct parents", {
   x = Assign$new(Symbol$new("x"), Complex$new(1+4i))
 
-  y = x$copy()
+  y = copy(x)
 
   # -----
   expect_identical(x, x$read$parent)
@@ -23,7 +23,7 @@ test_that("copying sets correct parents on grandchildren", {
     Call$new("+", list(Integer$new(2), Integer$new(3)))
   )
   
-  y = x$copy()
+  y = copy(x)
 
   # -----
   expect_identical(x$read, x$read$args[[1]]$parent)
@@ -42,7 +42,7 @@ test_that("copying a Brace sets correct parents", {
       , Character$new("Hi")
   ))
 
-  y = x$copy()
+  y = copy(x)
 
   # -----
   expect_identical(x, x$contents[[1]]$parent)
@@ -58,7 +58,7 @@ test_that("copying a Brace sets correct parents", {
 test_that("copying an Invocation sets correct parents", {
   x = Call$new("*", list(Symbol$new("x"), Numeric$new(4.2)))
 
-  y = x$copy()
+  y = copy(x)
 
   # -----
   expect_identical(x, x$args[[1]]$parent)
@@ -77,7 +77,7 @@ test_that("copying a Callable sets correct parents", {
     , Integer$new(8L)
   )
 
-  y = x$copy()
+  y = copy(x)
 
   # -----
   expect_identical(x, x$params[[1]]$parent)

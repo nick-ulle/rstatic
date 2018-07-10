@@ -34,6 +34,7 @@ Collate:
     'collapse_namespace.R'
     'compute_cfg.R'
     'constant_propagation.R'
+    'copy.R'
     'counter.R'
     'data_frame.R'
     'def_use_sets.R'

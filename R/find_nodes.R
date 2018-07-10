@@ -82,7 +82,7 @@ replace_nodes =
 function(node, replace, ..., in_place = FALSE)
 {
   if (!in_place)
-    node = node$copy()
+    node = copy(node)
 
   children(node) = lapply(children(node), replace_nodes, replace, ...
     , in_place = TRUE)
