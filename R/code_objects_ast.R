@@ -78,10 +78,15 @@ Container = R6::R6Class("Container", inherit = ASTNode,
   "public" = list(
     .contents = NULL,
 
-    initialize = function(contents = list(), parent = NULL) {
+    initialize = function(..., parent = NULL) {
       super$initialize(parent)
 
-      self$contents = contents
+      if (...length() == 1 && is(..1, "list"))
+        contents = ..1
+      else
+        contents = list(...)
+
+      self$contents = lapply(contents, to_ast)
     }
   ),
 
@@ -304,8 +309,8 @@ Assign = R6::R6Class("Assign", inherit = ASTNode,
     initialize = function(write, read, parent = NULL) {
       super$initialize(parent)
 
-      self$write = write
-      self$read = read
+      self$write = to_ast(write)
+      self$read = to_ast(read)
     }
   ),
 
