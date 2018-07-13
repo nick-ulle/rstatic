@@ -63,7 +63,7 @@ Container = R6::R6Class("Container", inherit = ASTNode,
     .contents = NULL,
 
     initialize = function(..., parent = NULL) {
-      super$initialize(parent)
+      super$initialize(parent = parent)
 
       if (...length() == 1 && is(..1, "list"))
         contents = ..1
@@ -148,7 +148,7 @@ ConditionalBranch = R6::R6Class("ConditionalBranch", inherit = ControlFlow,
     .body = NULL,
     .exit = NULL,
 
-    initialize = function(body, exit = NULL, parent = NULL) {
+    initialize = function(body, exit = Label$new(), parent = NULL) {
       super$initialize(parent = parent)
 
       self$body = body
@@ -358,8 +358,10 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
     .default = NULL,
 
     # FIXME: Maybe default should be 3rd argument.
-    initialize = function(basename, default = NULL, ssa_number = NA_integer_,
-      parent = NULL)
+    initialize = function(basename
+      , default = EmptyArgument$new()
+      , ssa_number = NA_integer_
+      , parent = NULL)
     {
       super$initialize(basename = basename, ssa_number = ssa_number,
         parent = parent)
