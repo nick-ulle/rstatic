@@ -75,18 +75,21 @@ test_that("copying an Invocation sets correct parents", {
 
 test_that("copying a Callable sets correct parents", {
   x = Function$new(
-    list(Parameter$new("x"), Parameter$new("y", Numeric$new(3.14)))
-    , Integer$new(8L)
+    body = Brace$new(Integer$new(8L))
+    , x =
+    , y = Numeric$new(3.14)
   )
 
   y = copy(x)
 
   # -----
-  expect_identical(x, x$params[[1]]$parent)
-  expect_identical(x, x$params[[2]]$parent)
-  expect_identical(y, y$params[[1]]$parent)
-  expect_identical(y, y$params[[2]]$parent)
+  expect_identical(x, x$params$parent)
+  expect_identical(x$params, x$params[[1]]$parent)
+  expect_identical(x$params, x$params[[2]]$parent)
+  expect_identical(y, y$params$parent)
+  expect_identical(y$params, y$params[[1]]$parent)
+  expect_identical(y$params, y$params[[2]]$parent)
 
-  expect_false(identical(x, y$params[[1]]$parent))
-  expect_false(identical(y, x$params[[1]]$parent))
+  expect_false(identical(x, y$params$parent))
+  expect_false(identical(y, x$params$parent))
 })

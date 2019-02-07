@@ -45,6 +45,7 @@ Collate:
     'igraph.R'
     'insert_return.R'
     'live_variables.R'
+    'match_call.R'
     'process_cfg_phis.R'
     'rlanguge.R'
     'rstatic.R'

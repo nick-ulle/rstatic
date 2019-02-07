@@ -82,6 +82,25 @@ function(expr)
   expr
 }
 
+to_ast_parameters =
+function(params) {
+  is_param = vapply(params, is, NA, "Parameter")
+  if (all(is_param))
+    return(params)
+
+  names = names(params)
+  if (is.null(names))
+    stop("All parameters must have names.")
+
+  params[!is_param] = mapply(
+    function(name, default) {
+      Parameter$new(name, to_ast(default))
+    }
+    , names[!is_param], params[!is_param]
+    , SIMPLIFY = FALSE)
+
+  params
+}
 
 #' Convert a Callable Object to an ASTNode
 #'
@@ -93,18 +112,16 @@ function(expr)
 #' @param is_primitive (logical) Whether or not the expression is a primitive.
 #'
 to_ast_callable = function(expr, is_primitive = FALSE) {
-  params = mapply(function(name, default) {
-    Parameter$new(name, to_ast(default))
-  }, names(expr[[2]]), expr[[2]], SIMPLIFY = FALSE)
+  #params = to_ast_parameters(expr[[2]])
 
   if (is_primitive) {
     # Construct primitive with params and name.
-    Primitive$new(params, expr[[1]])
+    Primitive$new(expr[[1]], expr[[2]])
 
   } else {
     # Construct function with params and body.
     body = to_ast(expr[[3]])
-    Function$new(params, wrap_brace(body))
+    Function$new(wrap_brace(body), expr[[2]])
   }
 }
 
@@ -227,6 +244,10 @@ to_ast.name = function(expr) {
     EmptyArgument$new()
 }
 
+#' @export
+to_ast.missing = function(expr) {
+  EmptyArgument$new()
+}
 
 #' @export
 `to_ast.{` = function(expr) {

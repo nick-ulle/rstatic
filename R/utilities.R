@@ -1,4 +1,23 @@
-`:=` = function(x, y) {
+list_dots_safely =
+function(...)
+{
+  if (...length() == 1 && is.list(..1))
+    return (..1)
+
+  dots = rlang::quos(...)
+
+  lapply(dots, function(elt) {
+    if (rlang::quo_is_missing(elt))
+      structure(list(), class = "missing")
+    else
+      rlang::eval_tidy(elt)
+  })
+}
+
+
+`:=` =
+function(x, y)
+{
   x = substitute(x)
   if (length(x) < 2 || x[[1]] != "c")
     stop("left-hand side of unpack must be c(...).")

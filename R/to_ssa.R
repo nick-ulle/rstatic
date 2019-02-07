@@ -109,7 +109,7 @@ function(node
 {
   # FIXME: Set SSA numbers for default arguments. To do this, we need to
   # determine if and when default arguments are evaluated.
-  for (p in node$params)
+  for (p in node$params$contents)
     active = ssa_set_numbers_line(p, active, counter, ...)
 
   ssa_set_numbers.BlockList(node$body, cfg, dom_t, blocks, active, counter, ...)
