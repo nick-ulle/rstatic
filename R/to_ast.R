@@ -47,13 +47,10 @@ function(expr)
   }
 }
 
-
-#' @export
-to_ast.function =
-function(expr)
-{
-  name = as.character(substitute(expr))
-  arg_list = args(expr)
+list_formals = function(expr) {
+  args = args(expr)
+  if (is.null(args))
+    return (list())
 
   # FIXME: The following primitives have no named parameters, so `args()`
   # returns `NULL`.
@@ -65,13 +62,27 @@ function(expr)
   # [25] "while"
   #
   # For now, treat these like they do not have any parameters.
-  if (is.null(arg_list))
-    arg_list = list()
+  formals = formals(args)
+  if (is.null(formals))
+    list()
   else
-    arg_list = formals(arg_list)
+    formals
+}
+
+#' @export
+to_ast.function =
+function(expr)
+{
+  name = substitute(expr)
+  # Anonymous functions are a "call" instead of a "symbol". They don't have a
+  # name.
+  if (!is.name(name))
+    name = NULL
+
+  param_list = list_formals(expr)
 
   # FIXME: Save the parent environment of the function.
-  fn = list(name, arg_list, body(expr))
+  fn = list(name, param_list, body(expr))
   to_ast_callable(fn, is.primitive(expr))
 }
 
@@ -82,6 +93,25 @@ function(expr)
   expr
 }
 
+to_ast_parameters =
+function(params) {
+  is_param = vapply(params, is, NA, "Parameter")
+  if (all(is_param))
+    return(params)
+
+  names = names(params)
+  if (is.null(names))
+    stop("All parameters must have names.")
+
+  params[!is_param] = mapply(
+    function(name, default) {
+      Parameter$new(name, to_ast(default))
+    }
+    , names[!is_param], params[!is_param]
+    , SIMPLIFY = FALSE)
+
+  params
+}
 
 #' Convert a Callable Object to an ASTNode
 #'
@@ -93,18 +123,17 @@ function(expr)
 #' @param is_primitive (logical) Whether or not the expression is a primitive.
 #'
 to_ast_callable = function(expr, is_primitive = FALSE) {
-  params = mapply(function(name, default) {
-    Parameter$new(name, to_ast(default))
-  }, names(expr[[2]]), expr[[2]], SIMPLIFY = FALSE)
+  #params = to_ast_parameters(expr[[2]])
 
   if (is_primitive) {
     # Construct primitive with params and name.
-    Primitive$new(params, expr[[1]])
+
+    Primitive$new(expr[[1]], expr[[2]])
 
   } else {
     # Construct function with params and body.
     body = to_ast(expr[[3]])
-    Function$new(params, wrap_brace(body))
+    Function$new(wrap_brace(body), expr[[2]])
   }
 }
 
@@ -213,7 +242,7 @@ to_ast.call = function(expr) {
     node = Call$new(to_ast(func))
   }
 
-  node$args = lapply(expr[-1], to_ast)
+  node$args = ArgumentList$new(lapply(expr[-1], to_ast))
   return (node)
 }
 
@@ -227,6 +256,10 @@ to_ast.name = function(expr) {
     EmptyArgument$new()
 }
 
+#' @export
+to_ast.missing = function(expr) {
+  EmptyArgument$new()
+}
 
 #' @export
 `to_ast.{` = function(expr) {

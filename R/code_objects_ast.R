@@ -63,7 +63,7 @@ Container = R6::R6Class("Container", inherit = ASTNode,
     .contents = NULL,
 
     initialize = function(..., parent = NULL) {
-      super$initialize(parent)
+      super$initialize(parent = parent)
 
       if (...length() == 1 && is(..1, "list"))
         contents = ..1
@@ -84,11 +84,40 @@ Brace = R6::R6Class("Brace", inherit = Container,
   "public" = list(
     is_hidden = FALSE,
 
-    initialize = function(contents = list(), is_hidden = FALSE, parent = NULL)
+    initialize = function(..., is_hidden = FALSE, parent = NULL)
     {
-      super$initialize(contents = contents, parent = parent)
+      super$initialize(..., parent = parent)
 
       self$is_hidden = is_hidden
+    }
+  )
+)
+
+#' @export
+ArgumentList = R6::R6Class("ArgumentList", inherit = Container,
+  "public" = list(
+    initialize = function(..., parent = NULL) {
+      super$initialize(parent = parent)
+
+      # Can't use `list(...)` because some arguments may be empty.
+      contents = list_dots_safely(...)
+
+      self$contents = lapply(contents, to_ast)
+    }
+  )
+)
+
+
+#' @export
+ParameterList = R6::R6Class("ParameterList", inherit = Container,
+  "public" = list(
+    initialize = function(..., parent = NULL) {
+      super$initialize(parent = parent)
+
+      # Can't use `list(...)` because some arguments may be empty.
+      contents = list_dots_safely(...)
+
+      self$contents = to_ast_parameters(contents)
     }
   )
 )
@@ -145,7 +174,7 @@ ConditionalBranch = R6::R6Class("ConditionalBranch", inherit = ControlFlow,
     .body = NULL,
     .exit = NULL,
 
-    initialize = function(body, exit = NULL, parent = NULL) {
+    initialize = function(body, exit = Label$new(), parent = NULL) {
       super$initialize(parent = parent)
 
       self$body = body
@@ -230,10 +259,13 @@ Invocation = R6::R6Class("Invocation", inherit = ASTNode,
   "public" = list(
     .args = NULL,
 
-    initialize = function(args = list(), parent = NULL) {
+    initialize = function(..., parent = NULL) {
       super$initialize(parent = parent)
 
-      self$args = args
+      if (...length() == 1 && is(..1, "ArgumentList"))
+        self$args = ..1
+      else
+        self$args = ArgumentList$new(...)
     }
   ),
 
@@ -247,8 +279,8 @@ Call = R6::R6Class("Call", inherit = Invocation,
   "public" = list(
     .fn = NULL,
 
-    initialize = function(fn, args = list(), parent = NULL) {
-      super$initialize(args = args, parent = parent)
+    initialize = function(fn, ..., parent = NULL) {
+      super$initialize(..., parent = parent)
 
       # NOTE: fn could be a Symbol, Function, Primitive, or Call.
       if (!is(fn, "ASTNode"))
@@ -355,8 +387,10 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
     .default = NULL,
 
     # FIXME: Maybe default should be 3rd argument.
-    initialize = function(basename, default = NULL, ssa_number = NA_integer_,
-      parent = NULL)
+    initialize = function(basename
+      , default = EmptyArgument$new()
+      , ssa_number = NA_integer_
+      , parent = NULL)
     {
       super$initialize(basename = basename, ssa_number = ssa_number,
         parent = parent)
@@ -378,10 +412,13 @@ Callable = R6::R6Class("Callable", inherit = ASTNode,
   "public" = list(
     .params = NULL,
 
-    initialize = function(params, parent = NULL) {
+    initialize = function(..., parent = NULL) {
       super$initialize(parent = parent)
 
-      self$params = params
+      if (...length() == 1 && is(..1, "ParameterList"))
+        self$params = ..1
+      else
+        self$params = ParameterList$new(...)
     }
   ),
 
@@ -395,8 +432,8 @@ Function = R6::R6Class("Function", inherit = Callable,
   "public" = list(
     .body = NULL,
 
-    initialize = function(params, body, parent = NULL) {
-      super$initialize(params = params, parent = parent)
+    initialize = function(body, ..., parent = NULL) {
+      super$initialize(..., parent = parent)
 
       self$body = body
     }
@@ -412,8 +449,8 @@ Primitive = R6::R6Class("Primitive", inherit = Callable,
   "public" = list(
     .fn = NULL,
 
-    initialize = function(params, fn, parent = NULL) {
-      super$initialize(params = params, parent = parent)
+    initialize = function(fn, ..., parent = NULL) {
+      super$initialize(..., parent = parent)
 
       if (!is(fn, "Symbol"))
         fn = Symbol$new(fn)

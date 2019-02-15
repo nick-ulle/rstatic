@@ -78,7 +78,8 @@ test_that("SSA form for parameters", {
   result = to_blocks(node, ssa = TRUE)
 
   # -----
-  missing_ssa = vapply(result$params, function(p) is.na(p$ssa_number), NA)
+  missing_ssa = vapply(result$params$content,
+    function(p) is.na(p$ssa_number), NA)
   expect_false(any(missing_ssa))
 })
 

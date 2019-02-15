@@ -1,6 +1,7 @@
 context("find_nodes")
 
 test_that("finding Symbols", {
+  skip("")
   code = quote_ast({
     x = 3
     y = 3 + x

@@ -129,9 +129,15 @@ function(node, ...) {
 as_language.Call =
 function(node, ...) {
   fn = as_language(node$fn, ...)
-  args = lapply(node$args, as_language, ...)
+  args = as_language(node$args, ...)
 
   as.call(append(fn, args))
+}
+
+#' @export
+as_language.ArgumentList =
+function(node, ...) {
+  lapply(node$contents, as_language, ...)
 }
 
 #' @export
@@ -188,11 +194,12 @@ function(node, ...) {
   default
 }
 
-as_language_params =
-function(params_list, ...) {
+as_language.ParameterList =
+function(node, ...)
+{
   # NOTE: Can't use lapply() here because it breaks the pairlist.
   params = NULL
-  for (param in params_list)
+  for (param in node$contents)
     params = c(params, as_language(param, ...))
 
   as.pairlist(params)
@@ -200,9 +207,9 @@ function(params_list, ...) {
 
 #' @export
 as_language.Function =
-function(node, ...) {
-  call("function", as_language_params(node$params, ...),
-    as_language(node$body, ...))
+function(node, ...)
+{
+  call("function", as_language(node$params, ...), as_language(node$body, ...))
 }
 
 

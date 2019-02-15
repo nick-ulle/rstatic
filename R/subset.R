@@ -26,6 +26,14 @@ names.Parameter = function(x) c("default")
 #' @export
 names.Function  = function(x) c("body", "params")
 
+# NOTE: Methods for *List objects are a temporary fix until we figure out
+# where to use names() versus child_fields().
+#' @export
+names.ParameterList = function(x) names(x$contents)
+
+#' @export
+names.ArgumentList = names.ParameterList
+
 #' @export
 names.ASTNode = function(x) character(0)
 

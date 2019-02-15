@@ -127,7 +127,16 @@ function(node
   , initial = list(def = character(0), use = character(0))
   , ...)
 {
-  for (arg in node$args) {
+  def_use_sets_line(node$args, initial, ...)
+}
+
+#' @export
+def_use_sets_line.ArgumentList =
+function(node
+  , initial = list(def = character(0), use = character(0))
+  , ...)
+{
+  for (arg in node$contents) {
     initial = def_use_sets_line(arg, initial, ...)
   }
 
