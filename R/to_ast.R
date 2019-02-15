@@ -47,13 +47,10 @@ function(expr)
   }
 }
 
-
-#' @export
-to_ast.function =
-function(expr)
-{
-  name = as.character(substitute(expr))
-  arg_list = args(expr)
+list_formals = function(expr) {
+  args = args(expr)
+  if (is.null(args))
+    return (list())
 
   # FIXME: The following primitives have no named parameters, so `args()`
   # returns `NULL`.
@@ -65,13 +62,27 @@ function(expr)
   # [25] "while"
   #
   # For now, treat these like they do not have any parameters.
-  if (is.null(arg_list))
-    arg_list = list()
+  formals = formals(args)
+  if (is.null(formals))
+    list()
   else
-    arg_list = formals(arg_list)
+    formals
+}
+
+#' @export
+to_ast.function =
+function(expr)
+{
+  name = substitute(expr)
+  # Anonymous functions are a "call" instead of a "symbol". They don't have a
+  # name.
+  if (!is.name(name))
+    name = NULL
+
+  param_list = list_formals(expr)
 
   # FIXME: Save the parent environment of the function.
-  fn = list(name, arg_list, body(expr))
+  fn = list(name, param_list, body(expr))
   to_ast_callable(fn, is.primitive(expr))
 }
 
@@ -116,6 +127,7 @@ to_ast_callable = function(expr, is_primitive = FALSE) {
 
   if (is_primitive) {
     # Construct primitive with params and name.
+
     Primitive$new(expr[[1]], expr[[2]])
 
   } else {
