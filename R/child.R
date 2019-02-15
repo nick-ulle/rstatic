@@ -198,6 +198,12 @@ function(node)
   UseMethod("children")
 }
 
+children.NULL =
+function(node)
+{
+    NULL
+}
+
 #' @export
 children.ASTNode =
 function(node)
