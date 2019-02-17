@@ -198,6 +198,7 @@ function(node)
   UseMethod("children")
 }
 
+#' @export
 children.NULL =
 function(node)
 {

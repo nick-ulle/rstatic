@@ -69,6 +69,14 @@ function(x, ..., short = TRUE) {
 }
 
 #' @export
+toString.SuperAssign =
+function(x, ..., short = TRUE) {
+  write = toString(x$write, ..., short = short)
+  read = toString(x$read, ..., short = short)
+  sprintf("%s <<- %s", write, read)
+}
+
+#' @export
 toString.BlockList =
 function(x, ...) {
   # A list of blocks.
