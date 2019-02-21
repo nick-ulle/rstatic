@@ -11,14 +11,14 @@ Counter = R6::R6Class("Counter",
   ),
 
   "public" = list(
-    increment = function(basename) {
-      if (basename %in% names(private$counter)) {
-        counter = private$counter[[basename]] + 1L
+    increment = function(key) {
+      if (key %in% names(private$counter)) {
+        counter = private$counter[[key]] + 1L
       } else {
         counter = 1L
       }
       
-      private$counter[[basename]] = counter
+      private$counter[[key]] = counter
 
       return (counter)
     }
