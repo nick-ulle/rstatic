@@ -4,6 +4,7 @@
 
 # Utility functions --------------------------------------------------
 
+# This function uses cat() and format() to display a value.
 .print = function(x, ...) cat(format(x, ...), "\n\n")
 
 class_tag = function(x) sprintf("<%s>", class(x)[[1]])
@@ -33,6 +34,25 @@ deparse_to_string = function(expr, ...) {
 toString.ASTNode =
 function(x, ...) {
   deparse_to_string(as_language(x, ..., keep_ssa = TRUE))
+}
+
+#' @export
+toString.ParameterList =
+function(x, ...) {
+  contents = vapply(x$contents, toString, NA_character_, parenthesize = FALSE)
+  paste0("(", paste0(contents, collapse = ", "), ")")
+}
+
+#' @export
+toString.Parameter =
+function(x, ..., parenthesize = TRUE) {
+  name = x$name
+  default = toString(x$default)
+
+  if (parenthesize)
+    sprintf("(%s = %s)", name, default)
+  else
+    sprintf("%s = %s", name, default)
 }
 
 #' @export
