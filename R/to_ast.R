@@ -47,27 +47,38 @@ function(expr)
   }
 }
 
-list_formals = function(expr) {
-  args = args(expr)
-  if (is.null(args))
-    return (list())
 
-  # FIXME: The following primitives have no named parameters, so `args()`
-  # returns `NULL`.
-  #
-  #  [1] ":"        "("        "["        "[["       "[[<-"     "[<-"
-  #  [7] "{"        "@"        "@<-"      "&&"       "<-"       "<<-"
-  # [13] "="        "||"       "~"        "$"        "$<-"      "break"
-  # [19] "for"      "function" "if"       "next"     "repeat"   "return"
-  # [25] "while"
-  #
-  # For now, treat these like they do not have any parameters.
-  formals = formals(args)
-  if (is.null(formals))
-    list()
-  else
-    formals
+#' List Formal Arguments
+#'
+#' This function returns the list of formal arguments, also called parameters,
+#' for a function object.
+#'
+#' For primitives that have no named parameters, this function returns an empty
+#' list.
+#'
+list_formals = function(expr) {
+  if (is.primitive(expr)) {
+    # formals() doesn't support primitives, so use args() first to get a
+    # function object.
+    expr = args(expr)
+
+    # FIXME: The following primitives have no named parameters, so `args()`
+    # returns `NULL`.
+    #
+    #  [1] ":"        "("        "["        "[["       "[[<-"     "[<-"
+    #  [7] "{"        "@"        "@<-"      "&&"       "<-"       "<<-"
+    # [13] "="        "||"       "~"        "$"        "$<-"      "break"
+    # [19] "for"      "function" "if"       "next"     "repeat"   "return"
+    # [25] "while"
+    #
+    # For now, treat these like they do not have any parameters.
+    if (is.null(expr))
+      return (list())
+  }
+
+  as.list(formals(expr))
 }
+
 
 #' @export
 to_ast.function =
@@ -125,15 +136,19 @@ function(params) {
 to_ast_callable = function(expr, is_primitive = FALSE) {
   #params = to_ast_parameters(expr[[2]])
 
+  # A function object is a `function`, and second element is a list.
+  # A function definition is a `call`, and second element may be NULL.
+  # So use as.list() here to make sure params is a list.
+  params = as.list(expr[[2]])
+
   if (is_primitive) {
     # Construct primitive with params and name.
-
-    Primitive$new(expr[[1]], expr[[2]])
+    Primitive$new(expr[[1]], params)
 
   } else {
     # Construct function with params and body.
     body = to_ast(expr[[3]])
-    Function$new(wrap_brace(body), expr[[2]])
+    Function$new(wrap_brace(body), params)
   }
 }
 
