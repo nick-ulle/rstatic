@@ -10,7 +10,7 @@ test_that("finding Symbols", {
   })
 
   result = find_nodes(code, function(node) {
-    is(node, "Symbol") && node$basename == "x"
+    is(node, "Symbol") && node$value == "x"
   })
 
   # -----
@@ -37,8 +37,8 @@ test_that("renaming Symbols", {
 
   rename_symbols = function(node, name, newname)
   { # Rename symbols to something else.
-    if (is(node, "Symbol") && node$basename == name)
-      node$basename = newname
+    if (is(node, "Symbol") && node$value == name)
+      node$value = newname
 
     node
   }
@@ -47,7 +47,7 @@ test_that("renaming Symbols", {
   replace_nodes(code, rename_symbols, "x", new_name, in_place = TRUE)
 
   # -----
-  expect_equal(x1$basename, new_name)
-  expect_equal(x2$basename, new_name)
-  expect_equal(y$basename, "y")
+  expect_equal(x1$value, new_name)
+  expect_equal(x2$value, new_name)
+  expect_equal(y$value, "y")
 })

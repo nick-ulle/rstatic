@@ -25,8 +25,8 @@ Replacement happens from the bottom up, so \code{node} is replaced last.
 \examples{
 rename_symbols = function(node, name, newname)
 { # Rename symbols to something else.
-  if (is(node, "Symbol") && node$basename == name)
-    node$basename = newname
+  if (is(node, "Symbol") && node$value == name)
+    node$value = newname
 
   node
 }

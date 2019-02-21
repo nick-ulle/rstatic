@@ -163,7 +163,7 @@ function(node, active, counter, ...)
 ssa_increment =
 function(node, active, counter, ...)
 {
-  basename = node$basename
+  basename = node$value
   n = counter$increment(basename)
 
   active[[basename]] = n
@@ -213,7 +213,7 @@ function(node, active, counter, ...)
 ssa_set_numbers_successor_phi =
 function(node, active, id)
 {
-  basename = node$write$basename
+  basename = node$write$value
   n = active[basename]
   symbol = Symbol$new(basename, n)
 
@@ -226,7 +226,7 @@ function(node, active, id)
 ssa_set_numbers_line.Symbol =
 function(node, active, counter, ...)
 {
-  node$ssa_number = active[node$basename]
+  node$ssa_number = active[node$value]
   active
 }
 

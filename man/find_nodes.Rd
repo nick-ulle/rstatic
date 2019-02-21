@@ -42,5 +42,5 @@ ast = quote_ast(
 
 find_nodes(ast, is, "Function")
 
-find_nodes(ast, function(node) is(node, "Symbol") && node$name == "x")
+find_nodes(ast, function(node) is(node, "Symbol") && node$value == "x")
 }

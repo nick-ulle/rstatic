@@ -348,21 +348,21 @@ Replacement = R6::R6Class("Replacement", inherit = Assign)
 #' @export
 Symbol = R6::R6Class("Symbol", inherit = ASTNode,
   "public" = list(
-    basename = NULL,
+    value = NULL,
     ssa_number = NULL,
     namespace = NULL,
     namespace_fn = NULL,
 
     initialize = function(
-      basename, ssa_number = NA_integer_,
+      value, ssa_number = NA_integer_,
       namespace = NA_character_, namespace_fn = NULL,
       parent = NULL
     ) {
-      if ( !(is.character(basename) || is.symbol(basename)) )
-        stop("Symbol basename must be a character or a name.", call. = FALSE)
+      if ( !(is.character(value) || is.symbol(value)) )
+        stop("Symbol value must be a character or a name.", call. = FALSE)
 
       super$initialize(parent)
-      self$basename = as.character(basename)
+      self$value = as.character(value)
       self$ssa_number = ssa_number
 
       self$namespace = namespace
@@ -371,12 +371,22 @@ Symbol = R6::R6Class("Symbol", inherit = ASTNode,
   ),
 
   "active" = list(
-    name = function() {
+    ssa_name = function() {
       ssa_number = self$ssa_number
       if (is.na(ssa_number))
-        return (self$basename)
+        return (self$value)
 
-      sprintf("%s_%i", self$basename, ssa_number)
+      sprintf("%s_%i", self$value, ssa_number)
+    },
+    
+    basename = function() {
+      .Deprecated("value", msg = "Use 'x$value' instead of 'x$basename'.")
+      self$value
+    },
+
+    name = function() {
+      .Deprecated("ssa_name", msg = "Use 'x$ssa_name' instead of 'x$name'.")
+      self$ssa_name
     }
   )
 )
@@ -387,13 +397,12 @@ Parameter = R6::R6Class("Parameter", inherit = Symbol,
     .default = NULL,
 
     # FIXME: Maybe default should be 3rd argument.
-    initialize = function(basename
+    initialize = function(value
       , default = EmptyArgument$new()
       , ssa_number = NA_integer_
       , parent = NULL)
     {
-      super$initialize(basename = basename, ssa_number = ssa_number,
-        parent = parent)
+      super$initialize(value = value, ssa_number = ssa_number, parent = parent)
 
       self$default = default
     }

@@ -9,8 +9,8 @@ test_that("namespaces are collapsed (in_place = FALSE)", {
   # -----
   expect_is(result, "Symbol")
   expect_equal(result$namespace, "rstatic")
-  expect_equal(result$namespace_fn$name, "::")
-  expect_equal(result$basename, "foo")
+  expect_equal(result$namespace_fn$ssa_name, "::")
+  expect_equal(result$value, "foo")
 
   expect_false(identical(result, node))
 })
@@ -26,7 +26,7 @@ test_that("namespaces are collapsed (in_place = TRUE)", {
 
   result = result$read
   expect_equal(result$namespace, "rstatic")
-  expect_equal(result$namespace_fn$name, "::")
-  expect_equal(result$basename, "foo")
+  expect_equal(result$namespace_fn$ssa_name, "::")
+  expect_equal(result$value, "foo")
   expect_identical(result$parent, node)
 })

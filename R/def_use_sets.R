@@ -78,7 +78,7 @@ function(node
   , ...)
 {
   # DEF: Append to the vector.
-  initial[["def"]] = union(initial[["def"]], node$write$name)
+  initial[["def"]] = union(initial[["def"]], node$write$ssa_name)
 
   def_use_sets_line(node$read, initial, ..., top = FALSE)
 }
@@ -93,7 +93,7 @@ function(node
   , ...)
 {
   # DEF: Append to the vector.
-  initial[["def"]] = union(initial[["def"]], node$variable$name)
+  initial[["def"]] = union(initial[["def"]], node$variable$ssa_name)
 
   def_use_sets_line(node$iterator, initial, ..., top = FALSE)
 }
@@ -108,10 +108,10 @@ function(node
   , only_undefined_uses = FALSE)
 {
   # USE: Append to the vector.
-  use = node$name
+  use = node$ssa_name
   #  ( all uses             OR use isn't in defs            )
   if ( !only_undefined_uses || !(use %in% initial[["def"]]) )
-    initial[["use"]] = union(initial[["use"]], node$name)
+    initial[["use"]] = union(initial[["use"]], node$ssa_name)
 
   initial
 }

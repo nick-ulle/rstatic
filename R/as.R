@@ -29,7 +29,7 @@ function(x)
 as.name.Symbol =
 function(x)
 {
-  base::as.name(x$basename)
+  base::as.name(x$value)
 }
 
 #' @export
@@ -46,7 +46,7 @@ function(x)
 as.symbol.Symbol =
 function(x)
 {
-  base::as.symbol(x$basename)
+  base::as.symbol(x$value)
 }
 
 #' @export
@@ -59,7 +59,7 @@ as.symbol.default = base::as.symbol
 as.character.Symbol =
 function(x, ...)
 {
-  x$basename
+  x$value
 }
 
 #' @export

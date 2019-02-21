@@ -59,7 +59,7 @@ function(x, y)
 .equal.Symbol =
 function(x, y)
 {
-  if (x$basename != y$basename)
+  if (x$value != y$value)
     return (FALSE)
 
   n1 = x$ssa_number

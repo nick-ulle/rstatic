@@ -170,18 +170,18 @@ function(node, ...) {
 as_language.Symbol =
 function(node, ..., keep_ssa = FALSE) {
   # Handle empty arguments.
-  if (node$basename == "")
+  if (node$value == "")
     return (quote(expr = ))
 
   if (keep_ssa)
-    name = node$name
+    name = node$ssa_name
   else
-    name = node$basename
+    name = node$value
 
   if (is.na(node$namespace))
     as.name(name)
   else
-    call(node$namespace_fn$name, as.name(node$namespace), as.name(name))
+    call(node$namespace_fn$ssa_name, as.name(node$namespace), as.name(name))
 }
 
 
@@ -189,7 +189,7 @@ function(node, ..., keep_ssa = FALSE) {
 as_language.Parameter =
 function(node, ...) {
   default = pairlist(as_language(node$default, ...))
-  names(default) = node$name
+  names(default) = node$ssa_name
 
   default
 }
@@ -216,7 +216,7 @@ function(node, ...)
 #' @export
 as_language.Primitive =
 function(node, ...) {
-  .Primitive(node$fn$name)
+  .Primitive(node$fn$ssa_name)
 }
 
 

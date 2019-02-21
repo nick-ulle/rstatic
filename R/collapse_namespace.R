@@ -26,7 +26,7 @@ function(node, ...)
 {
   name = node$args[[2]]
 
-  name$namespace = node$args[[1]]$name
+  name$namespace = node$args[[1]]$ssa_name
   name$parent = node$parent
 
   node$fn$parent = name

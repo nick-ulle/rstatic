@@ -25,7 +25,7 @@
 #'
 #' find_nodes(ast, is, "Function")
 #'
-#' find_nodes(ast, function(node) is(node, "Symbol") && node$name == "x")
+#' find_nodes(ast, function(node) is(node, "Symbol") && node$value == "x")
 #' @export
 find_nodes =
 function(
@@ -68,8 +68,8 @@ function(
 #' @examples
 #' rename_symbols = function(node, name, newname)
 #' { # Rename symbols to something else.
-#'   if (is(node, "Symbol") && node$basename == name)
-#'     node$basename = newname
+#'   if (is(node, "Symbol") && node$value == name)
+#'     node$value = newname
 #'
 #'   node
 #' }

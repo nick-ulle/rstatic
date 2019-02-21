@@ -46,7 +46,7 @@ function(x, ...) {
 #' @export
 toString.Parameter =
 function(x, ..., parenthesize = TRUE) {
-  name = x$name
+  name = x$ssa_name
   default = toString(x$default)
 
   if (parenthesize)
