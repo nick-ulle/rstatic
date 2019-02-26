@@ -158,12 +158,11 @@ function(x, ..., block_prefix = "%") {
   paste0(block_prefix, x$name)
 }
 
-
 # format() and print() methods ----------------------------------------
 #' @export
 format.ASTNode = function(x, ...) {
   members = setdiff(ls(x), c("initialize", "clone", "copy"))
-  is_method = vapply(members, function(f) is.function(.subset2(x, f)), NA)
+  is_method = is_r6_method(members, x)
 
   members[is_method] = paste(members[is_method], "()", sep = "")
   members = members[order(is_method, members)]

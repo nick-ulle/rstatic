@@ -1,3 +1,15 @@
+#' Check Whether Named Member of R6 Object is Method
+#'
+#' This function checks whether the named members of an R6 object are methods
+#' (as opposed to fields or active bindings).
+#'
+is_r6_method = function(name, obj) {
+  vapply(name, function(f) {
+    # Active bindings are not methods.
+    !bindingIsActive(f, obj) && is.function(.subset2(obj, f))
+  }, NA)
+}
+
 list_dots_safely =
 function(...)
 {
