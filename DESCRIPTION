@@ -46,6 +46,7 @@ Collate:
     'insert_return.R'
     'live_variables.R'
     'match_call.R'
+    'methods_blocklist.R'
     'process_cfg_phis.R'
     'rlanguge.R'
     'rstatic.R'
