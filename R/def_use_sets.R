@@ -1,3 +1,16 @@
+# NOTE: If the node contains Blocks, call def_use_sets. If the node contains
+# lines (expressions), call def_use_sets_line.
+#
+# What is the difference between the two?
+#
+# def_use_sets is the top-level interface. The user might pass a Function,
+# and then the correct behavior is to analyze the blocks in the Function
+# but not any sub-functions (function **definitions** do not run any code,
+# so they don't define/use variables).
+#
+# def_use_sets_line treats Functions like Literals.
+
+
 #' Compute Symbol Definition and Use Sets
 #'
 #' This function computes the symbol definition and use sets for a code object.
@@ -25,8 +38,12 @@ function(node, ...)
   def_use_sets(node$body, ...)
 }
 
-# This can probably be generalized to apply to Braces and other Containers.
-def_use_sets_by_elt =
+# NOTE: Is it more convenient and efficient to record addresses and def/use
+# sets rather than have a separate element for each line? Uses less space but
+# probably more confusing and slower to look up.
+#
+#' @export
+def_use_sets.BlockList =
 function(node, ...)
 {
   # FIXME: The initial sets do not get passed on from this function.
@@ -43,9 +60,6 @@ function(node, ...)
 }
 
 #' @export
-def_use_sets.BlockList = def_use_sets_by_elt
-
-#' @export
 def_use_sets.Block =
 function(node, ..., by_block = FALSE)
 {
@@ -54,10 +68,19 @@ function(node, ..., by_block = FALSE)
     for (line in node$contents)
       initial = def_use_sets_line(line, initial, ...)
 
-    return (initial)
+  } else {
+    # FIXME: Should the initial sets be passed on?
+    initial = list(def = list(), use = list())
+    for (i in seq_along(node$contents)) {
+      elt = node$contents[[i]]
+
+      c(def, use) := def_use_sets_line(elt, ...)
+      initial[["def"]][[i]] = def
+      initial[["use"]][[i]] = use
+    }
   }
 
-  def_use_sets_by_elt(node, ...)
+  initial
 }
 
 
