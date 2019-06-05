@@ -252,7 +252,7 @@ function(node, active, counter, ...)
 ssa_set_numbers_line.ArgumentList =
 function(node, active, counter, ...)
 {
-  lapply(node$args, ssa_set_numbers_line, active, counter, ...)
+  lapply(node$contents, ssa_set_numbers_line, active, counter, ...)
   active
 }
 

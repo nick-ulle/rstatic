@@ -1,5 +1,16 @@
 context("to_ssa")
 
+test_that("SSA form for arguments in calls", {
+  node = quote_ast({
+    x = c(1, 2, 3)
+    mean(x)
+  })
+
+  result = to_blocks(node, ssa = TRUE)
+  x = result[[2L]][[2L]]$read$args[[1L]]
+  expect_false(is.na(x$ssa_number))
+})
+
 
 test_that("SSA form for if-statement", {
   node = quote_ast({
