@@ -25,3 +25,20 @@ Counter = R6::R6Class("Counter",
   )
 )
 
+
+#' Next Name from Counter
+#'
+#' This function looks up the given name in the given counter, increments the
+#' counter for that name, and returns a string with the name and new count.
+#'
+#' Side effects: The counter is modified in-place.
+#'
+#' @param counter (Counter) The counter for lookup.
+#' @param name (character) The name to look up in the counter.
+#' @param ... Additional arguments, currently ignored.
+#'
+#' @return (character) A string containing the name and the new count.
+#' @export
+next_name = function(counter, name, ...) {
+  paste0(name[1L], counter$increment(name))
+}
