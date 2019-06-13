@@ -33,6 +33,7 @@ Collate:
     'code_objects_cfg.R'
     'collapse_namespace.R'
     'compute_cfg.R'
+    'compute_ssag.R'
     'constant_propagation.R'
     'copy.R'
     'counter.R'
