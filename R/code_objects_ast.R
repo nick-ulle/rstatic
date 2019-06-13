@@ -43,6 +43,7 @@ ASTNode = R6::R6Class("ASTNode",
 
   "public" = list(
     parent = NULL,
+    .data = list(),
 
     initialize = function(parent = NULL) {
       self$parent = parent

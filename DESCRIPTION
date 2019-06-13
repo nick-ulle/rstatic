@@ -1,6 +1,6 @@
 Package: rstatic
 Title: Low-level Static Analysis Tools for R Code
-Version: 0.0.0.9044
+Version: 0.0.0.9045
 Authors@R: c(
   person("Nick", "Ulle", role = c("aut", "cre"),
     email = "nick.ulle@gmail.com"),
@@ -22,7 +22,7 @@ Suggests:
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 Collate: 
     'as.R'
