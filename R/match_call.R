@@ -42,7 +42,20 @@ function(
   # Convert definition to a function match.call can use.
   if (is.primitive(definition)) {
     # Convert primitive to a stub function for match.call().
-    definition = args(definition)
+    stub = args(definition)
+    if (is.null(stub)) {
+      if (identical(definition, base::`[`))
+        stub = function(x, i, j, ..., drop = TRUE) NULL
+      else if (identical(definition, base::`[[`))
+        stub = function(x, i, j, ..., exact = TRUE) NULL
+      else if (identical(definition, base::`$`))
+        stub = function(x, name) NULL
+      else
+        stop("This primitive is not yet supported by match_call().
+          Please contact the package maintainer for help.")
+    }
+
+    definition = stub
 
   } else if (inherits(definition, "Function")) {
     fn = as_language(definition)
