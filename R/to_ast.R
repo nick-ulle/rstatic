@@ -245,9 +245,9 @@ to_ast.call = function(expr) {
       # NOTE: These can all be redefined by users.
       , "::" = Namespace$new(name)
       , ":::" = Namespace$new(name)
-      , "[" = Subset$new(name)
-      , "[[" = Subset$new(name)
-      , "$" = Subset$new(name)
+      , "[" = Subset1$new(name)
+      , "[[" = Subset2$new(name)
+      , "$" = SubsetDollar$new(name)
 
       , Call$new(name)
     )

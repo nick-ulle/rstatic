@@ -314,6 +314,15 @@ Namespace = R6::R6Class("Namespace", inherit = Call)
 #' @export
 Subset = R6::R6Class("Subset", inherit = Call)
 
+#' @export
+Subset1 = R6::R6Class("Subset1", inherit = Subset)
+
+#' @export
+Subset2 = R6::R6Class("Subset2", inherit = Subset)
+
+#' @export
+SubsetDollar = R6::R6Class("SubsetDollar", inherit = Subset)
+
 
 # Assignment
 # --------------------
