@@ -7,13 +7,17 @@
 #' @return A list of index arguments.
 #'
 #' @export
-get_index = function(node) {
+get_index =
+function(node)
+{
   UseMethod("get_index")
 }
 
 
 #' @export
-get_index.Subset1 = function(node) {
+get_index.Subset1 =
+function(node)
+{
   # First argument is always the object.
   args = node$args$contents[-1L]
 
@@ -27,7 +31,9 @@ get_index.Subset1 = function(node) {
 
 
 #' @export
-get_index.Subset2 = function(node) {
+get_index.Subset2 =
+function(node)
+{
   # First argument is always the object.
   args = node$args$contents[-1L]
 
@@ -41,9 +47,33 @@ get_index.Subset2 = function(node) {
 
 
 #' @export
-get_index.SubsetDollar = function(node) {
+get_index.SubsetDollar =
+function(node)
+{
   # First argument is always the object.
   args = node$args$contents[-1L]
 
   args
 }
+
+
+#' @export
+get_index.Replacement1 =
+function(node)
+{
+  # First argument is always the object.
+  args = node$read$args$contents[-1L]
+
+  # Last argument is always the value.
+  args = args[-length(args)]
+
+  args
+}
+
+
+#' @export
+get_index.Replacement2 = get_index.Replacement1
+
+
+#' @export
+get_index.get_index.ReplacementDollar = get_index.Replacement1

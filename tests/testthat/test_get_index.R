@@ -49,3 +49,16 @@ test_that("[[ with `exact` argument", {
   expect_length(result, 1L)
   expect_identical(result[[1L]], node$args$contents[[2L]])
 })
+
+
+test_that("[<- ", {
+  node = quote_ast(y[a, b] <- z)
+
+  result = get_index(node)
+
+  # -----
+  expect_is(result, "list")
+  expect_length(result, 2L)
+  expect_identical(result[[1L]], node$read$args$contents[[2L]])
+  expect_identical(result[[2L]], node$read$args$contents[[3L]])
+})
