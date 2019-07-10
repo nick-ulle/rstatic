@@ -352,6 +352,15 @@ SuperAssign = R6::R6Class("SuperAssign", inherit = Assign)
 #' @export
 Replacement = R6::R6Class("Replacement", inherit = Assign)
 
+#' @export
+Replacement1 = R6::R6Class("Replacement1", inherit = Replacement)
+
+#' @export
+Replacement2 = R6::R6Class("Replacement2", inherit = Replacement)
+
+#' @export
+ReplacementDollar = R6::R6Class("ReplacementDollar", inherit = Replacement)
+
 
 # Symbols ----------------------------------------
 

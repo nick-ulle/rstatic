@@ -184,11 +184,18 @@ to_ast.while = function(expr) {
   write = expr[[2]]
 
   if (is.call(write)) {
-    fn = Symbol$new(paste0(write[[1]], "<-"))
+    name = paste0(write[[1]], "<-")
+    fn = Symbol$new(name)
     # NOTE: `read` is the `value` argument to the replacement function.
     args = c(lapply(write[-1], to_ast), read)
 
-    Replacement$new(copy(args[[1]]), Call$new(fn, args))
+    write = copy(args[[1L]])
+    switch(name
+      , "[<-" = Replacement1$new
+      , "[[<-" = Replacement2$new
+      , "$<-" = ReplacementDollar$new
+      , Replacement$new
+    )(write, Call$new(fn, args))
 
   } else {
     Assign$new(to_ast(write), read)
@@ -208,10 +215,10 @@ to_ast.call = function(expr) {
     # FIXME: match.call() would be helpful here but at this point there is no
     # scoping information available.
 
-    node = switch(name,
+    node = switch(name
       # Handle "calls" that don't use the standard call syntax. Most of these
       # are actually keywords.
-      "function" =
+      , "function" =
         return (to_ast_callable(expr))
 
       , "repeat" = {
