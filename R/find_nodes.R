@@ -90,25 +90,25 @@ function(node, replace, ..., in_place = FALSE)
 }
 
 
-#' Get Index of RStatic Object
+#' Where is RStatic Object in Tree?
 #'
-#' This function gets the index of the given RStatic object relative to its
+#' This function finds the index of the given RStatic object relative to its
 #' ancestor nodes.
 #'
 #' @param node (ASTNode) The RStatic object to traverse.
 #' @param index (integer) Initial index. The value of this parameter is
 #' appended to the end of the computed index.
 #'
-#' @return An integer vector which can be used as an index in the \code{child}
+#' @return An integer vector which can be used as an index in the [child()]
 #' function.
 #'
 #' @examples
 #' ast = quote_ast(x <- y + z)
 #' node = child(ast, c(2, 2, 1))
 #'
-#' get_index(node)
+#' where_is(node)
 #' @export
-get_index =
+where_is =
 function(node, index = integer(0))
 {
   parent = node$parent
@@ -119,7 +119,7 @@ function(node, index = integer(0))
   for (i in seq_along(children)) {
     child = children[[i]]
     if (identical(node, child)) {
-      index = get_index(parent, index = c(i, index))
+      index = where_is(parent, index = c(i, index))
       return (index)
     }
   }
