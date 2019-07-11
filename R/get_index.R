@@ -76,4 +76,4 @@ get_index.Replacement2 = get_index.Replacement1
 
 
 #' @export
-get_index.get_index.ReplacementDollar = get_index.Replacement1
+get_index.ReplacementDollar = get_index.Replacement1
