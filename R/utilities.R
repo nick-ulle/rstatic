@@ -1,3 +1,20 @@
+#' Create Error String from Object Class
+#'
+#' This function creates an error string that includes the class of an object.
+#'
+class_error_string =
+function(object, msg = "Invalid class '%s'.", all_classes = FALSE)
+{
+  cl = class(object)
+  if (all_classes)
+    cl = toString(cl)
+  else
+    cl = cl[1L]
+
+  sprintf(msg, cl)
+}
+
+
 #' Check Whether Named Member of R6 Object is Method
 #'
 #' This function checks whether the named members of an R6 object are methods
