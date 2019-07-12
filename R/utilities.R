@@ -27,23 +27,53 @@ is_r6_method = function(name, obj) {
   }, NA)
 }
 
+
+#' Collect Dots, Preserving Missing Arguments
+#'
+#' This function collects the `...` argument into a list. Missing arguments are
+#' preserved as S3 objects of class `missing`.
+#'
+#' @seealso [rlang::dots_list()]
+#'
 list_dots_safely =
 function(...)
 {
   if (...length() == 1 && is.list(..1))
     return (..1)
 
-  dots = rlang::quos(...)
+  # It is possible to capture *unevaluated* dots:
+  #
+  #   dots = substitute(...())
+  #
+  # For the origin and more information about this trick, see:
+  #
+  #   Peter Meilstrup. 2018. substitute() on arguments in ellipsis ("dot dot
+  #   dot")?. R Devel (August 2018).
+  #
+  #   https://adv-r.hadley.nz/quasiquotation.html#fnref68
+  #
+  # We want to evaluate the non-missing arguments. Since `...` may have been
+  # passed down many calls, keeping track of the correct environment for
+  # `eval()` is difficult. Instead, we let rlang do this for us.
+  #
+  dots = rlang::dots_list(..., .ignore_empty = "none", .preserve_empty = TRUE)
 
-  lapply(dots, function(elt) {
-    if (rlang::quo_is_missing(elt))
+  # Replace the missing arguments with S3 objects.
+  lapply(dots, function(dot) {
+    if (rlang::is_missing(dot))
       structure(list(), class = "missing")
     else
-      rlang::eval_tidy(elt)
+      dot
   })
 }
 
 
+#' Unpack Elements
+#'
+#' This operator unpacks the elements of a vector or list into variables. Since
+#' many other packages provide their own definition of the `:=` operator, this
+#' function is not exported and only meant for internal use.
+#'
 `:=` =
 function(x, y)
 {
