@@ -152,15 +152,6 @@ function(node)
 }
 
 
-#' @export
-get_index =
-function(node)
-{
-  .Deprecated("arg_index")
-  arg_index(node)
-}
-
-
 
 # arg_value ------------------------------------------------------------
 
