@@ -1,6 +1,6 @@
 Package: rstatic
 Title: Low-level Static Analysis Tools for R Code
-Version: 0.0.0.9057
+Version: 0.0.0.9058
 Authors@R: c(
   person("Nick", "Ulle", role = c("aut", "cre"),
     email = "nick.ulle@gmail.com"),
@@ -47,6 +47,7 @@ Collate:
     'format.R'
     'igraph.R'
     'insert_return.R'
+    'is.R'
     'live_variables.R'
     'match_call.R'
     'methods_blocklist.R'
