@@ -45,7 +45,12 @@ Block = R6::R6Class("Block", inherit = Container,
 )
 
 #' @export
-BlockList = R6::R6Class("BlockList", inherit = Container)
+BlockList = R6::R6Class("BlockList", inherit = Container,
+  "public" = list(
+    entry_index = NA_integer_,
+    exit_index = NA_integer_
+  )
+)
 
 #' @export
 Label = R6::R6Class("Label", inherit = ASTNode,

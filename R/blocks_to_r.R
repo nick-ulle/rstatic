@@ -21,7 +21,7 @@ function(node, ...) {
 #' @export
 blocks_to_r.BlockList =
 function(node, ...) {
-  c(exp, ) := blocks_to_r.Block(entry(node), blocks = node$contents, ...)
+  c(exp, ) := blocks_to_r.Block(entry_block(node), blocks = node$contents, ...)
   as.call(append(as.symbol("{"), exp))
 
   #params = to_r_params(node$params, ...)

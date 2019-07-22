@@ -49,6 +49,11 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
     node = insert_return(node)
 
   # FIXME: Include a return_block so that return isn't hard-coded to 1.
+  #
+  # Hard-coding the exit block to 1 is not problematic, but assuming it returns
+  # a value might be. What if we want to generate blocks for code that's not in
+  # a function?
+  #
   helper = c(
     this_block = NA, sib_block = 1L,
     next_block = NA, break_block = NA)
@@ -62,6 +67,9 @@ function(node, in_place = FALSE, ssa = TRUE, insert_return = TRUE) {
   #cfg$reorder(ordering)
 
   node = BlockList$new(blocks)
+  # First block is exit, second block is entry.
+  node$exit_index = 1L
+  node$entry_index = 2L
 
   if (ssa)
     to_ssa(node, in_place = TRUE)
