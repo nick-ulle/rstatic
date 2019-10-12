@@ -18,7 +18,7 @@ test_that("linear code has exit block", {
   expect_identical(exit$parent, result$body)
   expect_equal(length(exit), 1)
   expect_is(exit[[1]], "Symbol")
-  expect_equal(exit[[1]]$basename, "._return_")
+  expect_equal(exit[[1]]$value, "._return_")
 })
 
 

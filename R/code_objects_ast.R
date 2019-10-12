@@ -396,16 +396,6 @@ Symbol = R6::R6Class("Symbol", inherit = ASTNode,
         return (self$value)
 
       sprintf("%s_%i", self$value, ssa_number)
-    },
-    
-    basename = function() {
-      .Deprecated("value", msg = "Use 'x$value' instead of 'x$basename'.")
-      self$value
-    },
-
-    name = function() {
-      .Deprecated("ssa_name", msg = "Use 'x$ssa_name' instead of 'x$name'.")
-      self$ssa_name
     }
   )
 )
