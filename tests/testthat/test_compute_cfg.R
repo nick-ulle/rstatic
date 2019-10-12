@@ -6,8 +6,8 @@ test_that("if-statement graph has correct structure", {
 
   ast = If$new(
     Logical$new(TRUE),
-    Brace$new(Assign$new(Symbol$new("x"), Integer$new(3L))),
-    Brace$new(Assign$new(Symbol$new("x"), Integer$new(4L)))
+    Brace$new(Assignment$new(Symbol$new("x"), Integer$new(3L))),
+    Brace$new(Assignment$new(Symbol$new("x"), Integer$new(4L)))
   )
 
   result = to_blocks(ast, ssa = FALSE)

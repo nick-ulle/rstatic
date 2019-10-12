@@ -83,7 +83,7 @@ function(node, ...)
 
 
 #' @export
-insert_return.Assign =
+insert_return.Assignment =
 function(node, ...)
 {
   list(

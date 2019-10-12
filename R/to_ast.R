@@ -198,7 +198,7 @@ to_ast.while = function(expr) {
     )(write, Call$new(fn, args))
 
   } else {
-    Assign$new(to_ast(write), read)
+    Assignment$new(to_ast(write), read)
   }
 }
 
@@ -243,7 +243,7 @@ to_ast.call = function(expr) {
       , "<<-" = {
         read = to_ast(expr[[3]])
         write = to_ast(expr[[2]])
-        return (SuperAssign$new(write, read))
+        return (SuperAssignment$new(write, read))
       }
 
       # The standard call syntax applies, so construct an appropriate node.

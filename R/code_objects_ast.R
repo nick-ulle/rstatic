@@ -327,7 +327,7 @@ SubsetDollar = R6::R6Class("SubsetDollar", inherit = Subset)
 # Assignment
 # --------------------
 #' @export
-Assign = R6::R6Class("Assign", inherit = ASTNode,
+Assignment = R6::R6Class("Assignment", inherit = ASTNode,
   "public" = list(
     .write = NULL,
     .read = NULL,
@@ -347,10 +347,10 @@ Assign = R6::R6Class("Assign", inherit = ASTNode,
 )
 
 #' @export
-SuperAssign = R6::R6Class("SuperAssign", inherit = Assign)
+SuperAssignment = R6::R6Class("SuperAssignment", inherit = Assignment)
 
 #' @export
-Replacement = R6::R6Class("Replacement", inherit = Assign)
+Replacement = R6::R6Class("Replacement", inherit = Assignment)
 
 #' @export
 Replacement1 = R6::R6Class("Replacement1", inherit = Replacement)

@@ -34,7 +34,7 @@ test_that("warning on dead break/next after return", {
 
 
 test_that("AST is copied when in_place = FALSE", {
-  node = Assign$new(Symbol$new("x"), Integer$new(42L))
+  node = Assignment$new(Symbol$new("x"), Integer$new(42L))
 
   result = to_blocks(node, in_place = FALSE, ssa = FALSE)
 
@@ -47,7 +47,7 @@ test_that("AST is copied when in_place = FALSE", {
 
 
 test_that("AST is not copied when in_place = TRUE", {
-  node = Assign$new(Symbol$new("x"), Integer$new(42L))
+  node = Assignment$new(Symbol$new("x"), Integer$new(42L))
 
   result = to_blocks(node, in_place = TRUE, insert_return = FALSE, ssa = FALSE)
 

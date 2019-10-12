@@ -116,7 +116,7 @@ const_visit_node = function(node, helper) {
 
 
 #' @export
-const_visit_node.Assign = function(node, helper) {
+const_visit_node.Assignment = function(node, helper) {
   name = node$write$name
 
   # Set constant in table.

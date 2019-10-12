@@ -95,7 +95,7 @@ function(node
 
 # Defs --------------------
 #' @export
-def_use_sets_line.Assign =
+def_use_sets_line.Assignment =
 function(node
   , initial = list(def = character(0), use = character(0))
   , ...)
@@ -107,7 +107,7 @@ function(node
 }
 
 #' @export
-def_use_sets_line.Return = def_use_sets_line.Assign
+def_use_sets_line.Return = def_use_sets_line.Assignment
 
 #' @export
 def_use_sets_line.For =

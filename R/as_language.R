@@ -116,7 +116,7 @@ function(node, ...) {
 
 
 #' @export
-as_language.Assign =
+as_language.Assignment =
 function(node, ...) {
   read = as_language(node$read, ...)
   write = as_language(node$write, ...)

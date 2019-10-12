@@ -51,7 +51,7 @@ test_that("collecting reads on sum(x, 5, y, 7, x) returns x, y", {
 
 
 test_that("collecting reads on x = y returns y", {
-  code = Assign$new(Symbol$new("x"), Symbol$new("y"))
+  code = Assignment$new(Symbol$new("x"), Symbol$new("y"))
 
   result = collect_reads(code)
 

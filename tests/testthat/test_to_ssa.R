@@ -47,7 +47,7 @@ test_that("SSA form for if-statement", {
 })
 
 
-test_that("Phi nodes placed for Assign in if-statement in for-loop", {
+test_that("Phi nodes placed for Assignment in if-statement in for-loop", {
   node = quote_ast({
     x = 0
 

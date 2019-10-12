@@ -81,7 +81,7 @@ function(x, ...) {
 }
 
 #' @export
-toString.Assign =
+toString.Assignment =
 function(x, ..., short = TRUE) {
   write = toString(x$write, ..., short = short)
   read = toString(x$read, ..., short = short)
@@ -89,7 +89,7 @@ function(x, ..., short = TRUE) {
 }
 
 #' @export
-toString.SuperAssign =
+toString.SuperAssignment =
 function(x, ..., short = TRUE) {
   write = toString(x$write, ..., short = short)
   read = toString(x$read, ..., short = short)

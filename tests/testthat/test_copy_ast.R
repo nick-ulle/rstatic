@@ -2,7 +2,7 @@ context("copy")
 
 
 test_that("copying with inherited copy method sets correct parents", {
-  x = Assign$new(Symbol$new("x"), Complex$new(1+4i))
+  x = Assignment$new(Symbol$new("x"), Complex$new(1+4i))
 
   y = copy(x)
 
@@ -19,10 +19,10 @@ test_that("copying with inherited copy method sets correct parents", {
 
 
 test_that("copying sets correct parents on grandchildren", {
-  x = Assign$new(Symbol$new("x"), 
+  x = Assignment$new(Symbol$new("x"),
     Call$new("+", list(Integer$new(2), Integer$new(3)))
   )
-  
+
   y = copy(x)
 
   # -----
@@ -38,7 +38,7 @@ test_that("copying sets correct parents on grandchildren", {
 
 test_that("copying a Brace sets correct parents", {
   x = Brace$new(list(
-      Assign$new(Symbol$new("x"), Integer$new(5))
+      Assignment$new(Symbol$new("x"), Integer$new(5))
       , Character$new("Hi")
   ))
 

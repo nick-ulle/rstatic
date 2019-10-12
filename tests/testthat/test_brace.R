@@ -3,7 +3,7 @@ context("Brace")
 
 test_that("$new() sets parents on contents", {
   x = Brace$new(contents = list(
-    Assign$new(Symbol$new("x"), Integer$new(3L))
+    Assignment$new(Symbol$new("x"), Integer$new(3L))
   ))
 
   # -----
@@ -13,8 +13,8 @@ test_that("$new() sets parents on contents", {
 
 test_that("copying sets parents on contents", {
   x = Brace$new(list(
-    Assign$new(Symbol$new("x"), Integer$new(3L))
-    , Assign$new(Symbol$new("x"), Symbol$new("y"))
+    Assignment$new(Symbol$new("x"), Integer$new(3L))
+    , Assignment$new(Symbol$new("x"), Symbol$new("y"))
   ))
 
   y = copy(x)

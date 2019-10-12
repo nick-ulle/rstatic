@@ -38,15 +38,17 @@ test_that("Symbols", {
 
 test_that("Assignments", {
   # TRUE -----
-  result = Assign$new(Symbol$new("y"), Symbol$new("hello")) ==
-    Assign$new(Symbol$new("y"), Symbol$new("hello"))
+  result = Assignment$new(Symbol$new("y"), Symbol$new("hello")) ==
+    Assignment$new(Symbol$new("y"), Symbol$new("hello"))
   expect_true(result)
 
   # FALSE -----
-  result = Assign$new(Symbol$new("x"), 3) == Assign$new(Symbol$new("x"), 4)
+  result = Assignment$new(Symbol$new("x"), 3) ==
+    Assignment$new(Symbol$new("x"), 4)
   expect_false(result)
 
-  result = Assign$new(Symbol$new("z"), 3) == Assign$new(Symbol$new("x"), 3)
+  result = Assignment$new(Symbol$new("z"), 3) ==
+    Assignment$new(Symbol$new("x"), 3)
   expect_false(result)
 })
 

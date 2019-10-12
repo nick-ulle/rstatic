@@ -36,7 +36,7 @@ child_fields.Invocation = function(x) c("args")
 child_fields.Call       = function(x) c("fn", "args")
 
 #' @export
-child_fields.Assign    = function(x) c("write", "read")
+child_fields.Assignment = function(x) c("write", "read")
 #' @export
 child_fields.Parameter = function(x) c("default")
 #' @export

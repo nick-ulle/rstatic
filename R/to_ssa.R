@@ -174,7 +174,7 @@ function(node, active, counter, ...)
 
 
 #' @export
-ssa_set_numbers_line.Assign =
+ssa_set_numbers_line.Assignment =
 function(node, active, counter, ...)
 {
   active = ssa_set_numbers_line(node$read, active, counter, ...)
@@ -190,7 +190,7 @@ function(node, active, counter, ...)
 }
 
 #' @export
-ssa_set_numbers_line.Return = ssa_set_numbers_line.Assign
+ssa_set_numbers_line.Return = ssa_set_numbers_line.Assignment
 
 #' @export
 ssa_set_numbers_line.For =

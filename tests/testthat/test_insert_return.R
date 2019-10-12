@@ -33,7 +33,7 @@ test_that("return inserted for Call", {
 })
 
 
-test_that("return inserted for Assign", {
+test_that("return inserted for Assignment", {
   ast = quote_ast(x <- 3)
 
   result = insert_return(ast)
@@ -42,7 +42,7 @@ test_that("return inserted for Assign", {
   expect_is(result, "list")
   expect_length(result, 2)
 
-  expect_is(result[[1]], "Assign")
+  expect_is(result[[1]], "Assignment")
   expect_is(result[[2]], "Return")
 })
 

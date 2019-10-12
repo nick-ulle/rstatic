@@ -20,7 +20,7 @@ names.Invocation = function(x) c("args")
   names.Call     = function(x) c("fn", "args")
 
 #' @export
-names.Assign    = function(x) c("write", "read")
+names.Assignment = function(x) c("write", "read")
 #' @export
 names.Parameter = function(x) c("default")
 #' @export
