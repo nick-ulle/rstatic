@@ -4,8 +4,7 @@
 \alias{find_nodes}
 \title{Find Nodes in an RStatic Object}
 \usage{
-find_nodes(node, test, ..., recursive = TRUE, initial = list(),
-  index = integer(0))
+find_nodes(node, test, ..., recursive = TRUE, initial = list())
 }
 \arguments{
 \item{node}{(ASTNode) The RStatic object to search.}
@@ -17,21 +16,14 @@ object to check as its first argument and return a scalar logical.}
 
 \item{recursive}{(logical) Search recursively in matching nodes?}
 
-\item{initial}{(list) Initial list of match indices.}
-
-\item{index}{(integer) The index of \code{node}.}
+\item{initial}{(list) Initial list of matching nodes.}
 }
 \value{
-A list of indices for matching nodes.
+A list of matching nodes.
 }
 \description{
-This function traverses the given RStatic object and returns a list of
-indices for all descendants that satisfy the given test function.
-}
-\details{
-All indices are relative to \code{node}, unless \code{index} is supplied.
-
-Note that \code{node} itself is not tested.
+This function traverses the given RStatic object and returns a list of all
+descendants that satisfy the given test function.
 }
 \examples{
 ast = quote_ast(
@@ -42,5 +34,8 @@ ast = quote_ast(
 
 find_nodes(ast, is, "Function")
 
-find_nodes(ast, function(node) is(node, "Symbol") && node$value == "x")
+find_nodes(ast, is_symbol, "x")
+}
+\seealso{
+\code{\link[=find_node_indices]{find_node_indices()}}, \code{\link[=replace_nodes]{replace_nodes()}}
 }

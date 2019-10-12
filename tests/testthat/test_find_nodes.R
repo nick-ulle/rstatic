@@ -1,4 +1,4 @@
-context("find_nodes")
+context("find_node_indices")
 
 test_that("finding Symbols", {
   skip("")
@@ -9,7 +9,7 @@ test_that("finding Symbols", {
     return (x + z)
   })
 
-  result = find_nodes(code, function(node) {
+  result = find_node_indices(code, function(node) {
     is(node, "Symbol") && node$value == "x"
   })
 

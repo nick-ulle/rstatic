@@ -44,7 +44,7 @@ function(node, ..., recursive = TRUE)
 
   # Check for function definitions.
   if (recursive) {
-    indices = find_nodes(node$contents[-len], is, "Function"
+    indices = find_node_indices(node$contents[-len], is, "Function"
       , recursive = FALSE)
 
     for (i in indices) {

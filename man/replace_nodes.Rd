@@ -35,3 +35,6 @@ ast = quote_ast(ans <- sum(x, y / x, z))
 
 replace_nodes(ast, rename_symbols, "x", "newx")
 }
+\seealso{
+\code{\link[=find_nodes]{find_nodes()}}
+}

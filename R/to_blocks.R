@@ -173,7 +173,7 @@ function(node, helper, cfg = list(), depth = 1L) {
 
   # Check for function definitions. This must be done here, after the block has
   # had labels inserted.
-  defs = find_nodes(node, is, "Function")
+  defs = find_node_indices(node, is, "Function")
   for (d in defs) {
     fn = to_blocks.Function(node[[d]], in_place = TRUE, ssa = FALSE,
       insert_return = FALSE)
