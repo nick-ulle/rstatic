@@ -11,9 +11,15 @@
 #' @param ... Further arguments to methods.
 #'
 #' @return A character vector.
+#' @examples
+#' expr = quote(x = x + y)
+#' names_used(expr)
 #'
+#' # If defined symbols and used symbols are both needed:
+#' symbols = get_symbols(expr)
+#' names_defined(symbols)
+#' names_used(symbols)
 #' @seealso [names_defined()], [get_symbols()], [CodeDepends::getInputs()]
-#'
 #' @export
 names_used =
 function(x, ...)
@@ -53,9 +59,15 @@ function(x, ...)
 #' @param ... Further arguments to methods.
 #'
 #' @return A character vector.
+#' @examples
+#' expr = quote(x = x + y)
+#' names_defined(expr)
 #'
+#' # If defined symbols and used symbols are both needed:
+#' symbols = get_symbols(expr)
+#' names_defined(symbols)
+#' names_used(symbols)
 #' @seealso [names_used()], [get_symbols()], [CodeDepends::getInputs()]
-#'
 #' @export
 names_defined =
 function(x, ...)
@@ -101,12 +113,19 @@ function(defined = list(), used = list())
 #' @param node (ASTNode) The expression to analyze.
 #' @param initial (SymbolSets) The initial sets of defined/used expressions.
 #' @param ... Further arguments to methods.
+#' @param recursive (logical) Search for symbols in function definitions?
+#' @param include_default_arguments (logical) Search for symbols in default
+#' arguments?
+#' @param only_undefined_uses (logical) Exclude used symbols that are defined
+#' in `node` before they are used?
 #'
-#' @return A `SymbolSets` object, with elements `def` and `use` that list
-#' references to expressions that define or use symbols, respectively.
-#'
-#' @seealso [CodeDepends::getInputs()]
-#'
+#' @return A `SymbolSets` object, with elements `defined` and `used`. Element
+#' `defined` is a list of expressions that define a symbol. Element `used` is a
+#' list of used symbols.
+#' @examples
+#' ast = quote_ast(x <- sum(x, 1, y))
+#' get_symbols(ast)
+#' @seealso [names_defined()], [names_used()], [CodeDepends::getInputs()]
 #' @export
 get_symbols =
 function(node, initial = SymbolSets(), ...)

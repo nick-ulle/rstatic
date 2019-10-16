@@ -23,6 +23,15 @@ If you need both the symbols defined and the symbols used by an expression,
 it is more efficient to first call \code{get_symbols()} on the expression and
 then call \code{names_defined()} and/or \code{names_used()} on the result.
 }
+\examples{
+expr = quote(x = x + y)
+names_used(expr)
+
+# If defined symbols and used symbols are both needed:
+symbols = get_symbols(expr)
+names_defined(symbols)
+names_used(symbols)
+}
 \seealso{
 \code{\link[=names_defined]{names_defined()}}, \code{\link[=get_symbols]{get_symbols()}}, \code{\link[CodeDepends:getInputs]{CodeDepends::getInputs()}}
 }

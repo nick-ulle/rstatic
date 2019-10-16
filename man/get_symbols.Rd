@@ -12,15 +12,28 @@ get_symbols(node, initial = SymbolSets(), ...)
 \item{initial}{(SymbolSets) The initial sets of defined/used expressions.}
 
 \item{...}{Further arguments to methods.}
+
+\item{recursive}{(logical) Search for symbols in function definitions?}
+
+\item{include_default_arguments}{(logical) Search for symbols in default
+arguments?}
+
+\item{only_undefined_uses}{(logical) Exclude used symbols that are defined
+in \code{node} before they are used?}
 }
 \value{
-A \code{SymbolSets} object, with elements \code{def} and \code{use} that list
-references to expressions that define or use symbols, respectively.
+A \code{SymbolSets} object, with elements \code{defined} and \code{used}. Element
+\code{defined} is a list of expressions that define a symbol. Element \code{used} is a
+list of used symbols.
 }
 \description{
 This function returns the set of symbols defined by an expression and the
 set of symbols used by an expression.
 }
+\examples{
+ast = quote_ast(x <- sum(x, 1, y))
+get_symbols(ast)
+}
 \seealso{
-\code{\link[CodeDepends:getInputs]{CodeDepends::getInputs()}}
+\code{\link[=names_defined]{names_defined()}}, \code{\link[=names_used]{names_used()}}, \code{\link[CodeDepends:getInputs]{CodeDepends::getInputs()}}
 }
