@@ -1,3 +1,44 @@
+#' Match Object(s) in List
+#'
+#' This function returns a vector of the positions of the first matches of its
+#' first argument in its second.
+#'
+#' @param x list or object: The object(s) to be matched.
+#' @param table list: The objects to be matched against.
+#' @param nomatch The value to be returned in the case when no match is found.
+#'
+#' @return An integer vector giving the position in `table` of the first match
+#' if there is a match, otherwise `nomatch`.
+#'
+#' @seealso [base::match()]
+#' @export
+match_object =
+function(x, table, nomatch = NA_integer_)
+{
+  UseMethod("match_object")
+}
+
+
+#' @export
+match_object.list =
+function(x, table, nomatch = NA_integer_)
+{
+  vapply(x, match_object.default, NA_integer_, table, nomatch)
+}
+
+
+#' @export
+match_object.default =
+function(x, table, nomatch = NA_integer_)
+{
+  for (i in seq_along(table))
+    if (x == table[[i]])
+      return (i)
+
+  as.integer(nomatch)
+}
+
+
 #' Create Error String from Object Class
 #'
 #' This function creates an error string that includes the class of an object.
