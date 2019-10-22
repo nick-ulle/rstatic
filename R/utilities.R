@@ -1,3 +1,30 @@
+#' Form Row Disjunctions and Conjunctions
+#' 
+#' Form row disjunctions (logical `or`) and conjunctions (logical `and`) for
+#' logical arrays.
+#'
+#' @examples
+#' m = matrix(TRUE, 3, 2)
+#' m[, 1L] = FALSE
+#' row_ors(m)
+#' row_ands(m)
+#' @export
+row_ors =
+function(x)
+{
+  rowSums(x) > 0
+}
+
+
+#' @rdname row_ors
+#' @export
+row_ands =
+function(x)
+{
+  rowSums(x) == ncol(x)
+}
+
+
 #' Match Object(s) in List
 #'
 #' This function returns a vector of the positions of the first matches of its
