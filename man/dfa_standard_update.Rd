@@ -2,7 +2,7 @@
 % Please edit documentation in R/flow_analysis.R
 \name{dfa_standard_update}
 \alias{dfa_standard_update}
-\title{Standard Update for Data Flow Analyses}
+\title{Standard Update for Data Flow Analysis}
 \usage{
 dfa_standard_update(result, gen, kill, ...)
 }
@@ -19,7 +19,7 @@ dfa_standard_update(result, gen, kill, ...)
 The update set for the next block.
 }
 \description{
-This function computes the standard update set for data flow analyses. The
+This function computes the standard update set for a data flow analysis. The
 standard update set is the result set less the kill set, all unioned with
 the gen set.
 }

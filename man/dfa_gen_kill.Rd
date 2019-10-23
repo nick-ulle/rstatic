@@ -4,7 +4,7 @@
 \alias{dfa_gen_kill}
 \title{Compute Gen and Kill Sets for Data Flow Analysis}
 \usage{
-dfa_gen_kill(cfg, fun, universe, ...)
+dfa_gen_kill(cfg, fun, universe, forward = TRUE, ...)
 }
 \arguments{
 \item{cfg}{(BlockList) A control flow graph on which to compute gen and kill

@@ -21,8 +21,8 @@
 #' and kill sets. Defaults to `dfa_standard_update`.
 #' @param max_iter (integer) Maximum number of iterations to run.
 #' @param full_analysis (logical) If `FALSE`, either the entry sets or exit
-#' sets are computed, but not both. Exit sets are always computed for a forward
-#' analysis, and entry sets are always computed for a backward analysis.
+#' sets are computed, but not both. Entry sets are always computed for a
+#' forward analysis, and exit sets are always computed for a backward analysis.
 #'
 #' @return A two-element list. The first element, "entry", is a logical matrix
 #' that represents the solution sets at the entry of each block. The second
@@ -95,9 +95,46 @@ function(cfg, initial, gen, kill
 }
 
 
-#' Standard Update for Data Flow Analyses
+#' Initial Sets for Data Flow Analysis
 #'
-#' This function computes the standard update set for data flow analyses. The
+#' This function generates initial sets for a data flow analysis.
+#'
+#' @param cfg (BlockList) A control flow graph for which to initialize the
+#' sets.
+#' @param universe (named list) The universal set, which contains all items
+#' used in the analysis.
+#' @param default (logical) If `TRUE`, sets are initialized to the universal
+#' set. Otherwise, sets are initialized to the empty set.
+#' @param complement (character) A block which should be initialized to the
+#' complement of the default set.
+#'
+#' @return A logical matrix that represents the solution set of each block.
+#' Rows correspond to set items and columns correspond to blocks.
+#'
+#' @seealso [dfa_solve()]
+#' @export
+dfa_initialize =
+function(cfg, universe, default = FALSE
+  , complement = c("none", "entry", "exit"))
+{
+  complement = match.arg(complement)
+
+  initial = matrix(default, length(universe), length(cfg))
+  rownames(initial) = names(universe)
+
+  idx = switch(complement
+    , none = return(initial)
+    , entry = cfg$entry_index
+    , exit = cfg$exit_index
+  )
+  initial[, idx] = !initial[, idx]
+  initial
+}
+
+
+#' Standard Update for Data Flow Analysis
+#'
+#' This function computes the standard update set for a data flow analysis. The
 #' standard update set is the result set less the kill set, all unioned with
 #' the gen set.
 #'
@@ -110,7 +147,9 @@ function(cfg, initial, gen, kill
 #'
 #' @seealso [dfa_solve()], [dfa_aggregate()]
 #' @export
-dfa_standard_update = function(result, gen, kill, ...) {
+dfa_standard_update =
+function(result, gen, kill, ...)
+{
   (result & !kill) | gen
 }
 
@@ -173,7 +212,7 @@ function(gen, kill, forward = TRUE, update = dfa_standard_update)
 #' @seealso [dfa_solve()]
 #' @export
 dfa_gen_kill =
-function(cfg, fun, universe, ...)
+function(cfg, fun, universe, forward = TRUE, ...)
 {
   n_items = length(universe)
 
@@ -201,7 +240,7 @@ function(cfg, fun, universe, ...)
     }
 
     # Aggregate line-level sets to block-level.
-    gen[, b] = dfa_aggregate(b_gen, b_kill, forward = FALSE)
+    gen[, b] = dfa_aggregate(b_gen, b_kill, forward = forward)
     kill[, b] = row_ors(b_kill)
   }
 

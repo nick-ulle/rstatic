@@ -32,8 +32,8 @@ control flow. Defaults to \code{|}, which unions the sets.}
 and kill sets. Defaults to \code{dfa_standard_update}.}
 
 \item{full_analysis}{(logical) If \code{FALSE}, either the entry sets or exit
-sets are computed, but not both. Exit sets are always computed for a forward
-analysis, and entry sets are always computed for a backward analysis.}
+sets are computed, but not both. Entry sets are always computed for a
+forward analysis, and exit sets are always computed for a backward analysis.}
 
 \item{max_iter}{(integer) Maximum number of iterations to run.}
 }
