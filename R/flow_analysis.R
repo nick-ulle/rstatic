@@ -1,43 +1,69 @@
-#' Compute Fixed Point Solution for Forward Analysis
+#' Solve a Data Flow Analysis
 #'
-#' This function solves for the maximal fixed point in a forward analysis.
+#' This function finds a solution to a data flow analysis.
+#'
+#' This function uses the iterative maximal fixed point algorithm to find a
+#' solution. The solution is not necessarily unique.
 #'
 #' @param cfg (BlockList) A control flow graph with which to compute a
 #' solution.
 #' @param initial Initial guess of solution for each block.
-#' @param gen Gen sets for each block.
-#' @param kill Kill sets for each block.
-#' @param confluence (function) A function to combine old set and update set
-#' for a block.
-#' @param update (function) A function to compute the update set for a block.
+#' @param gen (logical matrix) The gen sets as a logical matrix. Rows
+#' correspond to items and columns correspond to blocks.
+#' @param kill (logical matrix) The kill sets as a logical matrix. Rows
+#' correspond to items and columns correspond to blocks.
+#' @param forward (logical) Is this a forward data flow analysis? If `FALSE`,
+#' the solver will traverse the control flow graph backward.
+#' @param confluence (function) A function to combine sets at a merge in
+#' control flow. Defaults to `|`, which unions the sets.
 #' @param ... Additional arguments to `update`.
+#' @param update (function) A function to update a block's set based on the gen
+#' and kill sets. Defaults to `dfa_standard_update`.
 #' @param max_iter (integer) Maximum number of iterations to run.
-#' @param full_analysis (logical) If `TRUE`, the update sets are computed in
-#' addition to the result sets.
+#' @param full_analysis (logical) If `FALSE`, either the entry sets or exit
+#' sets are computed, but not both. Exit sets are always computed for a forward
+#' analysis, and entry sets are always computed for a backward analysis.
 #'
-#' @return A two-element list. The first element, "entry", is a list of
-#' solution sets at the entry from each block. The second element, "exit", is
-#' `NULL`, or for a full analysis, a list of solution sets at the exit to each
-#' block.
+#' @return A two-element list. The first element, "entry", is a logical matrix
+#' that represents the solution sets at the entry of each block. The second
+#' element, "exit", is a logical matrix that represents the solution sets at
+#' the exit of each block. For both matrices, rows correspond to set items and
+#' columns correspond to blocks.
 #'
-#' @seealso [backward_analysis()]
+#' @seealso [dfa_gen_kill()], [dfa_standard_update()]
 #' @export
-forward_analysis =
+dfa_solve =
 function(cfg, initial, gen, kill
+  , forward = TRUE
   , confluence = `|`
+  , ...
   , update = dfa_standard_update
-  , ..., full_analysis = FALSE, max_iter = 1000L)
+  , full_analysis = TRUE, max_iter = 1000L)
 {
+  if (is(cfg, "BlockList"))
+    cfg = compute_cfg(cfg)
+
+  if (forward) {
+    # For forward analysis, source vertex comes first.
+    edge_src = 1L
+    edge_dst = 2L
+    edge_mode = "out"
+  } else {
+    # For backward analysis, destination vertex comes first.
+    edge_src = 2L
+    edge_dst = 1L
+    edge_mode = "in"
+  }
+
   # Step 1: Initialize worklist of edges.
   worklist = igraph::ends(cfg, igraph::E(cfg))
 
   # Step 2: Iterate until worklist is empty.
   iter = 0L
-  while (nrow(worklist) > 0 && iter < max_iter) {
-    # For forward analysis, source vertex comes first.
-    b      = worklist[1, 1]
-    b_next = worklist[1, 2]
-    worklist = worklist[-1, , drop = FALSE]
+  while (nrow(worklist) > 0L && iter < max_iter) {
+    b      = worklist[1L, edge_src]
+    b_next = worklist[1L, edge_dst]
+    worklist = worklist[-1L, , drop = FALSE]
 
     # Update result set for the next block.
     old = initial[, b_next]
@@ -49,8 +75,8 @@ function(cfg, initial, gen, kill
       initial[, b_next] = new
 
       # Add edges from b_next to successors.
-      out_edges = igraph::incident(cfg, b_next, "out")
-      to_bind = igraph::ends(cfg, out_edges)
+      next_edges = igraph::incident(cfg, b_next, edge_mode)
+      to_bind = igraph::ends(cfg, next_edges)
       worklist = rbind(to_bind, worklist)
     }
 
@@ -62,75 +88,10 @@ function(cfg, initial, gen, kill
     update(initial, gen, kill)
   } # else NULL
 
-  list(entry = initial, exit = exit)
-}
-
-
-#' Compute Fixed Point Solution for Backward Analysis
-#'
-#' This function solves for the maximal fixed point in a backward analysis.
-#'
-#' @param cfg (BlockList) The CFG to compute the analysis for.
-#' @param initial Initial guess of solution for each block.
-#' @param gen Gen sets for each block.
-#' @param kill Kill sets for each block.
-#' @param confluence (function) A function to combine old set and update set
-#' for a block.
-#' @param update (function) A function to compute the update set for a block.
-#' @param ... Additional arguments to `update`.
-#' @param max_iter (integer) Maximum number of iterations to run.
-#' @param full_analysis (logical) If `TRUE`, the update sets are computed in
-#' addition to the result sets.
-#'
-#' @return A two-element list. The first element, "entry", is `NULL`, or for a
-#' full analysis, a list of solution sets at the entry to each block. The
-#' second element, "exit", is a list of solution sets at the exit from each
-#' block.
-#'
-#' @seealso [forward_analysis()]
-#' @export
-backward_analysis =
-function(cfg, initial, gen, kill
-  , confluence = `|`
-  , update = dfa_standard_update
-  , ..., full_analysis = FALSE, max_iter = 1000L)
-{
-  # Step 1: Initialize worklist of edges.
-  # TODO: Sort worklist so blocks are bottom to top.
-  worklist = igraph::ends(cfg, igraph::E(cfg))
-
-  # Step 2: Iterate until worklist is empty.
-  iter = 0L
-  while (nrow(worklist) > 0 && iter < max_iter) {
-    # For backward analysis, destination vertex comes first.
-    b      = worklist[1, 2]
-    b_next = worklist[1, 1]
-    worklist = worklist[-1, , drop = FALSE]
-
-    # Update result set for the next block.
-    old = initial[, b_next]
-    update_set = update(initial[, b], gen[, b], kill[, b], ...)
-    new = confluence(old, update_set)
-
-    # Check whether this iteration changed anything.
-    if (sum(old) != sum(new)) {
-      initial[, b_next] = new
-
-      # Add edges from b_next to ancestors.
-      in_edges = igraph::incident(cfg, b_next, "in")
-      to_bind = igraph::ends(cfg, in_edges)
-      worklist = rbind(to_bind, worklist)
-    }
-
-    iter = iter + 1L
-  }
-
-  # Step 3: The entry sets can be computed by an update() on each exit set.
-  entry = if (full_analysis) {
-    update(initial, gen, kill)
-  } # else NULL
-
-  list(entry = entry, exit = initial)
+  if (forward)
+    list(entry = initial, exit = exit)
+  else
+    list(entry = exit, exit = initial)
 }
 
 
@@ -147,6 +108,7 @@ function(cfg, initial, gen, kill
 #'
 #' @return The update set for the next block.
 #'
+#' @seealso [dfa_solve()], [dfa_aggregate()]
 #' @export
 dfa_standard_update = function(result, gen, kill, ...) {
   (result & !kill) | gen
@@ -167,8 +129,9 @@ dfa_standard_update = function(result, gen, kill, ...) {
 #' @return A logical vector with `nrow(gen)` elements. The set computed by
 #' aggregating over all of the line-level sets.
 #'
+#' @seealso [dfa_standard_update()]
 #' @export
-block_aggregate =
+dfa_aggregate =
 function(gen, kill, forward = TRUE, update = dfa_standard_update)
 {
   n = ncol(gen)
@@ -202,9 +165,14 @@ function(gen, kill, forward = TRUE, update = dfa_standard_update)
 #' used in the analysis.
 #' @param ... Additional arguments to `fun`.
 #'
-#' @seealso [forward_analysis()]
+#' @return A two-element list. The first element, "gen", is a logical matrix
+#' that represents the gen set for each block. The second element, "kill", is
+#' a logical matrix that represents the kill set for each block. For both
+#' matrices, rows correspond to set items and columns correspond to blocks.
+#'
+#' @seealso [dfa_solve()]
 #' @export
-compute_gen_kill =
+dfa_gen_kill =
 function(cfg, fun, universe, ...)
 {
   n_items = length(universe)
@@ -233,7 +201,7 @@ function(cfg, fun, universe, ...)
     }
 
     # Aggregate line-level sets to block-level.
-    gen[, b] = block_aggregate(b_gen, b_kill, forward = FALSE)
+    gen[, b] = dfa_aggregate(b_gen, b_kill, forward = FALSE)
     kill[, b] = row_ors(b_kill)
   }
 

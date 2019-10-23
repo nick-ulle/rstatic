@@ -23,3 +23,6 @@ This function computes the standard update set for data flow analyses. The
 standard update set is the result set less the kill set, all unioned with
 the gen set.
 }
+\seealso{
+\code{\link[=dfa_solve]{dfa_solve()}}, \code{\link[=dfa_aggregate]{dfa_aggregate()}}
+}
