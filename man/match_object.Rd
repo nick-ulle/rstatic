@@ -4,7 +4,7 @@
 \alias{match_object}
 \title{Match Object(s) in List}
 \usage{
-match_object(x, table, nomatch = NA_integer_)
+match_object(x, table, nomatch = NA_integer_, match_fun = identical)
 }
 \arguments{
 \item{x}{list or object: The object(s) to be matched.}
@@ -12,6 +12,9 @@ match_object(x, table, nomatch = NA_integer_)
 \item{table}{list: The objects to be matched against.}
 
 \item{nomatch}{The value to be returned in the case when no match is found.}
+
+\item{match_fun}{function: The function to use to check for matches. The
+function must accept two arguments and return a length-one logical vector.}
 }
 \value{
 An integer vector giving the position in \code{table} of the first match

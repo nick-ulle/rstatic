@@ -33,6 +33,8 @@ function(x)
 #' @param x list or object: The object(s) to be matched.
 #' @param table list: The objects to be matched against.
 #' @param nomatch The value to be returned in the case when no match is found.
+#' @param match_fun function: The function to use to check for matches. The
+#' function must accept two arguments and return a length-one logical vector.
 #'
 #' @return An integer vector giving the position in `table` of the first match
 #' if there is a match, otherwise `nomatch`.
@@ -40,7 +42,7 @@ function(x)
 #' @seealso [base::match()]
 #' @export
 match_object =
-function(x, table, nomatch = NA_integer_)
+function(x, table, nomatch = NA_integer_, match_fun = identical)
 {
   UseMethod("match_object")
 }
@@ -48,18 +50,18 @@ function(x, table, nomatch = NA_integer_)
 
 #' @export
 match_object.list =
-function(x, table, nomatch = NA_integer_)
+function(x, table, nomatch = NA_integer_, match_fun = identical)
 {
-  vapply(x, match_object.default, NA_integer_, table, nomatch)
+  vapply(x, match_object.default, NA_integer_, table, nomatch, match_fun)
 }
 
 
 #' @export
 match_object.default =
-function(x, table, nomatch = NA_integer_)
+function(x, table, nomatch = NA_integer_, match_fun = identical)
 {
   for (i in seq_along(table))
-    if (x == table[[i]])
+    if (match_fun(x, table[[i]]))
       return (i)
 
   as.integer(nomatch)
