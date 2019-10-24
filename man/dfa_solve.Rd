@@ -4,21 +4,18 @@
 \alias{dfa_solve}
 \title{Solve a Data Flow Analysis}
 \usage{
-dfa_solve(cfg, initial, gen, kill, forward = TRUE, confluence = `|`,
-  ..., update = dfa_standard_update, full_analysis = TRUE,
+dfa_solve(cfg, initial, gk_list, forward = TRUE, confluence = `|`,
+  update = dfa_standard_update, ..., aggregate = FALSE,
   max_iter = 1000L)
 }
 \arguments{
 \item{cfg}{(BlockList) A control flow graph with which to compute a
 solution.}
 
-\item{initial}{Initial guess of solution for each block.}
+\item{initial}{(logical matrix) Initial guess of solution for each block.}
 
-\item{gen}{(logical matrix) The gen sets as a logical matrix. Rows
-correspond to items and columns correspond to blocks.}
-
-\item{kill}{(logical matrix) The kill sets as a logical matrix. Rows
-correspond to items and columns correspond to blocks.}
+\item{gk_list}{(list of GenKillSets) A list of the gen and kill sets for
+each block.}
 
 \item{forward}{(logical) Is this a forward data flow analysis? If \code{FALSE},
 the solver will traverse the control flow graph backward.}
@@ -26,23 +23,27 @@ the solver will traverse the control flow graph backward.}
 \item{confluence}{(function) A function to combine sets at a merge in
 control flow. Defaults to \code{|}, which unions the sets.}
 
-\item{...}{Additional arguments to \code{update}.}
-
 \item{update}{(function) A function to update a block's set based on the gen
 and kill sets. Defaults to \code{dfa_standard_update}.}
 
-\item{full_analysis}{(logical) If \code{FALSE}, either the entry sets or exit
-sets are computed, but not both. Entry sets are always computed for a
-forward analysis, and exit sets are always computed for a backward analysis.}
+\item{...}{Additional arguments to \code{update}.}
+
+\item{aggregate}{(logical) Aggregate results to the block-level?}
 
 \item{max_iter}{(integer) Maximum number of iterations to run.}
 }
 \value{
-A two-element list. The first element, "entry", is a logical matrix
-that represents the solution sets at the entry of each block. The second
-element, "exit", is a logical matrix that represents the solution sets at
-the exit of each block. For both matrices, rows correspond to set items and
-columns correspond to blocks.
+If \code{aggregate = FALSE} (the default), a list of logical matrices.
+Each list element corresponds to one block in \code{cfg}. For each matrix, rows
+correspond to set items. Columns represent entry sets for lines in the
+block; the last column is the exit set for the last line (equivalently, for
+the block).
+
+If \code{aggregate = TRUE}, a two-element list. The first element, "entry", is a
+logical matrix that represents the solution sets at the entry of each block.
+The second element, "exit", is a logical matrix that represents the solution
+sets at the exit of each block. For both matrices, rows correspond to set
+items and columns correspond to blocks.
 }
 \description{
 This function finds a solution to a data flow analysis.
@@ -52,5 +53,5 @@ This function uses the iterative maximal fixed point algorithm to find a
 solution. The solution is not necessarily unique.
 }
 \seealso{
-\code{\link[=dfa_gen_kill]{dfa_gen_kill()}}, \code{\link[=dfa_standard_update]{dfa_standard_update()}}
+\code{\link[=dfa_initialize]{dfa_initialize()}}, \code{\link[=dfa_gen_kill]{dfa_gen_kill()}}, \code{\link[=dfa_standard_update]{dfa_standard_update()}}
 }

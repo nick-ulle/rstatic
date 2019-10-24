@@ -4,12 +4,9 @@
 \alias{dfa_gen_kill}
 \title{Compute Gen and Kill Sets for Data Flow Analysis}
 \usage{
-dfa_gen_kill(cfg, fun, universe, forward = TRUE, ...)
+dfa_gen_kill(x, fun, universe, ...)
 }
 \arguments{
-\item{cfg}{(BlockList) A control flow graph on which to compute gen and kill
-sets.}
-
 \item{fun}{(function) A function which accepts an \code{ASTNode} and returns a
 list with elements named \code{gen} and \code{kill}. Each element should be a logical
 vector with the same length as \code{universe}.}
@@ -18,6 +15,9 @@ vector with the same length as \code{universe}.}
 used in the analysis.}
 
 \item{...}{Additional arguments to \code{fun}.}
+
+\item{cfg}{(BlockList) A control flow graph on which to compute gen and kill
+sets.}
 }
 \value{
 A two-element list. The first element, "gen", is a logical matrix

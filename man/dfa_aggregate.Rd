@@ -2,28 +2,28 @@
 % Please edit documentation in R/flow_analysis.R
 \name{dfa_aggregate}
 \alias{dfa_aggregate}
-\title{Aggregate Data Flow Analysis Sets to Block-level}
+\title{Aggregate Data Flow Analysis Gen and Kill Sets to Block-level}
 \usage{
-dfa_aggregate(gen, kill, forward = TRUE, update = dfa_standard_update)
+dfa_aggregate(gk_list, forward = TRUE, ...)
 }
 \arguments{
-\item{gen}{(logical matrix) Gen sets for each line.}
-
-\item{kill}{(logical matrix) Kill sets for each line.}
-
 \item{forward}{(logical) Should sets be aggregated forward (first to last
 line) or backward (last to first line)?}
 
-\item{update}{(function) A function to compute the update set for a block.}
+\item{...}{Additional arguments to \code{\link[=dfa_propagate]{dfa_propagate()}}.}
+
+\item{gen}{(logical matrix) Gen sets for each line.}
+
+\item{kill}{(logical matrix) Kill sets for each line.}
 }
 \value{
 A logical vector with \code{nrow(gen)} elements. The set computed by
 aggregating over all of the line-level sets.
 }
 \description{
-This function takes line-level sets from a data flow analysis and aggregates
-them to block-level by sequential application of the update function.
+This function aggregates line-level gen and kill sets for a data flow
+analysis to block-level by propagating them through the block.
 }
 \seealso{
-\code{\link[=dfa_standard_update]{dfa_standard_update()}}
+\code{\link[=dfa_propagate]{dfa_propagate()}}, \code{\link[=dfa_standard_update]{dfa_standard_update()}}
 }
