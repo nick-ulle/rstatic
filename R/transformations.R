@@ -3,40 +3,42 @@
 #' This function replaces an ASTNode object in its parent expression with
 #' another ASTNode object.
 #'
-#' With the default arguments, this is an in-place transformation and has side
-#' effects!
+#' By default, this is an in-place transformation that modifies `node` as a
+#' side effect!
 #'
-#' Only the first node `identical()` to `node` is replaced.
+#' This function only searches the immediate children of `node` for matches,
+#' and only replaces the first match. To search all descendants of `node`, or
+#' to replace all matches, use [replace_nodes()] instead.
 #'
-#' @param node (ASTNode) The node to replace.
-#' @param replacement (ASTNode) The replacement node.
+#' @param node (ASTNode) A node to search for matches.
+#' @param pattern (ASTNode) A node to replace.
+#' @param replacement (ASTNode) A replacement for the matched node.
 #' @param in_place (logical) If `FALSE`, parent of `node` is copied before
 #' replacement.
+#' @param ... Additional arguments to [match_object()].
 #'
-#' @return The parent node, after replacement.
+#' @return The node after replacement.
 #'
+#' @seealso [replace_nodes()]
 #' @examples
 #' node = quote_ast(x <- a + b)
 #' ab = node$read
-#' replace_in_parent(node, Symbol$new("t"))
+#' replace_in(node, ab, Symbol$new("t"))
 #' @export
-replace_in_parent =
-function(node, replacement, in_place = TRUE)
+replace_in =
+function(node, pattern, replacement, in_place = TRUE, ...)
 {
-  parent = node$parent
-
-  # Find the node in its parent.
-  m = match_object(node, children(parent), 0L)
+  m = match_object(pattern, children(node), 0L, ...)
   if (m == 0L)
-    stop("Could not find node in parent.")
+    stop("Could not find pattern in node.")
 
   if (!in_place)
-    parent = copy(parent)
+    node = copy(node)
 
   # TODO: This may not be the right way index if we change [[ to do
   # language-object-style subsetting.
-  parent[[m]] = replacement
-  parent
+  node[[m]] = replacement
+  node
 }
 
 
