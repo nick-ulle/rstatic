@@ -27,8 +27,72 @@ function(node
   dominators = igraph::adjacent_vertices(dom_f, V(dom_f), "in")
 
   # Get definitions and live variables for each block.
-  du = def_use_sets(node, by_block = TRUE, only_undefined_uses = TRUE)
-  live = live_variables(node, cfg, du, full_analysis = TRUE)[["entry"]]
+  # FIXME: >>>>>
+  #du = def_use_sets(node, by_block = TRUE, only_undefined_uses = TRUE)
+  #live = live_variables(node, cfg, du, full_analysis = TRUE)[["entry"]]
+
+  # FIXME: BEGIN HACKY CODE ----------------------------------------
+  # What follows is a hack to make the new functions for data flow analysis
+  # appear to return the old data structures. Eventually the to_ssa() function
+  # should be modified to work with the new data structures, so that this hack
+  # can be removed.
+  if (is(node, "Function"))
+    bod = node$body
+  else
+    bod = node
+
+  # Extract set of all symbols
+  symbols = find_nodes(bod, is_symbol)
+  names = vapply(symbols, toString, NA_character_)
+  
+  uni = !duplicated(names)
+  symbols = symbols[uni]
+  names = names[uni]
+  names(symbols) = names
+  
+  # Initialize the result sets
+  init = dfa_initialize(bod, symbols, FALSE)
+  
+  # Extract the kill and gen sets
+  sym_sets =
+  function(node, lookup, ...)
+  {
+    names = names(lookup)
+    symsets = get_symbols(node)
+  
+    # A kill is a variable definition.
+    defs = names_defined(symsets)
+    kill = match(names, defs, 0) > 0
+  
+    # A gen is a variable use.
+    uses = names_used(symsets)
+    gen = match(names, uses, 0) > 0
+  
+    # If the line is something like x = x + 1, the variable is live but
+    # immediately gets killed. So both are true.
+    list(gen = gen, kill = kill)
+  }
+
+  du = dfa_gen_kill(bod, sym_sets, symbols)
+  live = dfa_solve(bod, init, du, forward = FALSE, aggregate = TRUE)
+
+  # Convert du to the old format for the hack.
+  du = lapply(du, function(x) {
+    def = rownames(x@kill)[row_ors(x@kill)]
+    use = rownames(x@gen)[row_ors(x@gen)]
+    list(def = def, use = use)
+  })
+  def = lapply(du, `[[`, 1L)
+  use = lapply(du, `[[`, 2L)
+  du = list(def = def, use = use)
+
+  # Convert live to the old format for the hack.
+  entry = live$entry
+  live = list()
+  for (i in seq_len(ncol(entry))) {
+    live[[i]] = rownames(entry)[entry[, i]]
+  }
+  # FIXME: END HACKY FIX ----------------------------------------
 
   if (!in_place)
     node = copy(node)
