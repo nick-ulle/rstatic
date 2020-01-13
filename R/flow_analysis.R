@@ -185,7 +185,7 @@ function(gk_list, forward = TRUE, ...)
 {
   gen1 = gk_list[[1L]]@gen
   n_items = nrow(gen1)
-  n_blocks = length(gk)
+  n_blocks = length(gk_list)
 
   gen = matrix(NA, n_items, n_blocks)
   kill = matrix(NA, n_items, n_blocks)
