@@ -1,5 +1,13 @@
 # rstatic
 
+> [!IMPORTANT]
+> This package is in hibernation: inactive, although I might revisit it in the
+> future.
+>
+> In the meantime, check out [flowr][] for your R code analysis needs.
+
+[flowr]: https://github.com/Code-Inspect/flowr/
+
 __rstatic__ is a package that makes it easier to analyze R code. These are the
 guiding principles:
 
